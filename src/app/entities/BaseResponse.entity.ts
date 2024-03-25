@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 
 type status = "success"|"error";
 
-export class HealthResponse {
+export class BaseResponse {
     @ApiProperty({ required: true })
     message: string;
 

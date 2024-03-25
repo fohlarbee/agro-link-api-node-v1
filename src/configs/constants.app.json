@@ -1,0 +1,7 @@
+{
+    "ROLES": {
+        "ADMIN": "admin",
+        "CUSTOMER": "customer",
+        "VENDOR": "vendor"
+    }
+}
