@@ -1,18 +1,20 @@
-import { BadRequestException, Body, Controller, Headers, Post, Request, UnauthorizedException, UseInterceptors } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { BadRequestException, Body, Controller, Headers, HttpCode, HttpStatus, Post, Request, UnauthorizedException, UseInterceptors } from '@nestjs/common';
+import { ApiCreatedResponse, ApiHeaders, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthEntity } from './entity/auth.entity';
 import { AuthDto } from './dto/auth.dto';
 import { HeadersInterceptor } from './interceptors/headers.interceptor';
 
 @Controller('auth')
-@ApiTags('auth')
+@ApiTags('Authentication')
 @UseInterceptors(HeadersInterceptor)
+@ApiHeaders([{ name: "cm-user-role", required: true, description: "This is role of the user to be signed"}])
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  @ApiOkResponse({ type: AuthEntity })
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: AuthEntity, status: HttpStatus.OK })
   login(@Body() { email, password }: AuthDto, @Request() { userRole }: Record<string, any>) {
     return this.authService.login(email, password, userRole);
   }

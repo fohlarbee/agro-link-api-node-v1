@@ -29,4 +29,23 @@ model User {
   role      Role     @relation(fields: [roleId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relationships
+
+  restaurant Restaurant?
+}
+
+model Restaurant {
+  id          Int      @id @default(autoincrement())
+  name        String
+  cacNumber   String   @db.VarChar(20)
+  address     String
+  phoneNumber String
+  email       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  ownerId Int  @unique
+  owner   User @relation(fields: [ownerId], references: [id])
 }

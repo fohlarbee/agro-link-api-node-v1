@@ -5,8 +5,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategy/jwt.strategy';
-import { HeadersInterceptor } from './interceptors/headers.interceptor';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [
