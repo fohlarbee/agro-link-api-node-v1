@@ -46,6 +46,33 @@ model Restaurant {
   updatedAt   DateTime @updatedAt
 
   // Relationships
-  ownerId Int  @unique
-  owner   User @relation(fields: [ownerId], references: [id])
+  ownerId Int    @unique
+  owner   User   @relation(fields: [ownerId], references: [id])
+  menus   Menu[]
+}
+
+model Menu {
+  id        Int      @id @default(autoincrement())
+  name      String   @default("All")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  restaurantId Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  meals Meal[]
+}
+
+model Meal {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Float
+  image     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  menuId Int
+  menu   Menu @relation(fields: [menuId], references: [id])
 }
