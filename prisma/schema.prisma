@@ -33,6 +33,7 @@ model User {
   // Relationships
 
   restaurant Restaurant?
+  orders     Order[]
 }
 
 model Restaurant {
@@ -46,9 +47,10 @@ model Restaurant {
   updatedAt   DateTime @updatedAt
 
   // Relationships
-  ownerId Int    @unique
-  owner   User   @relation(fields: [ownerId], references: [id])
+  ownerId Int     @unique
+  owner   User    @relation(fields: [ownerId], references: [id])
   menus   Menu[]
+  orders  Order[]
 }
 
 model Menu {
@@ -75,4 +77,42 @@ model Meal {
   // Relationships
   menuId Int
   menu   Menu @relation(fields: [menuId], references: [id])
+
+  orders OrderMeal[]
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  status      OrderStatus @default(active)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  completedAt DateTime?
+
+  // Relationships
+  customerId   Int
+  customer     User       @relation(fields: [customerId], references: [id])
+  restaurantId Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  meals OrderMeal[]
+}
+
+enum OrderStatus {
+  active
+  paid
+  in_queue
+  completed
+}
+
+model OrderMeal {
+  quantity Int
+
+  // relationships
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id])
+  mealId  Int
+  meal    Meal  @relation(fields: [mealId], references: [id])
+
+  // Compound key
+  @@id([orderId, mealId])
 }
