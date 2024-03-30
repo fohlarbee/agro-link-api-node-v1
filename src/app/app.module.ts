@@ -6,6 +6,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { RestaurantModule } from 'src/restaurant/restaurant.module';
 import { FilesModule } from 'src/files/files.module';
 import { MenuModule } from 'src/menu/menu.module';
+import { OrderModule } from 'src/order/order.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { MenuModule } from 'src/menu/menu.module';
     FilesModule,
     MenuModule,
     RestaurantModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [],
