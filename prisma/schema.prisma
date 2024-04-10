@@ -34,6 +34,7 @@ model User {
 
   restaurant Restaurant?
   orders     Order[]
+  payments   Payment[]
 }
 
 model Restaurant {
@@ -93,6 +94,7 @@ model Order {
   customer     User       @relation(fields: [customerId], references: [id])
   restaurantId Int
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  payment      Payment?
 
   meals OrderMeal[]
 }
@@ -115,4 +117,17 @@ model OrderMeal {
 
   // Compound key
   @@id([orderId, mealId])
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  amount    Float
+  reference String   @unique
+  paidAt    DateTime
+
+  // Relationships
+  orderId Int   @unique
+  order   Order @relation(fields: [orderId], references: [id])
+  userId  Int
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

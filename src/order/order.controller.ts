@@ -71,4 +71,14 @@ export class OrderController {
     if (isNaN(mealId)) throw new BadRequestException("Invalid mealId");
     return this.orderService.removeMealOrder(+mealId, customerId, restaurantId);
   }
+
+  @Get("/pay")
+  @Roles("customer")
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @ApiBearerAuth()
+  payOrder(@Req() request){
+    const { id: customerId, email } = request.user;
+    const { id: restaurantId } = request.restaurant;
+    return this.orderService.payOrder(email, customerId, restaurantId);
+  }
 }
