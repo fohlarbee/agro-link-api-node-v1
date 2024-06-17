@@ -42,3 +42,6 @@ dist
 
 # Uploads folder
 /uploads
+
+# Dev files
+dev
