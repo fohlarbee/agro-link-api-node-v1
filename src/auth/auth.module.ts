@@ -13,7 +13,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
     JwtModule.registerAsync({
       useFactory: () => ({
         secret: process.env.JWT_SECRET,
-        signOptions: { expiresIn: '1h' },
+        signOptions: { expiresIn: process.env.JWT_DURATION },
       })
     }),
   ],
