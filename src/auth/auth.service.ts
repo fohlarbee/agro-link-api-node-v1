@@ -19,25 +19,24 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(email: string, password: string, role: Role): Promise<AuthEntity> {
-    const user = await this.prisma.user.findUnique({ where: { email, roleId: role.id } });
+  async login(email: string, password: string): Promise<AuthEntity> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    const payload = { email: user.email, sub: user.id, role: role.name };
+    const payload = { email: user.email, sub: user.id };
     return { 
       message: "Login successful", 
       data: { accessToken: this.jwtService.sign(payload) }
     };
   }
 
-  async register({ email, password }: AuthDto, role: Role): Promise<BaseResponse> {
+  async register({ email, password, name }: AuthDto): Promise<BaseResponse> {
     const existingUser = await this.prisma.user.findUnique({ where: { email }});
     if (existingUser) throw new ConflictException("Email is already registered");
-    const salt = await bcrypt.genSaltSync();
-    const hashedPassword = await bcrypt.hashSync(password, salt)
+    const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync())
     await this.prisma.user.create({ 
-      data: { email, password: hashedPassword, roleId: role.id }
+      data: { email, password: hashedPassword, name }
     });
     return {
       status: "success",

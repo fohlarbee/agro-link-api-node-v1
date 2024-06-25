@@ -5,7 +5,9 @@ import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: console,
+  });
 
   app.setGlobalPrefix('v2');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
@@ -23,7 +25,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('bankfieh/api-docs', app, document);
+  SwaggerModule.setup('bankfieh/api-docs', app, document, { explorer: true});
 
   await app.listen(process.env.PORT || 3000);
 }
