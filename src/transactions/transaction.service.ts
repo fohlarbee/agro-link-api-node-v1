@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
 import { PaystackService } from 'src/paystack/paystack.service';

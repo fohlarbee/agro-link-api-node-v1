@@ -232,3 +232,15 @@ model Payment {
   userId  Int
   user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+
+model BarItem{
+  id             Int       @id @default(autoincrement())
+  name           String
+  description    String
+  price          Int
+  image          String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt 
+
+}
