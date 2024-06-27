@@ -1,1 +1,1 @@
-export const BASE_MESSAGE = "Chopmoni services are up!";
+export const BASE_MESSAGE = 'Chopmoni services are up!';

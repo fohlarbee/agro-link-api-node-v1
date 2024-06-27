@@ -11,7 +11,9 @@ describe('RestaurantController', () => {
       providers: [RestaurantService],
     }).compile();
 
-    controller = module.get<ClientRestaurantController>(ClientRestaurantController);
+    controller = module.get<ClientRestaurantController>(
+      ClientRestaurantController,
+    );
   });
 
   it('should be defined', () => {

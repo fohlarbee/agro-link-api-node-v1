@@ -1,9 +1,26 @@
-import { Controller, Get, Post, Body, Param, Req, Put, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Req,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { RestaurantService } from './restaurant.service';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
-import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { RestaurantCreationResponse, RestaurantListResponse } from './entities/restaurant.entity';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
+  RestaurantCreationResponse,
+  RestaurantListResponse,
+} from './entities/restaurant.entity';
 import { MenuService } from 'src/menus/menu.service';
 import { OrderService } from 'src/orders/order.service';
 import { AddMealToOrderDto } from 'src/orders/dto/order-meal.dto';
@@ -13,9 +30,9 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 @ApiTags('Restaurant')
 export class ClientRestaurantController {
   constructor(
-    private readonly restaurantService: RestaurantService, 
+    private readonly restaurantService: RestaurantService,
     private readonly menuService: MenuService,
-    private readonly orderService: OrderService
+    private readonly orderService: OrderService,
   ) {}
 
   @Get()
@@ -37,12 +54,16 @@ export class ClientRestaurantController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   createOrder(
-    @Param('id') restaurantId: number, 
-    @Body() createOrderDto: AddMealToOrderDto, 
-    @Req() request)
-  {
+    @Param('id') restaurantId: number,
+    @Body() createOrderDto: AddMealToOrderDto,
+    @Req() request,
+  ) {
     const { id: customerId } = request.user;
-    return this.orderService.orderMeal(createOrderDto, +customerId, +restaurantId);
+    return this.orderService.orderMeal(
+      createOrderDto,
+      +customerId,
+      +restaurantId,
+    );
   }
 }
 
@@ -55,21 +76,35 @@ export class AdminRestaurantController {
 
   @Post()
   @ApiCreatedResponse({ type: RestaurantCreationResponse })
-  createRestaurant(@Body() createRestaurantDto: CreateRestaurantDto, @Req() request) {
+  createRestaurant(
+    @Body() createRestaurantDto: CreateRestaurantDto,
+    @Req() request,
+  ) {
     const { id: creatorId } = request.user;
-    return this.restaurantService.createRestaurant(createRestaurantDto, +creatorId);
+    return this.restaurantService.createRestaurant(
+      createRestaurantDto,
+      +creatorId,
+    );
   }
 
   @Get()
   @ApiOkResponse({ type: RestaurantListResponse })
-  findMemberRestaurants(@Req() { user: { id: userId }}: Record<string, any>,) {
+  findMemberRestaurants(@Req() { user: { id: userId } }: Record<string, any>) {
     return this.restaurantService.findStaffRestaurants(userId);
   }
 
   @Put(':id')
   @ApiOkResponse({ type: RestaurantCreationResponse })
-  updateRestaurant(@Param('id') restaurantId: string, @Req() request: Record<string, any>, @Body() updateData: UpdateRestaurantDto) {
+  updateRestaurant(
+    @Param('id') restaurantId: string,
+    @Req() request: Record<string, any>,
+    @Body() updateData: UpdateRestaurantDto,
+  ) {
     const { id: userId } = request.user;
-    return this.restaurantService.updateRestaurant(+restaurantId, userId, updateData);
+    return this.restaurantService.updateRestaurant(
+      +restaurantId,
+      userId,
+      updateData,
+    );
   }
 }

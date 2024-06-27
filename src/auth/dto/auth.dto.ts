@@ -14,7 +14,7 @@ export class LoginDto {
   password: string;
 }
 
-export class AuthDto extends LoginDto  {
+export class AuthDto extends LoginDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(3)

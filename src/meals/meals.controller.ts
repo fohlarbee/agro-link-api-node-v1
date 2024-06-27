@@ -1,12 +1,29 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, BadRequestException, Put, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Req,
+  Put,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { MealsService } from './meals.service';
 import { CreateMealDto } from './dto/create-meal.dto';
 import { UpdateMealDto } from './dto/update-meal.dto';
-import { ApiBearerAuth, ApiCreatedResponse, ApiHeader, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiHeader,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-access.interceptor';
 
 @Controller('meals')
-@ApiTags("Meals")
+@ApiTags('Meals')
 export class MealsController {
   constructor(private readonly mealsService: MealsService) {}
 
@@ -21,16 +38,16 @@ export class MealsController {
   // }
 }
 
-
 @Controller('admin/meals')
-@ApiTags("Meals (Admin)")
+@ApiTags('Meals (Admin)')
 @ApiHeader({
-  name: "business_id", 
-  required: true, 
-  description: "This is the business id", 
+  name: 'business_id',
+  required: true,
+  description: 'This is the business id',
 })
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@UseInterceptors(RestaurantAccessInterceptor)
 export class AdminMealsController {
   constructor(private readonly mealsService: MealsService) {}
 
@@ -51,13 +68,18 @@ export class AdminMealsController {
     // });
     const meals = await this.mealsService.findAll(+business_id);
     return {
-      message: "Menu fetch successful",
-      status: "success", data: meals    
+      message: 'Menu fetch successful',
+      status: 'success',
+      data: meals,
     };
   }
 
   @Put('/:id')
-  update(@Param('id') id: string, @Body() updateMealDto: UpdateMealDto, @Req() request) {
+  update(
+    @Param('id') id: string,
+    @Body() updateMealDto: UpdateMealDto,
+    @Req() request,
+  ) {
     const { business_id } = request.headers;
     return this.mealsService.update(+id, updateMealDto, +business_id);
   }

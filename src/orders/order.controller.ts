@@ -1,14 +1,18 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards, Req, UseInterceptors, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+  BadRequestException,
+} from '@nestjs/common';
 import { OrderService } from './order.service';
-import { AddMealToOrderDto } from './dto/order-meal.dto';
-import { Roles } from 'src/auth/roles/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RoleGuard } from 'src/auth/role/role.guard';
-import { ApiBearerAuth, ApiHeader, ApiTags } from '@nestjs/swagger';
-import { HeadersInterceptor } from './interceptors/headers.interceptor';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @Controller('orders')
-@ApiTags("Orders")
+@ApiTags('Orders')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class OrderController {
@@ -21,7 +25,7 @@ export class OrderController {
   }
 
   @Get('/:id')
-  async findOrder(@Param('id') orderId: number,  @Req() request) {
+  async findOrder(@Param('id') orderId: number, @Req() request) {
     const { id: customerId } = request.user;
     return this.orderService.findOrder(customerId, +orderId);
   }
@@ -39,22 +43,27 @@ export class OrderController {
     // });
 
     const history = await this.orderService.findOrderHistory(customerId);
-    
+
     return {
-      message: "Order history fetch successful",
-      status: "success", data: history
+      message: 'Order history fetch successful',
+      status: 'success',
+      data: history,
     };
   }
 
   @Delete(':id/:mealId')
-  remove(@Param('id') orderId: number, @Param('mealId') mealId: number, @Req() request) {
+  remove(
+    @Param('id') orderId: number,
+    @Param('mealId') mealId: number,
+    @Req() request,
+  ) {
     const { id: customerId } = request.user;
-    if (isNaN(mealId)) throw new BadRequestException("Invalid mealId");
+    if (isNaN(mealId)) throw new BadRequestException('Invalid mealId');
     return this.orderService.removeMealOrder(+mealId, +customerId, +orderId);
   }
 
-  @Get("/pay")
-  payOrder(@Req() request){
+  @Get('/pay')
+  payOrder(@Req() request) {
     const { id: customerId, email } = request.user;
     const { id: restaurantId } = request.restaurant;
     return this.orderService.payOrder(email, customerId, restaurantId);

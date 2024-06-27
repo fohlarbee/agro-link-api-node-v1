@@ -28,7 +28,7 @@ import { MealsModule } from 'src/meals/meals.module';
     OrderModule,
     ShiftsModule,
     StaffsModule,
-    TransactionModule
+    TransactionModule,
   ],
   controllers: [AppController],
   providers: [],
