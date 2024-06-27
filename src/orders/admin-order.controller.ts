@@ -1,21 +1,25 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards, Req, UseInterceptors, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Req,
+  UseInterceptors,
+} from '@nestjs/common';
 import { OrderService } from './order.service';
-import { AddMealToOrderDto } from './dto/order-meal.dto';
-import { Roles } from 'src/auth/roles/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RoleGuard } from 'src/auth/role/role.guard';
 import { ApiBearerAuth, ApiHeader, ApiTags } from '@nestjs/swagger';
-import { HeadersInterceptor } from './interceptors/headers.interceptor';
+import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-access.interceptor';
 
 @Controller('admin/orders')
-@ApiTags("Orders (Admin)")
+@ApiTags('Orders (Admin)')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@ApiHeader({ 
-  name: "business_id", 
-  required: true, 
-  description: "This is the business id", 
+@ApiHeader({
+  name: 'business_id',
+  required: true,
+  description: 'This is the business id',
 })
+@UseInterceptors(RestaurantAccessInterceptor)
 export class AdminOrderController {
   constructor(private readonly orderService: OrderService) {}
 
@@ -30,10 +34,15 @@ export class AdminOrderController {
     //   });
     //   return order;
     // });
-    const orders = await this.orderService.fetchPaidOrders(ownerId, +restaurantId)
-    
+    const orders = await this.orderService.fetchPaidOrders(
+      ownerId,
+      +restaurantId,
+    );
+
     return {
-      message: "Orders fetch successful", status: "success", data: orders
+      message: 'Orders fetch successful',
+      status: 'success',
+      data: orders,
     };
   }
 }

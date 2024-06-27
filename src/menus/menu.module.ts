@@ -6,6 +6,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Module({
   controllers: [MenuController],
   providers: [MenuService, PrismaService],
-  exports: [MenuService]
+  exports: [MenuService],
 })
 export class MenuModule {}

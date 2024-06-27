@@ -16,7 +16,6 @@ async function bootstrap() {
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
-
   const config = new DocumentBuilder()
     .setTitle('Chopmoni')
     .setDescription('Chopmoni api documentation')
@@ -25,7 +24,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('bankfieh/api-docs', app, document, { explorer: true});
+  SwaggerModule.setup('bankfieh/api-docs', app, document, { explorer: true });
 
   await app.listen(process.env.PORT || 3000);
 }

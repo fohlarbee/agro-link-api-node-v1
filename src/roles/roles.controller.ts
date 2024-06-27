@@ -1,26 +1,43 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Req,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
-import { ApiBearerAuth, ApiHeader, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { RoleCreationResponse, RoleListResponse } from './entities/role.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-access.interceptor';
 
 @Controller('admin/roles')
-@ApiTags("Roles")
+@ApiTags('Roles')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@ApiHeader({ 
-  name: "business_id", 
-  required: true, 
-  description: "This is the restaurant's id", 
+@ApiHeader({
+  name: 'business_id',
+  required: true,
+  description: "This is the restaurant's id",
 })
+@UseInterceptors(RestaurantAccessInterceptor)
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
   @ApiOkResponse({ type: RoleCreationResponse })
-  create(@Body() createRoleDto: CreateRoleDto, @Req() request: Record<string, any>) {
+  create(
+    @Body() createRoleDto: CreateRoleDto,
+    @Req() request: Record<string, any>,
+  ) {
     const { business_id } = request.headers;
     return this.rolesService.createRole(+business_id, createRoleDto);
   }

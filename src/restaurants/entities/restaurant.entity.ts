@@ -5,55 +5,53 @@ import { Type } from 'class-transformer';
 import { ValidateNested } from 'class-validator';
 
 class RestaurantEntity implements Restaurant {
-    @ApiProperty()
-    id: number;
+  @ApiProperty()
+  id: number;
 
-    @ApiProperty({ required: true, minLength: 5 })
-    name: string
+  @ApiProperty({ required: true, minLength: 5 })
+  name: string;
 
-    @ApiProperty({ required: true, minLength: 8, maxLength: 9 })
-    cacNumber: string
+  @ApiProperty({ required: true, minLength: 8, maxLength: 9 })
+  cacNumber: string;
 
-    @ApiProperty({ required: true })
-    phoneNumber: string
+  @ApiProperty({ required: true })
+  phoneNumber: string;
 
-    @ApiProperty({ required: false })
-    email: string
+  @ApiProperty({ required: false })
+  email: string;
 
-    @ApiProperty()
-    createdAt: Date;
+  @ApiProperty()
+  createdAt: Date;
 
-    @ApiProperty()
-    updatedAt: Date;
+  @ApiProperty()
+  updatedAt: Date;
 
-    @ApiProperty()
-    creatorId: number;
+  @ApiProperty()
+  creatorId: number;
 }
 
 export class RestaurantCreationResponse extends BaseResponse {
-    @Type(() => RestaurantEntity)
-    @ApiProperty()
-    @ValidateNested()
-    data: { restaurant: RestaurantEntity }
+  @Type(() => RestaurantEntity)
+  @ApiProperty()
+  @ValidateNested()
+  data: { restaurant: RestaurantEntity };
 }
 class RestaurantListEntity implements Partial<Restaurant> {
-    @ApiProperty({ readOnly: true })
-    id: number;
+  @ApiProperty({ readOnly: true })
+  id: number;
 
-    @ApiProperty({ required: true, readOnly: true })
-    name: string
+  @ApiProperty({ required: true, readOnly: true })
+  name: string;
 
-    @ApiProperty({ required: true, readOnly: true })
-    address: string
+  @ApiProperty({ required: true, readOnly: true })
+  address: string;
 
-    @ApiProperty({ required: true, readOnly: true })
-    phoneNumber: string
+  @ApiProperty({ required: true, readOnly: true })
+  phoneNumber: string;
 }
 
 export class RestaurantListResponse extends BaseResponse {
-    @ValidateNested()
-    @ApiProperty({ isArray: true })
-    data: RestaurantListEntity
+  @ValidateNested()
+  @ApiProperty({ isArray: true })
+  data: RestaurantListEntity;
 }
-
-

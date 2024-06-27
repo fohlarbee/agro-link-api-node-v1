@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { BASE_MESSAGE } from 'src/configs/messages';
 
-
 describe('AppController', () => {
   let appController: AppController;
 

@@ -4,19 +4,17 @@ import { ValidateNested } from 'class-validator';
 
 class AccessToken {
   @ApiProperty()
-  accessToken: string
+  accessToken: string;
 }
 
 export class AuthEntity {
   @ApiProperty()
   message: string;
-  
+
   @Type(() => AccessToken)
   @ApiProperty()
   @ValidateNested()
-  data: AccessToken
+  data: AccessToken;
 }
 
-export class SignupResponseEntity {
-  
-}
+export class SignupResponseEntity {}
