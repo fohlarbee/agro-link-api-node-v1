@@ -200,7 +200,6 @@ model Order {
   hotelId      Int?
   hotel        Hotel?      @relation(fields: [hotelId], references: [id])
 
-  // hotel       Hotel?      @relation(fields: [hotelId], references: [id])
 }
 
 enum OrderStatus {
