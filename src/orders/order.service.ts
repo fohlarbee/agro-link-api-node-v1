@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   BadRequestException,
   Injectable,
@@ -95,6 +96,7 @@ export class OrderService {
         restaurant: { connect: { id: restaurantId } },
         table: { connect: { id: table.id } },
         shift: { connect: { id: shiftId } },
+        tip:4000,
         waiter: {
           connect: {
             userId_restaurantId: { userId: waiterId, restaurantId },

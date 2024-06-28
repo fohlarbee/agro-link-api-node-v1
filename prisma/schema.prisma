@@ -196,6 +196,10 @@ model Order {
   waiterId     Int
   waiter       Staff       @relation(fields: [waiterId, restaurantId], references: [userId, restaurantId])
   meals        OrderMeal[]
+  hotelId      Int?
+  hotel        Hotel?      @relation(fields: [hotelId], references: [id])
+
+
 }
 
 enum OrderStatus {
@@ -232,3 +236,49 @@ model Payment {
   userId  Int
   user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+
+
+model BarItems {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  price       Int
+  image       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  //relationships
+  barId Int
+  bar   Bar @relation(fields: [barId], references: [id])
+}
+
+
+model Hotel {
+  id          Int      @id @default(autoincrement())
+  name        String
+  cacNumber   String   @db.VarChar(20)
+  phoneNumber String
+  email       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  orders Order[]
+}
+
+
+
+model Bar {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String
+  price       Int
+  image       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  //relationships
+  bars BarItems[]
+}
+
