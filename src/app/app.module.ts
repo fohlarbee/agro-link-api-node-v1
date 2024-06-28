@@ -15,6 +15,8 @@ import { RolesModule } from 'src/roles/roles.module';
 import { OutletsModule } from 'src/outlets/outlets.module';
 import { MealsModule } from 'src/meals/meals.module';
 import { BarModule } from 'src/bar/bar.module';
+import { HotelsModule } from 'src/hotels/hotels.module';
+import { BarItemsModule } from 'src/bar-items/barItems.module';
 
 @Module({
   imports: [
@@ -31,14 +33,9 @@ import { BarModule } from 'src/bar/bar.module';
     ShiftsModule,
     StaffsModule,
     TransactionModule,
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
+    BarModule,
+    HotelsModule,
     BarItemsModule
->>>>>>> d846499 (Prisma relationship conflict)
-=======
-    BarModule
->>>>>>> d34f7f9 (fixed the Hotel, Bar, BarItems and Orders relationship conflicts)
   ],
   controllers: [AppController],
   providers: [],

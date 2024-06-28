@@ -243,13 +243,13 @@ model BarItems {
   id          Int      @id @default(autoincrement())
   name        String
   description String
-  price       Int
+  price       Float
   image       String
+  barId Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   //relationships
-  barId Int
   bar   Bar @relation(fields: [barId], references: [id])
 }
 
@@ -264,7 +264,7 @@ model Hotel {
   updatedAt   DateTime @updatedAt
 
   // Relationships
-  orders Order[]
+  orders     Order[]
 }
 
 
