@@ -104,7 +104,7 @@ export class OrderService {
           restaurant: { connect: { id: restaurantId } },
           table: { connect: { id: table.id }},
           shift: { connect: { id: shiftId }},
-      
+          tip:3000,
           waiter: { connect: {
             userId_restaurantId: { userId: waiterId, restaurantId }
           }}

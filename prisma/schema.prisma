@@ -48,9 +48,6 @@ model Restaurant {
   staffs    Staff[]
   outlets   Outlet[]
   shifts    Shift[]
-  // hotelId    Int?      
-  // hotel      Hotel?   @relation(fields: [hotelId], references: [id])
-  // hotel     Hotel?     @relation(fields: [hotelId], references: [id])
 }
 
 model Role {
@@ -182,13 +179,10 @@ model Order {
   id          Int         @id @default(autoincrement())
   status      OrderStatus @default(active)
   createdAt   DateTime    @default(now())
+  tip         Float
   paidAt      DateTime?
   completedAt DateTime?
   cancelledAt DateTime?
-  tip          Float
-  tipsForOrder   Int      @default(autoincrement())
-
-
 
   // Relationships
   customerId   Int
@@ -206,7 +200,7 @@ model Order {
   hotelId      Int?
   hotel        Hotel?      @relation(fields: [hotelId], references: [id])
 
-
+  // hotel       Hotel?      @relation(fields: [hotelId], references: [id])
 }
 
 enum OrderStatus {
@@ -288,4 +282,3 @@ model Bar {
   //relationships
   bars BarItems[]
 }
-
