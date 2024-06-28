@@ -1,9 +1,13 @@
 /* eslint-disable prettier/prettier */
+<<<<<<< HEAD
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+=======
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+>>>>>>> d846499 (Prisma relationship conflict)
 import * as bcrypt from 'bcrypt';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -121,4 +125,16 @@ export class StaffsService {
       data: { staff },
     };
   }
+<<<<<<< HEAD
+=======
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  update(id: number, updateStaffDto: UpdateStaffDto) {
+    return `This action updates a #${id} staff`;
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} staff`;
+  }
+>>>>>>> d846499 (Prisma relationship conflict)
 }

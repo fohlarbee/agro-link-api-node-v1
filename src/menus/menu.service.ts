@@ -1,5 +1,13 @@
 /* eslint-disable prettier/prettier */
+<<<<<<< HEAD
 import { Injectable, NotFoundException } from '@nestjs/common';
+=======
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {  Injectable, NotFoundException } from '@nestjs/common';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { CreateMealDto } from '../meals/dto/create-meal.dto';
+import { UpdateMealDto } from '../meals/dto/update-meal.dto';
+>>>>>>> d846499 (Prisma relationship conflict)
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()

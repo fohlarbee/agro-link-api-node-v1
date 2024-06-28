@@ -48,6 +48,9 @@ model Restaurant {
   staffs    Staff[]
   outlets   Outlet[]
   shifts    Shift[]
+  // hotelId    Int?      
+  // hotel      Hotel?   @relation(fields: [hotelId], references: [id])
+  // hotel     Hotel?     @relation(fields: [hotelId], references: [id])
 }
 
 model Role {
@@ -182,6 +185,10 @@ model Order {
   paidAt      DateTime?
   completedAt DateTime?
   cancelledAt DateTime?
+  tip          Float
+  tipsForOrder   Int      @default(autoincrement())
+
+
 
   // Relationships
   customerId   Int

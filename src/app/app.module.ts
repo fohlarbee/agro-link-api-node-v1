@@ -14,6 +14,7 @@ import { StaffsModule } from 'src/staffs/staffs.module';
 import { RolesModule } from 'src/roles/roles.module';
 import { OutletsModule } from 'src/outlets/outlets.module';
 import { MealsModule } from 'src/meals/meals.module';
+import { BarItemsModule } from 'src/barItems/barItems.module';
 
 @Module({
   imports: [
@@ -30,6 +31,10 @@ import { MealsModule } from 'src/meals/meals.module';
     ShiftsModule,
     StaffsModule,
     TransactionModule,
+<<<<<<< HEAD
+=======
+    BarItemsModule
+>>>>>>> d846499 (Prisma relationship conflict)
   ],
   controllers: [AppController],
   providers: [],

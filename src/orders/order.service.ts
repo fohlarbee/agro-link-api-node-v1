@@ -1,10 +1,14 @@
 /* eslint-disable prettier/prettier */
+<<<<<<< HEAD
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+=======
+import { BadRequestException, Injectable, NotFoundException,UnprocessableEntityException } from '@nestjs/common';
+>>>>>>> d846499 (Prisma relationship conflict)
 import { AddMealToOrderDto } from './dto/order-meal.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { OrderStatus } from '@prisma/client';
@@ -76,10 +80,35 @@ export class OrderService {
           where: {
             shift: {
               startTime: { lte: new Date() },
+<<<<<<< HEAD
               endTime: { gte: new Date() },
             },
           },
           select: { shift: true },
+=======
+              endTime: { gte: new Date() } 
+            }},
+            select: { shift: true }
+          }
+        }
+      });
+    
+    if (!table) throw new BadRequestException("Invalid table selected");
+    if (table.assignedShifts.length < 1) throw new UnprocessableEntityException("No waiter to take your order at this moment");
+    const { id: shiftId, userId: waiterId } = table.assignedShifts[0].shift;
+    return this.prisma
+      .order
+      .create({
+        data: { 
+          customer: { connect: { id: customerId } }, 
+          restaurant: { connect: { id: restaurantId } },
+          table: { connect: { id: table.id }},
+          shift: { connect: { id: shiftId }},
+      
+          waiter: { connect: {
+            userId_restaurantId: { userId: waiterId, restaurantId }
+          }}
+>>>>>>> d846499 (Prisma relationship conflict)
         },
       },
     });
