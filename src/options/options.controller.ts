@@ -11,9 +11,10 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { MealsService } from './meals.service';
-import { CreateMealDto } from './dto/create-meal.dto';
-import { UpdateMealDto } from './dto/update-meal.dto';
+import { OptionService } from './options.service';
+import { CreateOptionDto } from './dto/create-option.dto';
+import { UpdateOptionDto } from './dto/update-option.dto';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -26,8 +27,8 @@ import { BusinessAccessInterceptor } from 'src/transactions/interceptors/busines
 
 @Controller('meals')
 @ApiTags('Meals')
-export class MealsController {
-  constructor(private readonly mealsService: MealsService) {}
+export class OptionController {
+  constructor(private readonly mealsService: OptionService) {}
 
   // @Get()
   // findAll() {
@@ -51,24 +52,24 @@ export class MealsController {
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(BusinessAccessInterceptor)
 export class AdminMealsController {
-  constructor(private readonly mealsService: MealsService) {}
+  constructor(private readonly optionService: OptionService) {}
 
   @Post()
   @ApiCreatedResponse()
-  createMeal(@Body() createMealDto: CreateMealDto, @Req() request) {
+  createMeal(@Body() createOptionDto: CreateOptionDto, @Req() request) {
     const { business_id } = request.headers;
-    return this.mealsService.createMeal(createMealDto, +business_id);
+    return this.optionService.createMeal(createOptionDto, +business_id);
   }
 
   @Get()
   async findAll(@Req() request) {
     const { business_id } = request.headers;
     // const baseUrl = request.protocol + "://" + request.headers.host;
-    // const meals = (await this.mealsService.findAll(+business_id)).map(meal => {
-    //   meal.image = `${baseUrl}/v2/files/image/${meal.image}`;
-    //   return meal;
+    // const meals = (await this.mealsService.findAll(+business_id)).map(option => {
+    //   option.image = `${baseUrl}/v2/files/image/${option.image}`;
+    //   return option;
     // });
-    const meals = await this.mealsService.findAll(+business_id);
+    const meals = await this.optionService.findAll(+business_id);
     return {
       message: 'Menu fetch successful',
       status: 'success',
@@ -79,16 +80,16 @@ export class AdminMealsController {
   @Put('/:id')
   update(
     @Param('id') id: string,
-    @Body() updateMealDto: UpdateMealDto,
+    @Body() createOptionDto: UpdateOptionDto,
     @Req() request,
   ) {
     const { business_id } = request.headers;
-    return this.mealsService.update(+id, updateMealDto, +business_id);
+    return this.optionService.update(+id, UpdateOptionDto, +business_id);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string, @Req() request) {
     const { business_id } = request.headers;
-    return this.mealsService.remove(+id, +business_id);
+    return this.optionService.remove(+id, +business_id);
   }
 }

@@ -37,8 +37,8 @@ export class OrderController {
     // const baseUrl = request.protocol + "://" + request.headers.host;
     // const history = (await this.orderService.findOrderHistory(customerId)).map(order => {
     //   order.meals.map(orderMeal => {
-    //     orderMeal.meal.image = `${baseUrl}/v2/files/image/${orderMeal.meal.image}`;
-    //     return { ...orderMeal.meal, quantity: orderMeal.quantity};
+    //     orderMeal.option.image = `${baseUrl}/v2/files/image/${orderMeal.option.image}`;
+    //     return { ...orderMeal.option, quantity: orderMeal.quantity};
     //   });
     //   return order;
     // });
@@ -52,15 +52,15 @@ export class OrderController {
     };
   }
 
-  @Delete(':id/:mealId')
+  @Delete(':id/:optionId')
   remove(
     @Param('id') orderId: number,
-    @Param('mealId') mealId: number,
+    @Param('optionId') optionId: number,
     @Req() request,
   ) {
     const { id: customerId } = request.user;
-    if (isNaN(mealId)) throw new BadRequestException('Invalid mealId');
-    return this.orderService.removeMealOrder(+mealId, +customerId, +orderId);
+    if (isNaN(optionId)) throw new BadRequestException('Invalid optionId');
+    return this.orderService.removeMealOrder(+optionId, +customerId, +orderId);
   }
 
   @Get('/pay')

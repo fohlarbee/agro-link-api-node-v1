@@ -1,4 +1,3 @@
-
 /* eslint-disable prettier/prettier */
 import {
   Controller,
@@ -23,7 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateMenuDto } from './dto/create-menu.dto';
-import { mealIdsDto } from './dto/meal-ids.dto';
+import { optionIdsDto } from './dto/option-ids.dto';
 import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
 import { BusinessAccessInterceptor } from 'src/transactions/interceptors/business-access-interceptor';
 
@@ -57,22 +56,22 @@ export class MenuController {
   @Post(':id/add-meals')
   @ApiOkResponse({ type: BaseResponse })
   async assignMeals(
-    @Param('id') mealId: number,
-    @Body() { mealIds }: mealIdsDto,
+    @Param('id') optionId: number,
+    @Body() { mealIds }: optionIdsDto,
     @Req() request,
   ) {
     const { business_id } = request.headers;
-    return this.menuService.addMenuMeals(+business_id, +mealId, mealIds);
+    return this.menuService.addMenuMeals(+business_id, +optionId, mealIds);
   }
 
   @Post(':id/remove-meals')
   @ApiOkResponse({ type: BaseResponse })
   async removeMeals(
-    @Param('id') mealId: number,
-    @Body() { mealIds }: mealIdsDto,
+    @Param('id') optionId: number,
+    @Body() { mealIds }: optionIdsDto,
     @Req() request,
   ) {
     const { business_id } = request.headers;
-    return this.menuService.removeMenuMeals(+business_id, +mealId, mealIds);
+    return this.menuService.removeMenuMeals(+business_id, +optionId, mealIds);
   }
 }

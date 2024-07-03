@@ -2,9 +2,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { CreateMealDto } from '../meals/dto/create-meal.dto';
-import { UpdateMealDto } from '../meals/dto/update-meal.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateOptionDto } from 'src/options/dto/create-option.dto';
+import { UpdateOptionDto } from 'src/options/dto/update-option.dto';
 
 @Injectable()
 export class MenuService {
@@ -58,9 +58,9 @@ export class MenuService {
       select: {
         id: true,
         name: true,
-        meals: {
+        options: {
           select: {
-            meal: {
+            option: {
               select: {
                 id: true,
                 name: true,
@@ -77,10 +77,10 @@ export class MenuService {
       message: 'Menus fetched successfully',
       status: 'success',
       data: menus.map((menu) => {
-        const { meals, ...menuInfo } = menu;
+        const { options, ...menuInfo } = menu;
         return {
           ...menuInfo,
-          meals: meals.map((meal) => ({ ...meal.meal })),
+          options: options.map((option) => ({ ...option.option })),
         };
       }),
     };
@@ -90,17 +90,17 @@ export class MenuService {
     await this.isValidMenu(businessId, menuId);
     const validIds = (
       await Promise.all(
-        mealIds.map(async (mealId) => {
-          const meal = await this.prisma.meal.findFirst({
-            where: { id: mealId, businessId },
+        mealIds.map(async (optionId) => {
+          const option = await this.prisma.option.findFirst({
+            where: { id: optionId, businessId },
           });
-          return meal ? mealId : null;
+          return option ? optionId : null;
         }),
       )
-    ).filter((mealId) => mealId);
+    ).filter((optionId) => optionId);
 
-    await this.prisma.menuMeals.createMany({
-      data: validIds.map((mealId) => ({ mealId, menuId })),
+    await this.prisma.menuOptions.createMany({
+      data: validIds.map((optionId) => ({ optionId, menuId })),
       skipDuplicates: true,
     });
 
@@ -126,17 +126,17 @@ export class MenuService {
     await this.isValidMenu(businessId, menuId);
     const validIds = (
       await Promise.all(
-        mealIds.map(async (mealId) => {
-          const meal = await this.prisma.menuMeals.findFirst({
-            where: { mealId, menuId },
+        mealIds.map(async (optionId) => {
+          const option = await this.prisma.menuOptions.findFirst({
+            where: { optionId, menuId },
           });
-          return meal ? mealId : null;
+          return option ? optionId : null;
         }),
       )
-    ).filter((mealId) => mealId);
+    ).filter((optionId) => optionId);
 
-    await this.prisma.menuMeals.deleteMany({
-      where: { mealId: { in: validIds }, menuId },
+    await this.prisma.menuOptions.deleteMany({
+      where: { optionId: { in: validIds }, menuId },
     });
 
     return {

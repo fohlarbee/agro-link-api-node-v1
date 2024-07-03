@@ -5,7 +5,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { AddMealToOrderDto } from './dto/order-meal.dto';
+import { AddOptionToOrderDto } from './dto/order-option.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { OrderStatus } from '@prisma/client';
 import { PaystackService } from 'src/paystack/paystack.service';
@@ -18,17 +18,17 @@ export class OrderService {
   ) {}
 
   async orderMeal(
-    { tableIdentifier, ...mealOrder }: AddMealToOrderDto,
+    { tableIdentifier, ...optionOrder }: AddOptionToOrderDto,
     customerId: number,
     businessId: number,
   ) {
-    const meal = await this.prisma.meal.findUnique({
-      where: { id: mealOrder.mealId, AND: { businessId } },
+    const option = await this.prisma.option.findUnique({
+      where: { id: optionOrder.optionId, AND: { businessId } },
       select: { business: true },
     });
 
-    if (!meal)
-      throw new NotFoundException(`No such meal with id ${mealOrder.mealId}`);
+    if (!option)
+      throw new NotFoundException(`No such option with id ${optionOrder.optionId}`);
 
     let currentOrder = await this.prisma.order.findFirst({
       where: { customerId, status: OrderStatus.active, businessId },
@@ -42,12 +42,12 @@ export class OrderService {
         tableIdentifier,
       });
 
-    await this.prisma.orderMeal.upsert({
+    await this.prisma.orderOption.upsert({
       where: {
-        orderId_mealId: { orderId: currentOrder.id, mealId: mealOrder.mealId },
+        orderId_optionId: { orderId: currentOrder.id, optionId: optionOrder.optionId },
       },
-      create: { ...mealOrder, orderId: currentOrder.id },
-      update: { quantity: mealOrder.quantity },
+      create: { ...optionOrder, orderId: currentOrder.id, },
+      update: { quantity: optionOrder.quantity },
     });
 
     return {
@@ -114,9 +114,9 @@ export class OrderService {
         id: true,
         table: { select: { identifier: true } },
         waiter: { select: { user: { select: { name: true } } } },
-        meals: {
+        options: {
           select: {
-            meal: {
+            option: {
               select: { image: true, name: true, price: true, id: true },
             },
             quantity: true,
@@ -136,9 +136,9 @@ export class OrderService {
     const currentOrder = await this.prisma.order.findFirst({
       where: { customerId, status: OrderStatus.active, businessId },
       select: {
-        meals: {
+        options: {
           select: {
-            meal: {
+            option: {
               select: { image: true, name: true, price: true, id: true },
             },
             quantity: true,
@@ -146,16 +146,16 @@ export class OrderService {
         },
       },
     });
-    return currentOrder.meals || [];
+    return currentOrder.options || [];
   }
 
   async findOrder(customerId: number, orderId: number) {
     const order = await this.prisma.order.findFirst({
       where: { customerId, id: orderId },
       select: {
-        meals: {
+        options: {
           select: {
-            meal: {
+            option: {
               select: { image: true, name: true, price: true, id: true },
             },
             quantity: true,
@@ -178,9 +178,9 @@ export class OrderService {
         createdAt: true,
         completedAt: true,
         id: true,
-        meals: {
+        options: {
           select: {
-            meal: {
+            option: {
               select: { image: true, name: true, price: true, id: true },
             },
             quantity: true,
@@ -192,17 +192,17 @@ export class OrderService {
   }
 
   async removeMealOrder(id: number, customerId: number, orderId: number) {
-    const currentOrderMeal = await this.prisma.orderMeal.findFirst({
+    const currentOrderOption = await this.prisma.orderOption.findFirst({
       where: {
         order: { customerId, id: orderId, status: OrderStatus.active },
-        mealId: id,
+        optionId: id,
       },
-      select: { mealId: true, orderId: true },
+      select: { optionId: true, orderId: true },
     });
-    if (!currentOrderMeal)
-      throw new BadRequestException('No such meal in order');
-    await this.prisma.orderMeal.delete({
-      where: { orderId_mealId: currentOrderMeal },
+    if (!currentOrderOption)
+      throw new BadRequestException('No such option in order');
+    await this.prisma.orderOption.delete({
+      where: { orderId_optionId: currentOrderOption },
     });
     return { message: 'Meal removed from current order', status: 'success' };
   }
@@ -212,10 +212,10 @@ export class OrderService {
       where: { customerId, businessId, status: OrderStatus.active },
       select: {
         id: true,
-        meals: {
+        options: {
           select: {
             quantity: true,
-            meal: { select: { price: true } },
+            option: { select: { price: true } },
           },
         },
       },
@@ -224,8 +224,8 @@ export class OrderService {
       throw new BadRequestException(
         'You do not currently have any open orders',
       );
-    const totalAmount = currentOrder.meals.reduce((total, meal) => {
-      total += meal.quantity * meal.meal.price;
+    const totalAmount = currentOrder.options.reduce((total, option) => {
+      total += option.quantity * option.option.price;
       return total;
     }, 0);
     const paymentLink = await this.paystack.createPaymentLink(
@@ -249,9 +249,9 @@ export class OrderService {
       select: {
         id: true,
         status: true,
-        meals: {
+        options: {
           select: {
-            meal: { select: { image: true, price: true, id: true } },
+            option: { select: { image: true, price: true, id: true } },
             quantity: true,
           },
         },

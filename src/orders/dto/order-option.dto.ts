@@ -2,16 +2,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 
-export class AddMealToOrderDto {
+export class AddOptionToOrderDto {
   @IsNumber()
   @Min(1)
   @ApiProperty()
-  mealId: number;
+  optionId: number;
 
   @IsNumber()
   @Min(1)
   @ApiProperty()
   quantity: number;
+
+
 
   @IsString()
   @IsNotEmpty()
