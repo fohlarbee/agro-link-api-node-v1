@@ -25,7 +25,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { mealIdsDto } from './dto/meal-ids.dto';
 import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
-import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-access.interceptor';
+import { BusinessAccessInterceptor } from 'src/transactions/interceptors/business-access-interceptor';
 
 @Controller('admin/menus')
 @ApiTags('Menus')
@@ -36,7 +36,7 @@ import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-a
 })
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(RestaurantAccessInterceptor)
+@UseInterceptors(BusinessAccessInterceptor)
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
@@ -44,7 +44,7 @@ export class MenuController {
   @ApiCreatedResponse()
   createMenu(@Body() { name }: CreateMenuDto, @Req() request) {
     const { business_id } = request.headers;
-    return this.menuService.createMenu({ name, restaurantId: +business_id });
+    return this.menuService.createMenu({ name, businessId: +business_id });
   }
 
   @Get()

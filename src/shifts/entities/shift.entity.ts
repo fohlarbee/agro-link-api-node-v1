@@ -19,7 +19,7 @@ class ShiftEntity implements Shift {
 
   createdAt: Date;
   updatedAt: Date;
-  restaurantId: number;
+  businessId: number;
   userId: number;
   roleId: number;
 }

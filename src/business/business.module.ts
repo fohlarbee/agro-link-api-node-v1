@@ -1,9 +1,10 @@
+/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
-import { RestaurantService as RestaurantService } from './restaurant.service';
+import { BusinessService } from './business.service';
 import {
-  AdminRestaurantController,
-  ClientRestaurantController as ClientRestaurantController,
-} from './restaurant.controller';
+  AdminBusinessController,
+  ClienBusinessController,
+} from './business.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { MenuService } from 'src/menus/menu.service';
 import { OrderService } from 'src/orders/order.service';
@@ -11,13 +12,13 @@ import { PaystackService } from 'src/paystack/paystack.service';
 
 @Module({
   imports: [],
-  controllers: [ClientRestaurantController, AdminRestaurantController],
+  controllers: [ClienBusinessController, AdminBusinessController],
   providers: [
     MenuService,
     OrderService,
     PaystackService,
     PrismaService,
-    RestaurantService,
+    BusinessService,
   ],
 })
-export class RestaurantModule {}
+export class BusinessModule {}

@@ -21,7 +21,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-access.interceptor';
+import { BusinessAccessInterceptor } from 'src/transactions/interceptors/business-access-interceptor';
+// import { Bus } from 'src/utils/interceptors/business-access.interceptor';
 
 @Controller('meals')
 @ApiTags('Meals')
@@ -48,7 +49,7 @@ export class MealsController {
 })
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(RestaurantAccessInterceptor)
+@UseInterceptors(BusinessAccessInterceptor)
 export class AdminMealsController {
   constructor(private readonly mealsService: MealsService) {}
 

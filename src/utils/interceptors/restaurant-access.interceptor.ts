@@ -22,18 +22,18 @@ export class RestaurantAccessInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest();
     if (!request.headers['business_id'])
       throw new BadRequestException('Missing required header: business_id');
-    const restaurantId = parseInt(request.headers['business_id'], 10);
+    const businessId = parseInt(request.headers['business_id'], 10);
     const { id: userId } = request.user;
-    if (isNaN(restaurantId) || restaurantId < 1)
+    if (isNaN(businessId) || businessId < 1)
       throw new BadRequestException(
         `Expected positive number for required header: business_id`,
       );
 
     const staff = await this.prisma.staff.findUnique({
-      where: { userId_restaurantId: { userId, restaurantId } },
+      where: { userId_businessId: { userId, businessId } },
     });
 
-    if (!staff) throw new UnauthorizedException(`Invalid restaurant`);
+    if (!staff) throw new UnauthorizedException(`Invalid business`);
 
     return next.handle().pipe(
       catchError((error) => {

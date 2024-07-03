@@ -1,10 +1,11 @@
-import { Restaurant } from '@prisma/client';
+/* eslint-disable prettier/prettier */
+import { $Enums, Business } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
 import { Type } from 'class-transformer';
 import { ValidateNested } from 'class-validator';
 
-class RestaurantEntity implements Restaurant {
+class BusinessEntity implements Business {
   @ApiProperty()
   id: number;
 
@@ -25,18 +26,21 @@ class RestaurantEntity implements Restaurant {
 
   @ApiProperty()
   updatedAt: Date;
+  
+  @ApiProperty({ required: true })
+  type: $Enums.BusinessType;
 
   @ApiProperty()
   creatorId: number;
 }
 
-export class RestaurantCreationResponse extends BaseResponse {
-  @Type(() => RestaurantEntity)
+export class BusinessCreationResponse extends BaseResponse {
+  @Type(() => BusinessEntity)
   @ApiProperty()
   @ValidateNested()
-  data: { restaurant: RestaurantEntity };
+  data: { business: BusinessEntity };
 }
-class RestaurantListEntity implements Partial<Restaurant> {
+class BusinessListEntity implements Partial<Business> {
   @ApiProperty({ readOnly: true })
   id: number;
 
@@ -50,8 +54,8 @@ class RestaurantListEntity implements Partial<Restaurant> {
   phoneNumber: string;
 }
 
-export class RestaurantListResponse extends BaseResponse {
+export class BusinessListResponse extends BaseResponse {
   @ValidateNested()
   @ApiProperty({ isArray: true })
-  data: RestaurantListEntity;
+  data: BusinessListEntity;
 }

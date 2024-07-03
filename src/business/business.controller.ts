@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
 import {
   Controller,
@@ -9,9 +10,10 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { RestaurantService } from './restaurant.service';
-import { CreateRestaurantDto } from './dto/create-restaurant.dto';
-import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
+import { BusinessService } from './business.service';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { CreateBusinessDto } from './dto/create-business.dto';
+import { UpdateBusinessDto } from './dto/updateBusinessDto';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -19,31 +21,31 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import {
-  RestaurantCreationResponse,
-  RestaurantListResponse,
-} from './entities/restaurant.entity';
+  BusinessCreationResponse,
+  BusinessListResponse,
+} from './entities/business.entity';
 import { MenuService } from 'src/menus/menu.service';
 import { OrderService } from 'src/orders/order.service';
 import { AddMealToOrderDto } from 'src/orders/dto/order-meal.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
-@Controller('restaurant')
+@Controller('business')
 @ApiTags('Restaurant')
-export class ClientRestaurantController {
+export class ClienBusinessController {
   constructor(
-    private readonly restaurantService: RestaurantService,
+    private readonly businessService: BusinessService,
     private readonly menuService: MenuService,
     private readonly orderService: OrderService,
   ) {}
 
   @Get()
-  @ApiOkResponse({ type: RestaurantListResponse })
+  @ApiOkResponse({ type: BusinessListResponse })
   findAllRestaurants() {
-    return this.restaurantService.findAllRestaurants();
+    return this.businessService.findAllBusinesses();
   }
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.restaurantService.findRestaurant(+id);
+    return this.businessService.findBusiness(+id);
   }
 
   @Get(':id/menus')
@@ -55,7 +57,7 @@ export class ClientRestaurantController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   createOrder(
-    @Param('id') restaurantId: number,
+    @Param('id') businessId: number,
     @Body() createOrderDto: AddMealToOrderDto,
     @Req() request,
   ) {
@@ -63,47 +65,49 @@ export class ClientRestaurantController {
     return this.orderService.orderMeal(
       createOrderDto,
       +customerId,
-      +restaurantId,
+      +businessId,
     );
   }
 }
 
-@Controller('admin/restaurants')
+
+
+@Controller('admin/business')
 @ApiTags('Restaurants (Admin)')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-export class AdminRestaurantController {
-  constructor(private readonly restaurantService: RestaurantService) {}
+export class AdminBusinessController {
+  constructor(private readonly businessService: BusinessService) {}
 
   @Post()
-  @ApiCreatedResponse({ type: RestaurantCreationResponse })
+  @ApiCreatedResponse({ type: BusinessCreationResponse })
   createRestaurant(
-    @Body() createRestaurantDto: CreateRestaurantDto,
+    @Body() createBusinessDto: CreateBusinessDto,
     @Req() request,
   ) {
     const { id: creatorId } = request.user;
-    return this.restaurantService.createRestaurant(
-      createRestaurantDto,
+    return this.businessService.createBusiness(
+      createBusinessDto,
       +creatorId,
     );
   }
 
   @Get()
-  @ApiOkResponse({ type: RestaurantListResponse })
+  @ApiOkResponse({ type: BusinessListResponse })
   findMemberRestaurants(@Req() { user: { id: userId } }: Record<string, any>) {
-    return this.restaurantService.findStaffRestaurants(userId);
+    return this.businessService.findStaffBusiness(userId);
   }
 
   @Put(':id')
-  @ApiOkResponse({ type: RestaurantCreationResponse })
+  @ApiOkResponse({ type: BusinessCreationResponse })
   updateRestaurant(
-    @Param('id') restaurantId: string,
+    @Param('id') businessId: string,
     @Req() request: Record<string, any>,
-    @Body() updateData: UpdateRestaurantDto,
+    @Body() updateData: UpdateBusinessDto,
   ) {
     const { id: userId } = request.user;
-    return this.restaurantService.updateRestaurant(
-      +restaurantId,
+    return this.businessService.updateBusiness(
+      +businessId,
       userId,
       updateData,
     );

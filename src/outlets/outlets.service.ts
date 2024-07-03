@@ -11,13 +11,13 @@ import { CreateTableDto } from './dto/create-table.dto';
 export class OutletsService {
   constructor(private prisma: PrismaService) {}
 
-  async createOutlet(restaurantId: number, { address }: CreateOutletDto) {
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id: restaurantId },
+  async createOutlet(businessId: number, { address }: CreateOutletDto) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
     });
-    if (!restaurant) throw new NotFoundException('Invalid restaurant');
+    if (!business) throw new NotFoundException('Invalid business');
     const outlet = await this.prisma.outlet.create({
-      data: { restaurantId, address },
+      data: { businessId, address },
     });
     return {
       message: 'Outlet created successfully',
@@ -26,9 +26,9 @@ export class OutletsService {
     };
   }
 
-  async findOutlets(restaurantId: number) {
+  async findOutlets(businessId: number) {
     const outlets = await this.prisma.outlet.findMany({
-      where: { restaurantId },
+      where: { businessId },
     });
     return {
       message: 'Outlet fetched successfully',
@@ -38,15 +38,15 @@ export class OutletsService {
   }
 
   async createTable(
-    restaurantId: number,
+    businessId: number,
     outletId: number,
     { identifier }: CreateTableDto,
   ) {
     const outlet = await this.prisma.outlet.findFirst({
-      where: { id: outletId, restaurantId },
+      where: { id: outletId, businessId },
     });
 
-    if (!outlet) throw new BadRequestException('No such outlet in restaurant');
+    if (!outlet) throw new BadRequestException('No such outlet in business');
     const table = await this.prisma.table.create({
       data: { identifier, outletId },
     });
@@ -59,16 +59,16 @@ export class OutletsService {
 
   async GetOutletTables({
     outletId,
-    restaurantId,
+    businessId,
   }: {
-    restaurantId: number;
+    businessId: number;
     outletId: number;
   }) {
     const outlet = await this.prisma.outlet.findFirst({
-      where: { id: outletId, restaurantId },
+      where: { id: outletId, businessId },
     });
 
-    if (!outlet) throw new BadRequestException('No such outlet in restaurant');
+    if (!outlet) throw new BadRequestException('No such outlet in business');
     const tables = await this.prisma.table.findMany({
       where: { outletId },
     });

@@ -24,8 +24,7 @@ import {
 import { CreateTableDto } from './dto/create-table.dto';
 import { TableCreationResponse } from './entities/table.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-access.interceptor';
-
+import { BusinessAccessInterceptor } from 'src/transactions/interceptors/business-access-interceptor';
 @Controller('admin/outlets')
 @ApiTags('Outlets')
 @ApiBearerAuth()
@@ -35,7 +34,7 @@ import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-a
   required: true,
   description: 'This is the business id',
 })
-@UseInterceptors(RestaurantAccessInterceptor)
+@UseInterceptors(BusinessAccessInterceptor)
 export class OutletsController {
   constructor(private readonly outletsService: OutletsService) {}
 
@@ -45,15 +44,15 @@ export class OutletsController {
     @Req() request: Record<string, any>,
     @Body() createData: CreateOutletDto,
   ) {
-    const { business_id: restaurantId } = request.headers;
-    return this.outletsService.createOutlet(+restaurantId, createData);
+    const { business_id: businessId } = request.headers;
+    return this.outletsService.createOutlet(+businessId, createData);
   }
 
   @Get()
   @ApiOkResponse({ type: OutletListResponse })
   findOutlets(@Req() request: Record<string, any>) {
-    const { business_id: restaurantId } = request.headers;
-    return this.outletsService.findOutlets(+restaurantId);
+    const { business_id: businessId } = request.headers;
+    return this.outletsService.findOutlets(+businessId);
   }
 
   @Post(':outletId/tables')
@@ -62,18 +61,18 @@ export class OutletsController {
     @Req() request: Record<string, any>,
     @Body() tableData: CreateTableDto,
   ) {
-    const { business_id: restaurantId } = request.headers;
+    const { business_id: businessId } = request.headers;
     const { outletId } = request.params;
-    return this.outletsService.createTable(+restaurantId, +outletId, tableData);
+    return this.outletsService.createTable(+businessId, +outletId, tableData);
   }
 
   @Get(':outletId/tables')
   @ApiOkResponse({ type: OutletListResponse })
   findOutletTables(@Req() request: Record<string, any>) {
-    const { business_id: restaurantId } = request.headers;
+    const { business_id: businessId } = request.headers;
     const { outletId } = request.params;
     return this.outletsService.GetOutletTables({
-      restaurantId: +restaurantId,
+      businessId: +businessId,
       outletId: +outletId,
     });
   }

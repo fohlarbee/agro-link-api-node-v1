@@ -1,7 +1,8 @@
+/* eslint-disable prettier/prettier */
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateMealDto } from './dto/create-meal.dto';
@@ -12,26 +13,26 @@ import * as fs from 'fs';
 export class MealsService {
   constructor(private prisma: PrismaService) {}
 
-  async createMeal(mealData: CreateMealDto, restaurantId: number) {
+  async createMeal(mealData: CreateMealDto, businessId: number) {
     // if (!fs.existsSync(`./uploads/images/${mealData.image}`)) throw new BadRequestException(`Unknown image file ${mealData.image}`);
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id: restaurantId },
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
     });
-    if (!restaurant) throw new NotFoundException('Invalid restaurant');
+    if (!business) throw new NotFoundException('Invalid business');
     await this.prisma.meal.create({
-      data: { ...mealData, restaurantId },
+      data: { ...mealData, businessId },
     });
     return { message: 'Meal successfully created', status: 'success' };
   }
 
-  async findAll(restaurantId: number) {
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id: restaurantId },
+  async findAll(businessId: number) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
     });
-    if (!restaurant)
-      throw new NotFoundException(`No restaurant with id ${restaurantId}`);
+    if (!business)
+      throw new NotFoundException(`No business with id ${businessId}`);
     const meals = await this.prisma.meal.findMany({
-      where: { restaurantId },
+      where: { businessId },
       select: { name: true, id: true, price: true, image: true },
     });
     return meals;
@@ -40,7 +41,7 @@ export class MealsService {
   async update(
     id: number,
     updateMealData: UpdateMealDto,
-    restaurantId: number,
+    businessId: number,
   ) {
     if (
       updateMealData.image &&
@@ -49,14 +50,14 @@ export class MealsService {
       throw new BadRequestException(
         `Unknown image file ${updateMealData.image}`,
       );
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id: restaurantId },
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
     });
-    if (!restaurant) throw new NotFoundException('Invalid restaurant');
+    if (!business) throw new NotFoundException('Invalid business');
     const meal = await this.prisma.meal.findUnique({
-      where: { id, restaurantId: restaurant.id },
+      where: { id, businessId: business.id },
     });
-    if (!meal) throw new NotFoundException('No such meal in restaurant menu');
+    if (!meal) throw new NotFoundException('No such meal in business menu');
     await this.prisma.meal.update({
       where: { id },
       data: updateMealData,
@@ -66,9 +67,9 @@ export class MealsService {
     return { message: 'Meal update successful', status: 'success' };
   }
 
-  async remove(id: number, restaurantId: number) {
+  async remove(id: number, businessId: number) {
     const meal = await this.prisma.meal.findUnique({
-      where: { id, restaurantId },
+      where: { id, businessId },
     });
     if (!meal) throw new NotFoundException('Restaurant has no such meal');
     await this.prisma.meal.delete({ where: { id } });

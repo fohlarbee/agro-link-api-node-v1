@@ -13,41 +13,41 @@ export class StaffsService {
   constructor(private prisma: PrismaService) {}
 
   async createStaff(
-    restaurantId: number,
+    businessId: number,
     { email, name, roleId }: CreateStaffDto,
   ) {
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id: restaurantId },
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
     });
-    if (!restaurant) throw new NotFoundException('Invalid restaurant');
+    if (!business) throw new NotFoundException('Invalid business');
     const role = await this.prisma.role.findFirst({
-      where: { id: roleId, restaurantId },
+      where: { id: roleId, businessId },
     });
     if (!role) throw new BadRequestException('No such role exists');
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (user)
-      return this.inviteExistingUser({ restaurantId, userId: user.id, roleId });
-    return this.inviteNewUser({ restaurantId, email, name, roleId });
+      return this.inviteExistingUser({ businessId, userId: user.id, roleId });
+    return this.inviteNewUser({ businessId, email, name, roleId });
   }
 
   private async inviteExistingUser({
-    restaurantId,
+    businessId,
     userId,
     roleId,
   }: {
-    restaurantId: number;
+    businessId: number;
     userId: number;
     roleId: number;
   }) {
     const staff = await this.prisma.staff.findFirst({
-      where: { userId, restaurantId },
+      where: { userId,businessId },
     });
     if (staff) throw new BadRequestException('Staff already exists');
     await this.prisma.staff.create({
       data: {
         role: { connect: { id: roleId } },
         user: { connect: { id: userId } },
-        restaurant: { connect: { id: restaurantId } },
+        business: { connect: { id: businessId } },
       },
     });
     return {
@@ -57,12 +57,12 @@ export class StaffsService {
   }
 
   private async inviteNewUser({
-    restaurantId,
+    businessId,
     email,
     name,
     roleId,
   }: {
-    restaurantId: number;
+    businessId: number;
     email: string;
     name: string;
     roleId: number;
@@ -78,7 +78,7 @@ export class StaffsService {
       data: {
         role: { connect: { id: roleId } },
         user: { connect: { id: user.id } },
-        restaurant: { connect: { id: restaurantId } },
+        business: { connect: { id: businessId } },
       },
     });
     return {
@@ -87,9 +87,9 @@ export class StaffsService {
     };
   }
 
-  async findAllStaffs(restaurantId: number) {
+  async findAllStaffs(businessId: number) {
     const staffs = await this.prisma.staff.findMany({
-      where: { restaurantId },
+      where: { businessId },
       select: {
         user: { select: { name: true, id: true, email: true } },
         role: { select: { name: true, id: true } },
@@ -102,13 +102,13 @@ export class StaffsService {
     };
   }
 
-  async findStaff(userId: number, restaurantId: number) {
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id: restaurantId },
+  async findStaff(userId: number, businessId: number) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
     });
-    if (!restaurant) throw new NotFoundException('Invalid restaurant');
+    if (!business) throw new NotFoundException('Invalid business');
     const staff = await this.prisma.staff.findFirst({
-      where: { restaurantId, userId },
+      where: { businessId, userId },
       select: {
         user: { select: { name: true, id: true, email: true } },
         role: { select: { name: true, id: true } },

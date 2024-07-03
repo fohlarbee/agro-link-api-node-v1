@@ -12,14 +12,14 @@ export class MenuService {
 
   async createMenu({
     name,
-    restaurantId,
+    businessId,
   }: {
     name: string;
-    restaurantId: number;
+    businessId: number;
   }) {
-    await this.isValidRestaurant(restaurantId);
+    await this.isValidRestaurant(businessId);
     const menu = await this.prisma.menu.create({
-      data: { restaurantId, name },
+      data: { businessId, name },
       select: { id: true, name: true },
     });
     return {
@@ -29,18 +29,18 @@ export class MenuService {
     };
   }
 
-  private async isValidRestaurant(restaurantId: number) {
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id: restaurantId },
+  private async isValidRestaurant(businessId: number) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
     });
-    if (!restaurant)
-      throw new NotFoundException(`No restaurant with id ${restaurantId}`);
+    if (!business)
+      throw new NotFoundException(`No business with id ${businessId}`);
   }
 
-  async findAllMenus(restaurantId: number) {
-    await this.isValidRestaurant(restaurantId);
+  async findAllMenus(businessId: number) {
+    await this.isValidRestaurant(businessId);
     const menus = await this.prisma.menu.findMany({
-      where: { restaurantId },
+      where: { businessId },
       select: { id: true, name: true },
     });
 
@@ -51,10 +51,10 @@ export class MenuService {
     };
   }
 
-  async findMenusWithMeals(restaurantId: number) {
-    await this.isValidRestaurant(restaurantId);
+  async findMenusWithMeals(businessId: number) {
+    await this.isValidRestaurant(businessId);
     const menus = await this.prisma.menu.findMany({
-      where: { restaurantId },
+      where: { businessId },
       select: {
         id: true,
         name: true,
@@ -86,13 +86,13 @@ export class MenuService {
     };
   }
 
-  async addMenuMeals(restaurantId: number, menuId: number, mealIds: number[]) {
-    await this.isValidMenu(restaurantId, menuId);
+  async addMenuMeals(businessId: number, menuId: number, mealIds: number[]) {
+    await this.isValidMenu(businessId, menuId);
     const validIds = (
       await Promise.all(
         mealIds.map(async (mealId) => {
           const meal = await this.prisma.meal.findFirst({
-            where: { id: mealId, restaurantId },
+            where: { id: mealId, businessId },
           });
           return meal ? mealId : null;
         }),
@@ -110,20 +110,20 @@ export class MenuService {
     };
   }
 
-  private async isValidMenu(restaurantId: number, menuId: number) {
-    await this.isValidRestaurant(restaurantId);
+  private async isValidMenu(businessId: number, menuId: number) {
+    await this.isValidRestaurant(businessId);
     const menu = await this.prisma.menu.findFirst({
-      where: { id: menuId, restaurantId },
+      where: { id: menuId, businessId },
     });
     if (!menu) throw new NotFoundException(`Invalid menu`);
   }
 
   async removeMenuMeals(
-    restaurantId: number,
+    businessId: number,
     menuId: number,
     mealIds: number[],
   ) {
-    await this.isValidMenu(restaurantId, menuId);
+    await this.isValidMenu(businessId, menuId);
     const validIds = (
       await Promise.all(
         mealIds.map(async (mealId) => {

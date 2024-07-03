@@ -66,7 +66,7 @@ export class OrderController {
   @Get('/pay')
   payOrder(@Req() request) {
     const { id: customerId, email } = request.user;
-    const { id: restaurantId } = request.restaurant;
-    return this.orderService.payOrder(email, customerId, restaurantId);
+    const { id: businessId } = request.business;
+    return this.orderService.payOrder(email, customerId, businessId);
   }
 }

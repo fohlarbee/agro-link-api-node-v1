@@ -4,7 +4,7 @@ import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { AuthModule } from 'src/auth/auth.module';
-import { RestaurantModule } from 'src/restaurants/restaurant.module';
+import { BusinessModule } from 'src/business/business.module';
 import { FilesModule } from 'src/files/files.module';
 import { MenuModule } from 'src/menus/menu.module';
 import { OrderModule } from 'src/orders/order.module';
@@ -15,7 +15,7 @@ import { RolesModule } from 'src/roles/roles.module';
 import { OutletsModule } from 'src/outlets/outlets.module';
 import { MealsModule } from 'src/meals/meals.module';
 import { BarModule } from 'src/bar/bar.module';
-import { HotelsModule } from 'src/hotels/hotels.module';
+// import { HotelsModule } from 'src/hotels/hotels.module';
 import { BarItemsModule } from 'src/bar-items/barItems.module';
 
 @Module({
@@ -27,14 +27,14 @@ import { BarItemsModule } from 'src/bar-items/barItems.module';
     MealsModule,
     MenuModule,
     OutletsModule,
-    RestaurantModule,
+    BusinessModule,
     RolesModule,
     OrderModule,
     ShiftsModule,
     StaffsModule,
     TransactionModule,
     BarModule,
-    HotelsModule,
+    // HotelsModule,
     BarItemsModule
   ],
   controllers: [AppController],

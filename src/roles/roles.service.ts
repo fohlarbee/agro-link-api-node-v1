@@ -10,19 +10,19 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class RolesService {
   constructor(private prisma: PrismaService) {}
 
-  async createRole(restaurantId: number, { name }: CreateRoleDto) {
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id: restaurantId },
+  async createRole(businessId: number, { name }: CreateRoleDto) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
     });
-    if (!restaurant) throw new NotFoundException('Invalid restaurant');
+    if (!business) throw new NotFoundException('Invalid business');
     const existingRole = await this.prisma.role.findFirst({
-      where: { restaurantId, name: name.toLowerCase() },
+      where: { businessId, name: name.toLowerCase() },
     });
 
     if (existingRole)
       throw new ConflictException('Role with name already exists');
     const role = await this.prisma.role.create({
-      data: { name: name.toLowerCase(), restaurantId },
+      data: { name: name.toLowerCase(), businessId },
       select: { id: true, name: true },
     });
 
@@ -33,9 +33,9 @@ export class RolesService {
     };
   }
 
-  findAllRoles(restaurantId: number) {
+  findAllRoles(businessId: number) {
     const roles = this.prisma.role.findMany({
-      where: { restaurantId },
+      where: { businessId },
       select: { id: true, name: true },
     });
     return {

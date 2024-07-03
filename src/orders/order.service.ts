@@ -20,25 +20,25 @@ export class OrderService {
   async orderMeal(
     { tableIdentifier, ...mealOrder }: AddMealToOrderDto,
     customerId: number,
-    restaurantId: number,
+    businessId: number,
   ) {
     const meal = await this.prisma.meal.findUnique({
-      where: { id: mealOrder.mealId, AND: { restaurantId } },
-      select: { restaurant: true },
+      where: { id: mealOrder.mealId, AND: { businessId } },
+      select: { business: true },
     });
 
     if (!meal)
       throw new NotFoundException(`No such meal with id ${mealOrder.mealId}`);
 
     let currentOrder = await this.prisma.order.findFirst({
-      where: { customerId, status: OrderStatus.active, restaurantId },
+      where: { customerId, status: OrderStatus.active, businessId },
       select: { id: true },
     });
 
     if (!currentOrder)
       currentOrder = await this.createNewOrder({
         customerId,
-        restaurantId,
+        businessId,
         tableIdentifier,
       });
 
@@ -58,17 +58,17 @@ export class OrderService {
 
   private async createNewOrder({
     customerId,
-    restaurantId,
+    businessId,
     tableIdentifier,
   }: {
     customerId: number;
-    restaurantId: number;
+    businessId: number;
     tableIdentifier: string;
   }) {
     const table = await this.prisma.table.findFirst({
       where: {
         identifier: tableIdentifier,
-        outlet: { restaurantId: restaurantId },
+        outlet: { businessId: businessId },
       },
       select: {
         id: true,
@@ -93,13 +93,13 @@ export class OrderService {
     return this.prisma.order.create({
       data: {
         customer: { connect: { id: customerId } },
-        restaurant: { connect: { id: restaurantId } },
+        business: { connect: { id: businessId } },
         table: { connect: { id: table.id } },
         shift: { connect: { id: shiftId } },
-        tip:4000,
+        // tip:4000,
         waiter: {
           connect: {
-            userId_restaurantId: { userId: waiterId, restaurantId },
+            userId_businessId: { userId: waiterId, businessId },
           },
         },
       },
@@ -122,7 +122,7 @@ export class OrderService {
             quantity: true,
           },
         },
-        restaurant: { select: { id: true, name: true } },
+        business: { select: { id: true, name: true } },
       },
     });
     return {
@@ -132,9 +132,9 @@ export class OrderService {
     };
   }
 
-  async findOpenRestaurantOrder(customerId: number, restaurantId: number) {
+  async findOpenRestaurantOrder(customerId: number, businessId: number) {
     const currentOrder = await this.prisma.order.findFirst({
-      where: { customerId, status: OrderStatus.active, restaurantId },
+      where: { customerId, status: OrderStatus.active, businessId },
       select: {
         meals: {
           select: {
@@ -207,9 +207,9 @@ export class OrderService {
     return { message: 'Meal removed from current order', status: 'success' };
   }
 
-  async payOrder(email: string, customerId: number, restaurantId: number) {
+  async payOrder(email: string, customerId: number, businessId: number) {
     const currentOrder = await this.prisma.order.findFirst({
-      where: { customerId, restaurantId, status: OrderStatus.active },
+      where: { customerId, businessId, status: OrderStatus.active },
       select: {
         id: true,
         meals: {
@@ -243,9 +243,9 @@ export class OrderService {
     };
   }
 
-  async fetchPaidOrders(ownerId: number, restaurantId: number) {
+  async fetchPaidOrders(ownerId: number, businessId: number) {
     return this.prisma.order.findMany({
-      where: { restaurant: { id: restaurantId }, status: OrderStatus.paid },
+      where: { business: { id: businessId }, status: OrderStatus.paid },
       select: {
         id: true,
         status: true,

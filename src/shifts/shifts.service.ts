@@ -10,21 +10,21 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class ShiftsService {
   constructor(private prisma: PrismaService) {}
 
-  async createShift(restaurantId: number, shiftData: CreateShiftDto) {
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id: restaurantId },
+  async createShift(businessId: number, shiftData: CreateShiftDto) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
     });
-    if (!restaurant) throw new NotFoundException('No such restaurant.');
+    if (!business) throw new NotFoundException('No such business.');
     const shiftRole = await this.prisma.role.findFirst({
-      where: { id: shiftData.roleId, restaurantId },
+      where: { id: shiftData.roleId, businessId },
     });
     const outlet = await this.prisma.outlet.findFirst({
-      where: { id: shiftData.outletId, restaurantId },
+      where: { id: shiftData.outletId, businessId },
     });
-    if (!outlet) throw new BadRequestException('No such outlet in restaurant');
+    if (!outlet) throw new BadRequestException('No such outlet in business');
     if (!shiftRole) throw new BadRequestException('Invalid role selected');
     const assignee = await this.prisma.staff.findFirst({
-      where: { userId: shiftData.userId, roleId: shiftRole.id, restaurantId },
+      where: { userId: shiftData.userId, roleId: shiftRole.id, businessId },
     });
     if (!assignee)
       throw new BadRequestException(`No such staff for ${shiftRole.name} role`);
@@ -32,13 +32,13 @@ export class ShiftsService {
       data: {
         role: { connect: { id: shiftRole.id } },
         user: { connect: { id: assignee.userId } },
-        restaurant: { connect: { id: restaurant.id } },
+        business: { connect: { id: business.id } },
         outlet: { connect: { id: shiftData.outletId } },
         staff: {
           connect: {
-            userId_restaurantId: {
+            userId_businessId: {
               userId: assignee.userId,
-              restaurantId,
+              businessId,
             },
           },
         },
@@ -53,9 +53,9 @@ export class ShiftsService {
     };
   }
 
-  async findAllShifts(restaurantId: number) {
+  async findAllShifts(businessId: number) {
     const shifts = await this.prisma.shift.findMany({
-      where: { restaurantId },
+      where: { businessId },
       include: {
         assignedTables: {
           include: {
@@ -75,12 +75,12 @@ export class ShiftsService {
   }
 
   async assignShiftTables(
-    restaurantId: number,
+    businessId: number,
     shiftId: number,
     tableIds: number[],
   ) {
     const shift = await this.prisma.shift.findFirst({
-      where: { id: shiftId, restaurantId },
+      where: { id: shiftId, businessId },
     });
     const tables = await Promise.all(
       tableIds.map(async (tableId) => {

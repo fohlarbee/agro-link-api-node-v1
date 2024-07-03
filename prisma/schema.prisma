@@ -22,27 +22,28 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relationships
-  orders             Order[]
-  payments           Payment[]
-  restaurants        Staff[]
-  createdRestaurants Restaurant[]
-  shifts             Shift[]
+  orders          Order[]
+  payments        Payment[]
+  Business        Staff[]
+  createdBusiness Business[]
+  shifts          Shift[]
 }
 
-model Restaurant {
-  id          Int      @id @default(autoincrement())
+model Business {
+  id          Int          @id @default(autoincrement())
   name        String
-  cacNumber   String   @db.VarChar(20)
+  cacNumber   String       @db.VarChar(20)
   phoneNumber String
   email       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  type        BusinessType @default(business)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   // Relationships
   creatorId Int
-  creator   User     @relation(fields: [creatorId], references: [id])
+  creator   User       @relation(fields: [creatorId], references: [id])
   menus     Menu[]
-  meals     Meal[]
+  menu      MenuItem[]
   orders    Order[]
   roles     Role[]
   staffs    Staff[]
@@ -57,12 +58,12 @@ model Role {
   updatedAt DateTime @updatedAt
 
   // Relationships
-  restaurantId Int
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-  staffs       Staff[]
-  shifts       Shift[]
+  businessId Int
+  Busness    Business @relation(fields: [businessId], references: [id])
+  staffs     Staff[]
+  shifts     Shift[]
 
-  @@unique([restaurantId, name])
+  @@unique([businessId, name])
 }
 
 model Staff {
@@ -70,28 +71,28 @@ model Staff {
   updatedAt DateTime @updatedAt
 
   // Relatioinships
-  userId       Int
-  user         User       @relation(fields: [userId], references: [id])
-  restaurantId Int
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-  roleId       Int
-  role         Role       @relation(fields: [roleId], references: [id])
-  shifts       Shift[]
-  orders       Order[]
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  businessId Int
+  business   Business @relation(fields: [businessId], references: [id])
+  roleId     Int
+  role       Role     @relation(fields: [roleId], references: [id])
+  shifts     Shift[]
+  orders     Order[]
 
   // Keys
-  @@id([userId, restaurantId])
-  @@unique([userId, restaurantId])
+  @@id([userId, businessId])
+  @@unique([userId, businessId])
 }
 
 model Outlet {
-  id           Int        @id @default(autoincrement())
-  address      String
+  id         Int      @id @default(autoincrement())
+  address    String
   // Relationships
-  restaurantId Int
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-  tables       Table[]
-  shifts       Shift[]
+  businessId Int
+  business   Business @relation(fields: [businessId], references: [id])
+  tables     Table[]
+  shifts     Shift[]
 }
 
 model Table {
@@ -115,15 +116,15 @@ model Shift {
   updatedAt DateTime @updatedAt
 
   // Relationships
-  restaurantId   Int
-  restaurant     Restaurant    @relation(fields: [restaurantId], references: [id])
+  businessId     Int
+  business       Business      @relation(fields: [businessId], references: [id])
   outletId       Int
   outlet         Outlet        @relation(fields: [outletId], references: [id])
   userId         Int
   user           User          @relation(fields: [userId], references: [id])
   roleId         Int
   role           Role          @relation(fields: [roleId], references: [id])
-  staff          Staff         @relation(fields: [userId, restaurantId], references: [userId, restaurantId])
+  staff          Staff         @relation(fields: [userId, businessId], references: [userId, businessId])
   assignedTables ShiftTables[]
   orders         Order[]
 }
@@ -145,61 +146,66 @@ model Menu {
   updatedAt DateTime @updatedAt
 
   // Relationships
-  restaurantId Int
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
-  meals        MenuMeals[]
+  businessId Int
+  business   Business    @relation(fields: [businessId], references: [id])
+  meals      MenuMeals[]
 }
 
 model MenuMeals {
-  menuId Int
-  menu   Menu @relation(fields: [menuId], references: [id])
-  mealId Int
-  meal   Meal @relation(fields: [mealId], references: [id])
+  menuId   Int
+  menu     Menu     @relation(fields: [menuId], references: [id])
+  mealId   Int
+  menuItem MenuItem @relation(fields: [mealId], references: [id])
 
   // Compound key
   @@id([menuId, mealId])
 }
 
-model Meal {
+model MenuItem {
   id        Int      @id @default(autoincrement())
   name      String
   price     Float
   image     String
+  tyoe      menuType @default(meal)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relationships
-  restaurantId Int
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
-  menu         MenuMeals[]
-  orders       OrderMeal[]
+  businessId Int
+  business   Business    @relation(fields: [businessId], references: [id])
+  menu       MenuMeals[]
+  orders     OrderItem[]
+}
+
+enum menuType {
+  meal
+  drink
 }
 
 model Order {
   id          Int         @id @default(autoincrement())
   status      OrderStatus @default(active)
   createdAt   DateTime    @default(now())
-  tip         Float
+  tip         Float?
   paidAt      DateTime?
   completedAt DateTime?
   cancelledAt DateTime?
 
   // Relationships
-  customerId   Int
-  customer     User        @relation(fields: [customerId], references: [id])
-  restaurantId Int
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
-  payment      Payment?
-  tableId      Int
-  table        Table       @relation(fields: [tableId], references: [id])
-  shiftId      Int
-  shift        Shift       @relation(fields: [shiftId], references: [id])
-  waiterId     Int
-  waiter       Staff       @relation(fields: [waiterId, restaurantId], references: [userId, restaurantId])
-  meals        OrderMeal[]
-  hotelId      Int?
-  hotel        Hotel?      @relation(fields: [hotelId], references: [id])
-
+  customerId Int
+  customer   User        @relation(fields: [customerId], references: [id])
+  businessId Int
+  business   Business    @relation(fields: [businessId], references: [id])
+  payment    Payment?
+  tableId    Int
+  table      Table       @relation(fields: [tableId], references: [id])
+  shiftId    Int
+  shift      Shift       @relation(fields: [shiftId], references: [id])
+  waiterId   Int
+  waiter     Staff       @relation(fields: [waiterId, businessId], references: [userId, businessId])
+  meals      OrderItem[]
+  // hotelId      Int?
+  // hotel        Hotel?      @relation(fields: [hotelId], references: [id])
 }
 
 enum OrderStatus {
@@ -211,14 +217,19 @@ enum OrderStatus {
   cancelled
 }
 
-model OrderMeal {
+enum BusinessType {
+  business
+  bar
+}
+
+model OrderItem {
   quantity Int
 
   // relationships
   orderId Int
-  order   Order @relation(fields: [orderId], references: [id])
+  order   Order    @relation(fields: [orderId], references: [id])
   mealId  Int
-  meal    Meal  @relation(fields: [mealId], references: [id])
+  meal    MenuItem @relation(fields: [mealId], references: [id])
 
   // Compound key
   @@id([orderId, mealId])
@@ -237,37 +248,19 @@ model Payment {
   user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-
-
 model BarItems {
   id          Int      @id @default(autoincrement())
   name        String
   description String
   price       Float
   image       String
-  barId Int
+  barId       Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   //relationships
-  bar   Bar @relation(fields: [barId], references: [id])
+  bar Bar @relation(fields: [barId], references: [id])
 }
-
-
-model Hotel {
-  id          Int      @id @default(autoincrement())
-  name        String
-  cacNumber   String   @db.VarChar(20)
-  phoneNumber String
-  email       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relationships
-  orders     Order[]
-}
-
-
 
 model Bar {
   id          Int      @id @default(autoincrement())

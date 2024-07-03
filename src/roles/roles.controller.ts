@@ -18,8 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { RoleCreationResponse, RoleListResponse } from './entities/role.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-access.interceptor';
-
+import { BusinessAccessInterceptor } from 'src/transactions/interceptors/business-access-interceptor';
 @Controller('admin/roles')
 @ApiTags('Roles')
 @ApiBearerAuth()
@@ -27,9 +26,9 @@ import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-a
 @ApiHeader({
   name: 'business_id',
   required: true,
-  description: "This is the restaurant's id",
+  description: "This is the business's id",
 })
-@UseInterceptors(RestaurantAccessInterceptor)
+@UseInterceptors(BusinessAccessInterceptor)
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 

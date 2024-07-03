@@ -9,8 +9,7 @@ import {
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ApiBearerAuth, ApiHeader, ApiTags } from '@nestjs/swagger';
-import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-access.interceptor';
-
+import { BusinessAccessInterceptor } from 'src/transactions/interceptors/business-access-interceptor';
 @Controller('admin/orders')
 @ApiTags('Orders (Admin)')
 @ApiBearerAuth()
@@ -20,16 +19,16 @@ import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-a
   required: true,
   description: 'This is the business id',
 })
-@UseInterceptors(RestaurantAccessInterceptor)
+@UseInterceptors(BusinessAccessInterceptor)
 export class AdminOrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get()
   async create(@Req() request) {
     const { id: ownerId } = request.user;
-    const { business_id: restaurantId } = request.headers;
+    const { business_id: businessId } = request.headers;
     // const baseUrl = request.protocol + "://" + request.headers.host;
-    // const orders = (await this.orderService.fetchPaidOrders(ownerId, restaurantId)).map(order => {
+    // const orders = (await this.orderService.fetchPaidOrders(ownerId, businessId)).map(order => {
     //   order.meals.map(orderMeal => {
     //     orderMeal.meal.image = `${baseUrl}/v2/files/image/${orderMeal.meal.image}`;
     //   });
@@ -37,7 +36,7 @@ export class AdminOrderController {
     // });
     const orders = await this.orderService.fetchPaidOrders(
       ownerId,
-      +restaurantId,
+      +businessId,
     );
 
     return {
