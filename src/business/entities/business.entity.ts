@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { $Enums, Business } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseResponse } from 'src/app/entities/BaseResponse.entity';

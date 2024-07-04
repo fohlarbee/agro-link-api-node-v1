@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import {
   Controller,
   Get,
@@ -14,7 +13,6 @@ import {
 import { OptionService } from './options.service';
 import { CreateOptionDto } from './dto/create-option.dto';
 import { UpdateOptionDto } from './dto/update-option.dto';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -25,7 +23,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { BusinessAccessInterceptor } from 'src/transactions/interceptors/business-access-interceptor';
 // import { Bus } from 'src/utils/interceptors/business-access.interceptor';
 
-@Controller('meals')
+@Controller('options')
 @ApiTags('Meals')
 export class OptionController {
   constructor(private readonly mealsService: OptionService) {}
@@ -41,7 +39,7 @@ export class OptionController {
   // }
 }
 
-@Controller('admin/meals')
+@Controller('admin/options')
 @ApiTags('Meals (Admin)')
 @ApiHeader({
   name: 'business_id',
@@ -51,7 +49,7 @@ export class OptionController {
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(BusinessAccessInterceptor)
-export class AdminMealsController {
+export class AdminOptionsController {
   constructor(private readonly optionService: OptionService) {}
 
   @Post()
@@ -69,11 +67,11 @@ export class AdminMealsController {
     //   option.image = `${baseUrl}/v2/files/image/${option.image}`;
     //   return option;
     // });
-    const meals = await this.optionService.findAll(+business_id);
+    const options = await this.optionService.findAll(+business_id);
     return {
       message: 'Menu fetch successful',
       status: 'success',
-      data: meals,
+      data: options,
     };
   }
 

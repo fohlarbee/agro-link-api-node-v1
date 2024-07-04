@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import {
   Controller,
   Get,
@@ -9,9 +8,6 @@ import {
   UseGuards,
   Param,
 } from '@nestjs/common';
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable prettier/prettier */
-
 import { MenuService } from './menu.service';
 import {
   ApiBearerAuth,
@@ -57,21 +53,21 @@ export class MenuController {
   @ApiOkResponse({ type: BaseResponse })
   async assignMeals(
     @Param('id') optionId: number,
-    @Body() { mealIds }: optionIdsDto,
+    @Body() { optionIds }: optionIdsDto,
     @Req() request,
   ) {
     const { business_id } = request.headers;
-    return this.menuService.addMenuMeals(+business_id, +optionId, mealIds);
+    return this.menuService.addMenuMeals(+business_id, +optionId, optionIds);
   }
 
   @Post(':id/remove-meals')
   @ApiOkResponse({ type: BaseResponse })
   async removeMeals(
     @Param('id') optionId: number,
-    @Body() { mealIds }: optionIdsDto,
+    @Body() { optionIds }: optionIdsDto,
     @Req() request,
   ) {
     const { business_id } = request.headers;
-    return this.menuService.removeMenuMeals(+business_id, +optionId, mealIds);
+    return this.menuService.removeMenuMeals(+business_id, +optionId, optionIds);
   }
 }

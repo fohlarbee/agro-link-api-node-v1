@@ -24,7 +24,7 @@ model User {
   // Relationships
   orders          Order[]
   payments        Payment[]
-  Business        Staff[]
+  business        Staff[]
   createdBusiness Business[]
   shifts          Shift[]
 }
@@ -59,7 +59,7 @@ model Role {
 
   // Relationships
   businessId Int
-  Busness    Business @relation(fields: [businessId], references: [id])
+  business    Business @relation(fields: [businessId], references: [id])
   staffs     Staff[]
   shifts     Shift[]
 
@@ -246,29 +246,6 @@ model Payment {
   user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model BarItems {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String
-  price       Float
-  image       String
-  barId       Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
-  //relationships
-  bar Bar @relation(fields: [barId], references: [id])
-}
 
-model Bar {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String
-  price       Int
-  image       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
-  //relationships
-  bars BarItems[]
-}

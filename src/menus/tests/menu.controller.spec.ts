@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Test, TestingModule } from '@nestjs/testing';
 import { MenuController } from '../menu.controller';
 import { MenuService } from '../menu.service';

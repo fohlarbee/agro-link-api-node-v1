@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 
@@ -12,9 +11,6 @@ export class AddOptionToOrderDto {
   @Min(1)
   @ApiProperty()
   quantity: number;
-
-
-
   @IsString()
   @IsNotEmpty()
   @ApiProperty({ required: true })

@@ -1,11 +1,6 @@
-/* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateOptionDto } from 'src/options/dto/create-option.dto';
-import { UpdateOptionDto } from 'src/options/dto/update-option.dto';
 
+import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class MenuService {
   constructor(private prisma: PrismaService) {}

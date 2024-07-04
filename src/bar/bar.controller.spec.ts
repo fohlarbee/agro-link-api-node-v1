@@ -1,4 +1,4 @@
-/* eslint-disable prettier/prettier */
+/* -disable prettier/prettier */
 import { Test, TestingModule } from '@nestjs/testing';
 import { BarController } from './bar.controller';
 

@@ -1,12 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable prettier/prettier */
+/* -disable @typescript-/no-unused-vars */
+/* -disable prettier/prettier */
 import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Patch, Post, Query } from "@nestjs/common";
 import { BarService } from "./bar.service";
 import { Prisma } from "@prisma/client";
 
 @Controller("bars")
 export class BarController {
-  // eslint-disable-next-line prettier/prettier
+  // -disable-next-line prettier/prettier
     constructor(
         private readonly barsService: BarService,
     ){}
