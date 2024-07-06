@@ -50,7 +50,7 @@ export class BusinessService {
 
   async createBusiness(createData: CreateBusinessDto, creatorId: number) {
     const business = await this.prisma.business.create({
-      data: { ...createData, creatorId, type: 'restaurant'},
+      data: { ...createData, creatorId},
     });
 
     await this.prisma.staff.create({
@@ -84,7 +84,7 @@ export class BusinessService {
           },
         },
         role: { select: { name: true } },
-      },
+      }, 
     });
 
     return {

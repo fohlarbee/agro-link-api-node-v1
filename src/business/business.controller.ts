@@ -79,7 +79,7 @@ export class AdminBusinessController {
 
   @Post()
   @ApiCreatedResponse({ type: BusinessCreationResponse })
-  createRestaurant(
+  creatwBusiness(
     @Body() createBusinessDto: CreateBusinessDto,
     @Req() request,
   ) {
@@ -93,6 +93,7 @@ export class AdminBusinessController {
   @Get()
   @ApiOkResponse({ type: BusinessListResponse })
   findMemberRestaurants(@Req() { user: { id: userId } }: Record<string, any>) {
+    console.log(userId)
     return this.businessService.findStaffBusiness(userId);
   }
 

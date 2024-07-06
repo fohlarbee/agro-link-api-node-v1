@@ -26,6 +26,7 @@ export class AuthService {
     return {
       message: 'Login successful',
       data: { accessToken: this.jwtService.sign(payload) },
+      avatar:`https://ui-avatars.com/api/?name=${user.email}`,
     };
   }
 

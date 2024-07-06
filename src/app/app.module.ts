@@ -13,9 +13,7 @@ import { StaffsModule } from 'src/staffs/staffs.module';
 import { RolesModule } from 'src/roles/roles.module';
 import { OutletsModule } from 'src/outlets/outlets.module';
 import {  OptionsModule } from 'src/options/options.module';
-import { BarModule } from 'src/bar/bar.module';
 // import { HotelsModule } from 'src/hotels/hotels.module';
-import { BarItemsModule } from 'src/bar-items/barItems.module';
 
 @Module({
   imports: [
@@ -32,8 +30,6 @@ import { BarItemsModule } from 'src/bar-items/barItems.module';
     ShiftsModule,
     StaffsModule,
     TransactionModule,
-    BarModule,
-    BarItemsModule
   ],
   controllers: [AppController],
   providers: [],

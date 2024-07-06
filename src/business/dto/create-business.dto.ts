@@ -4,8 +4,8 @@ import { IsEmail, IsEnum, IsOptional, IsPhoneNumber, IsString } from 'class-vali
 
 
 
-enum BusinessTYpe{
-  business='business',
+enum BusinessType{
+  restaurant='restaurant',
   bar='bar'
 }
 export class CreateBusinessDto {
@@ -21,10 +21,10 @@ export class CreateBusinessDto {
   @ApiProperty({ required: true })
   phoneNumber: string;
 
-  @IsEnum(BusinessTYpe)
+  @IsEnum(BusinessType)
   @IsString()
   @ApiProperty({ required: true })
-  type: BusinessTYpe
+  type: BusinessType
   
   @IsEmail()
   @IsOptional()
