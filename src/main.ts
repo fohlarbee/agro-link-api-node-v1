@@ -8,6 +8,7 @@ import { PrismaClient } from '@prisma/client';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     // logger: console,
+    cors: true 
   });
 
   app.setGlobalPrefix('v2');
