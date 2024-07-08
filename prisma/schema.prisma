@@ -60,7 +60,7 @@ model Role {
 
   // Relationships
   businessId Int
-  business    Business @relation(fields: [businessId], references: [id])
+  business   Business @relation(fields: [businessId], references: [id])
   staffs     Staff[]
   shifts     Shift[]
 
@@ -246,7 +246,3 @@ model Payment {
   userId  Int
   user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
-
-
-
