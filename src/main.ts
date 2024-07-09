@@ -28,11 +28,11 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('bankfieh/api-docs', app, document, { explorer: true });
 
-  // const prisma = new PrismaClient().$connect().then(() => {
-  //   console.log('connected')
-  // }).catch((err) => {
-  //   console.log(err)
-  // })
+  const prisma = new PrismaClient().$connect().then(() => {
+    console.log('connected')
+  }).catch((err) => {
+    console.log(err)
+  })
 
   await app.listen(process.env.PORT || 3000);
 }
