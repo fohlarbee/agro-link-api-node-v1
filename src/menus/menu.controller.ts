@@ -49,7 +49,7 @@ export class MenuController {
     return this.menuService.findAllMenus(+business_id);
   }
 
-  @Post(':id/add-meals')
+  @Post(':id/add-options')
   @ApiOkResponse({ type: BaseResponse })
   async assignMeals(
     @Param('id') optionId: number,
@@ -60,7 +60,7 @@ export class MenuController {
     return this.menuService.addMenuMeals(+business_id, +optionId, optionIds);
   }
 
-  @Post(':id/remove-meals')
+  @Post(':id/remove-options')
   @ApiOkResponse({ type: BaseResponse })
   async removeMeals(
     @Param('id') optionId: number,
