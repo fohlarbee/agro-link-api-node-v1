@@ -25,8 +25,8 @@ model User {
   // Relationships
   orders          Order[]
   payments        Payment[]
-  business        Staff[]
-  createdBusiness Business[]
+  businesses        Staff[]
+  createdBusinesses Business[]
   shifts          Shift[]
 }
 
@@ -44,7 +44,7 @@ model Business {
   creatorId Int
   creator   User     @relation(fields: [creatorId], references: [id])
   menus     Menu[]
-  menu      Option[]
+  option      Option[]
   orders    Order[]
   roles     Role[]
   staffs    Staff[]

@@ -88,7 +88,7 @@ export class BusinessService {
     });
 
     return {
-      message: 'Business fetched successfully',
+      message: 'Businesses fetched successfully',
       status: 'success',
       data: businesses,
     };
@@ -112,7 +112,7 @@ export class BusinessService {
       });
     business = await this.prisma.business.update({
       where: { id },
-      data: {...updateData, type: 'restaurant'}
+      data: {...updateData}
     });
 
     return {

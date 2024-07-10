@@ -28,7 +28,7 @@ import { AddOptionToOrderDto } from 'src/orders/dto/order-option.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('business')
-@ApiTags('Restaurant')
+@ApiTags('Business')
 export class ClienBusinessController {
   constructor(
     private readonly businessService: BusinessService,
@@ -68,10 +68,8 @@ export class ClienBusinessController {
   }
 }
 
-
-
-@Controller('admin/business')
-@ApiTags('Restaurants (Admin)')
+@Controller('admin/businesses')
+@ApiTags('Business (Admin)')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class AdminBusinessController {
