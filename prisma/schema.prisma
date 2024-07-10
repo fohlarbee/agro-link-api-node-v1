@@ -23,11 +23,11 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relationships
-  orders          Order[]
-  payments        Payment[]
+  orders            Order[]
+  payments          Payment[]
   businesses        Staff[]
   createdBusinesses Business[]
-  shifts          Shift[]
+  shifts            Shift[]
 }
 
 model Business {
@@ -44,7 +44,7 @@ model Business {
   creatorId Int
   creator   User     @relation(fields: [creatorId], references: [id])
   menus     Menu[]
-  option      Option[]
+  option    Option[]
   orders    Order[]
   roles     Role[]
   staffs    Staff[]

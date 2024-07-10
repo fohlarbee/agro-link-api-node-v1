@@ -5,14 +5,14 @@ import {
   Delete,
   UseGuards,
   Req,
-  BadRequestException,
-} from '@nestjs/common';
-import { OrderService } from './order.service';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+  BadRequestException
+} from "@nestjs/common";
+import { OrderService } from "./order.service";
+import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 
-@Controller('orders')
-@ApiTags('Orders')
+@Controller("orders")
+@ApiTags("Orders")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class OrderController {
@@ -24,13 +24,13 @@ export class OrderController {
     return this.orderService.findCustomerOrders(+customerId);
   }
 
-  @Get('/:id')
-  async findOrder(@Param('id') orderId: number, @Req() request) {
+  @Get("/:id")
+  async findOrder(@Param("id") orderId: number, @Req() request) {
     const { id: customerId } = request.user;
     return this.orderService.findOrder(customerId, +orderId);
   }
 
-  @Get('/history')
+  @Get("/history")
   async findOrderHistory(@Req() request) {
     const { id: customerId } = request.user;
     // const baseUrl = request.protocol + "://" + request.headers.host;
@@ -45,24 +45,24 @@ export class OrderController {
     const history = await this.orderService.findOrderHistory(customerId);
 
     return {
-      message: 'Order history fetch successful',
-      status: 'success',
-      data: history,
+      message: "Order history fetch successful",
+      status: "success",
+      data: history
     };
   }
 
-  @Delete(':id/:optionId')
+  @Delete(":id/:optionId")
   remove(
-    @Param('id') orderId: number,
-    @Param('optionId') optionId: number,
-    @Req() request,
+    @Param("id") orderId: number,
+    @Param("optionId") optionId: number,
+    @Req() request
   ) {
     const { id: customerId } = request.user;
-    if (isNaN(optionId)) throw new BadRequestException('Invalid optionId');
+    if (isNaN(optionId)) throw new BadRequestException("Invalid optionId");
     return this.orderService.removeMealOrder(+optionId, +customerId, +orderId);
   }
 
-  @Get('/pay')
+  @Get("/pay")
   payOrder(@Req() request) {
     const { id: customerId, email } = request.user;
     const { id: businessId } = request.business;

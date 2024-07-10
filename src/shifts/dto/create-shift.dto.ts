@@ -1,12 +1,12 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
 import {
   IsDate,
   IsNotEmpty,
   IsNumber,
   IsPositive,
-  MinDate,
-} from 'class-validator';
+  MinDate
+} from "class-validator";
 
 export class CreateShiftDto {
   @IsNotEmpty()

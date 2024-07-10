@@ -2,63 +2,68 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
-import { AddOptionToOrderDto } from './dto/order-option.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { OrderStatus } from '@prisma/client';
-import { PaystackService } from 'src/paystack/paystack.service';
+  UnprocessableEntityException
+} from "@nestjs/common";
+import { AddOptionToOrderDto } from "./dto/order-option.dto";
+import { PrismaService } from "src/prisma/prisma.service";
+import { OrderStatus } from "@prisma/client";
+import { PaystackService } from "src/paystack/paystack.service";
 
 @Injectable()
 export class OrderService {
   constructor(
     private prisma: PrismaService,
-    private paystack: PaystackService,
+    private paystack: PaystackService
   ) {}
 
   async orderMeal(
     { tableIdentifier, ...optionOrder }: AddOptionToOrderDto,
     customerId: number,
-    businessId: number,
+    businessId: number
   ) {
     const option = await this.prisma.option.findUnique({
       where: { id: optionOrder.optionId, AND: { businessId } },
-      select: { business: true },
+      select: { business: true }
     });
 
     if (!option)
-      throw new NotFoundException(`No such option with id ${optionOrder.optionId}`);
+      throw new NotFoundException(
+        `No such option with id ${optionOrder.optionId}`
+      );
 
     let currentOrder = await this.prisma.order.findFirst({
       where: { customerId, status: OrderStatus.active, businessId },
-      select: { id: true },
+      select: { id: true }
     });
 
     if (!currentOrder)
       currentOrder = await this.createNewOrder({
         customerId,
         businessId,
-        tableIdentifier,
+        tableIdentifier
       });
 
     await this.prisma.orderOption.upsert({
       where: {
-        orderId_optionId: { orderId: currentOrder.id, optionId: optionOrder.optionId },
+        orderId_optionId: {
+          orderId: currentOrder.id,
+          optionId: optionOrder.optionId
+        }
       },
-      create: { ...optionOrder, orderId: currentOrder.id, },
-      update: { quantity: optionOrder.quantity },
+      create: { ...optionOrder, orderId: currentOrder.id },
+      update: { quantity: optionOrder.quantity }
     });
 
     return {
-      message: 'Meal added to order successfully',
-      status: 'success',
+      message: "Meal added to order successfully",
+      status: "success"
     };
   }
 
   private async createNewOrder({
     customerId,
     businessId,
-    tableIdentifier,
+    tableIdentifier
   }: {
     customerId: number;
     businessId: number;
@@ -67,7 +72,7 @@ export class OrderService {
     const table = await this.prisma.table.findFirst({
       where: {
         identifier: tableIdentifier,
-        outlet: { businessId: businessId },
+        outlet: { businessId: businessId }
       },
       select: {
         id: true,
@@ -75,18 +80,18 @@ export class OrderService {
           where: {
             shift: {
               startTime: { lte: new Date() },
-              endTime: { gte: new Date() },
-            },
+              endTime: { gte: new Date() }
+            }
           },
-          select: { shift: true },
-        },
-      },
+          select: { shift: true }
+        }
+      }
     });
 
-    if (!table) throw new BadRequestException('Invalid table selected');
+    if (!table) throw new BadRequestException("Invalid table selected");
     if (table.assignedShifts.length < 1)
       throw new UnprocessableEntityException(
-        'No waiter to take your order at this moment',
+        "No waiter to take your order at this moment"
       );
     const { id: shiftId, userId: waiterId } = table.assignedShifts[0].shift;
     return this.prisma.order.create({
@@ -98,11 +103,11 @@ export class OrderService {
         // tip:4000,
         waiter: {
           connect: {
-            userId_businessId: { userId: waiterId, businessId },
-          },
-        },
+            userId_businessId: { userId: waiterId, businessId }
+          }
+        }
       },
-      select: { id: true },
+      select: { id: true }
     });
   }
 
@@ -116,18 +121,18 @@ export class OrderService {
         options: {
           select: {
             option: {
-              select: { image: true, name: true, price: true, id: true },
+              select: { image: true, name: true, price: true, id: true }
             },
-            quantity: true,
-          },
+            quantity: true
+          }
         },
-        business: { select: { id: true, name: true } },
-      },
+        business: { select: { id: true, name: true } }
+      }
     });
     return {
-      message: 'Orders fetched successfully',
-      status: 'success',
-      data: orders,
+      message: "Orders fetched successfully",
+      status: "success",
+      data: orders
     };
   }
 
@@ -138,12 +143,12 @@ export class OrderService {
         options: {
           select: {
             option: {
-              select: { image: true, name: true, price: true, id: true },
+              select: { image: true, name: true, price: true, id: true }
             },
-            quantity: true,
-          },
-        },
-      },
+            quantity: true
+          }
+        }
+      }
     });
     return currentOrder.options || [];
   }
@@ -155,17 +160,17 @@ export class OrderService {
         options: {
           select: {
             option: {
-              select: { image: true, name: true, price: true, id: true },
+              select: { image: true, name: true, price: true, id: true }
             },
-            quantity: true,
-          },
-        },
-      },
+            quantity: true
+          }
+        }
+      }
     });
     return {
-      message: 'Order fetched successfully',
-      status: 'success',
-      data: { order },
+      message: "Order fetched successfully",
+      status: "success",
+      data: { order }
     };
   }
 
@@ -180,13 +185,13 @@ export class OrderService {
         options: {
           select: {
             option: {
-              select: { image: true, name: true, price: true, id: true },
+              select: { image: true, name: true, price: true, id: true }
             },
-            quantity: true,
-          },
-        },
+            quantity: true
+          }
+        }
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" }
     });
   }
 
@@ -194,16 +199,16 @@ export class OrderService {
     const currentOrderOption = await this.prisma.orderOption.findFirst({
       where: {
         order: { customerId, id: orderId, status: OrderStatus.active },
-        optionId: id,
+        optionId: id
       },
-      select: { optionId: true, orderId: true },
+      select: { optionId: true, orderId: true }
     });
     if (!currentOrderOption)
-      throw new BadRequestException('No such option in order');
+      throw new BadRequestException("No such option in order");
     await this.prisma.orderOption.delete({
-      where: { orderId_optionId: currentOrderOption },
+      where: { orderId_optionId: currentOrderOption }
     });
-    return { message: 'Meal removed from current order', status: 'success' };
+    return { message: "Meal removed from current order", status: "success" };
   }
 
   async payOrder(email: string, customerId: number, businessId: number) {
@@ -214,14 +219,14 @@ export class OrderService {
         options: {
           select: {
             quantity: true,
-            option: { select: { price: true } },
-          },
-        },
-      },
+            option: { select: { price: true } }
+          }
+        }
+      }
     });
     if (!currentOrder)
       throw new BadRequestException(
-        'You do not currently have any open orders',
+        "You do not currently have any open orders"
       );
     const totalAmount = currentOrder.options.reduce((total, option) => {
       total += option.quantity * option.option.price;
@@ -232,13 +237,13 @@ export class OrderService {
       totalAmount,
       {
         orderId: currentOrder.id,
-        customerId,
-      },
+        customerId
+      }
     );
     return {
-      message: 'Payment initiation successful',
-      status: 'success',
-      data: { paymentLink: paymentLink.data.authorization_url },
+      message: "Payment initiation successful",
+      status: "success",
+      data: { paymentLink: paymentLink.data.authorization_url }
     };
   }
 
@@ -251,11 +256,11 @@ export class OrderService {
         options: {
           select: {
             option: { select: { image: true, price: true, id: true } },
-            quantity: true,
-          },
-        },
+            quantity: true
+          }
+        }
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" }
     });
   }
 }

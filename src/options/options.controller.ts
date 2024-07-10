@@ -8,23 +8,23 @@ import {
   Req,
   Put,
   UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
-import { OptionService } from './options.service';
-import { CreateOptionDto } from './dto/create-option.dto';
-import { UpdateOptionDto } from './dto/update-option.dto';
+  UseInterceptors
+} from "@nestjs/common";
+import { OptionService } from "./options.service";
+import { CreateOptionDto } from "./dto/create-option.dto";
+import { UpdateOptionDto } from "./dto/update-option.dto";
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiHeader,
-  ApiTags,
-} from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { BusinessAccessInterceptor } from 'src/utils/interceptors/business-access-interceptor';
+  ApiTags
+} from "@nestjs/swagger";
+import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 // import { Bus } from 'src/utils/interceptors/business-access.interceptor';
 
-@Controller('options')
-@ApiTags('Meals')
+@Controller("options")
+@ApiTags("Meals")
 export class OptionController {
   constructor(private readonly mealsService: OptionService) {}
 
@@ -39,12 +39,12 @@ export class OptionController {
   // }
 }
 
-@Controller('admin/options')
-@ApiTags('Meals (Admin)')
+@Controller("admin/options")
+@ApiTags("Meals (Admin)")
 @ApiHeader({
-  name: 'business_id',
+  name: "business_id",
   required: true,
-  description: 'This is the business id',
+  description: "This is the business id"
 })
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -69,24 +69,24 @@ export class AdminOptionsController {
     // });
     const options = await this.optionService.findAll(+business_id);
     return {
-      message: 'Menu fetch successful',
-      status: 'success',
-      data: options,
+      message: "Menu fetch successful",
+      status: "success",
+      data: options
     };
   }
 
-  @Put('/:id')
+  @Put("/:id")
   update(
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() createOptionDto: UpdateOptionDto,
-    @Req() request,
+    @Req() request
   ) {
     const { business_id } = request.headers;
     return this.optionService.update(+id, UpdateOptionDto, +business_id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string, @Req() request) {
+  @Delete(":id")
+  remove(@Param("id") id: string, @Req() request) {
     const { business_id } = request.headers;
     return this.optionService.remove(+id, +business_id);
   }

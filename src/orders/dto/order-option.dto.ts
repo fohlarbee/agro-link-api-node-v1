@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import {  IsEnum, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsNotEmpty, IsNumber, IsString, Min } from "class-validator";
 
 export class AddOptionToOrderDto {
   @IsNumber()
@@ -16,6 +16,4 @@ export class AddOptionToOrderDto {
   @IsNotEmpty()
   @ApiProperty({ required: true })
   tableIdentifier: string;
-
-  
 }

@@ -1,12 +1,15 @@
+import { ApiProperty } from "@nestjs/swagger";
+import {
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsPhoneNumber,
+  IsString
+} from "class-validator";
 
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsOptional, IsPhoneNumber, IsString } from 'class-validator';
-
-
-
-enum BusinessType{
-  restaurant='restaurant',
-  bar='bar'
+enum BusinessType {
+  restaurant = "restaurant",
+  bar = "bar"
 }
 export class CreateBusinessDto {
   @IsString()
@@ -24,8 +27,8 @@ export class CreateBusinessDto {
   @IsEnum(BusinessType)
   @IsString()
   @ApiProperty({ required: true })
-  type: BusinessType
-  
+  type: BusinessType;
+
   @IsEmail()
   @IsOptional()
   @ApiProperty({ required: false, nullable: true })

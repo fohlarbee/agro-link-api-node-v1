@@ -3,20 +3,20 @@ import {
   Get,
   UseGuards,
   Req,
-  UseInterceptors,
-} from '@nestjs/common';
-import { OrderService } from './order.service';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { ApiBearerAuth, ApiHeader, ApiTags } from '@nestjs/swagger';
-import { BusinessAccessInterceptor } from 'src/utils/interceptors/business-access-interceptor';
-@Controller('admin/orders')
-@ApiTags('Orders (Admin)')
+  UseInterceptors
+} from "@nestjs/common";
+import { OrderService } from "./order.service";
+import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { ApiBearerAuth, ApiHeader, ApiTags } from "@nestjs/swagger";
+import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
+@Controller("admin/orders")
+@ApiTags("Orders (Admin)")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @ApiHeader({
-  name: 'business_id',
+  name: "business_id",
   required: true,
-  description: 'This is the business id',
+  description: "This is the business id"
 })
 @UseInterceptors(BusinessAccessInterceptor)
 export class AdminOrderController {
@@ -35,13 +35,13 @@ export class AdminOrderController {
     // });
     const orders = await this.orderService.fetchPaidOrders(
       ownerId,
-      +businessId,
+      +businessId
     );
 
     return {
-      message: 'Orders fetch successful',
-      status: 'success',
-      data: orders,
+      message: "Orders fetch successful",
+      status: "success",
+      data: orders
     };
   }
 }

@@ -6,29 +6,29 @@ import {
   Param,
   Req,
   UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
-import { StaffsService } from './staffs.service';
-import { CreateStaffDto } from './dto/create-staff.dto';
+  UseInterceptors
+} from "@nestjs/common";
+import { StaffsService } from "./staffs.service";
+import { CreateStaffDto } from "./dto/create-staff.dto";
 import {
   ApiBearerAuth,
   ApiHeader,
   ApiOkResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
-import { StaffFetchResponse, StaffListResponse } from './entities/staff.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { BusinessAccessInterceptor } from 'src/utils/interceptors/business-access-interceptor';
+  ApiTags
+} from "@nestjs/swagger";
+import { BaseResponse } from "src/app/entities/BaseResponse.entity";
+import { StaffFetchResponse, StaffListResponse } from "./entities/staff.entity";
+import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 
-@Controller('admin/staffs')
-@ApiTags('Staffs')
+@Controller("admin/staffs")
+@ApiTags("Staffs")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @ApiHeader({
-  name: 'business_id',
+  name: "business_id",
   required: true,
-  description: "This is the business's id",
+  description: "This is the business's id"
 })
 @UseInterceptors(BusinessAccessInterceptor)
 export class StaffsController {
@@ -38,7 +38,7 @@ export class StaffsController {
   @ApiOkResponse({ type: BaseResponse })
   create(
     @Body() createStaffDto: CreateStaffDto,
-    @Req() request: Record<string, any>,
+    @Req() request: Record<string, any>
   ) {
     const { business_id } = request.headers;
     return this.staffsService.createStaff(+business_id, createStaffDto);
@@ -51,9 +51,9 @@ export class StaffsController {
     return this.staffsService.findAllStaffs(+business_id);
   }
 
-  @Get(':id')
+  @Get(":id")
   @ApiOkResponse({ type: StaffFetchResponse })
-  findOne(@Param('id') id: string, @Req() request: Record<string, any>) {
+  findOne(@Param("id") id: string, @Req() request: Record<string, any>) {
     const { business_id } = request.headers;
     return this.staffsService.findStaff(+id, +business_id);
   }

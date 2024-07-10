@@ -2,30 +2,30 @@ import {
   BadRequestException,
   HttpException,
   HttpStatus,
-  Injectable,
-} from '@nestjs/common';
-import { OrderStatus } from '@prisma/client';
-import { PaystackService } from 'src/paystack/paystack.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+  Injectable
+} from "@nestjs/common";
+import { OrderStatus } from "@prisma/client";
+import { PaystackService } from "src/paystack/paystack.service";
+import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
 export class TransactionService {
   constructor(
     private readonly paystack: PaystackService,
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaService
   ) {}
   async processTransaction(reference: string) {
     const verificationResult = await this.paystack.verifyPayment(reference);
 
     // Check that payment already exists
     const payment = await this.prisma.payment.findUnique({
-      where: { reference },
+      where: { reference }
     });
-    if (payment) return { message: 'Payment successful', status: 'success' };
+    if (payment) return { message: "Payment successful", status: "success" };
 
     // Check that the payment was successful
-    if (verificationResult.status != 'success')
-      throw new HttpException('Payment failed', HttpStatus.PAYMENT_REQUIRED);
+    if (verificationResult.status != "success")
+      throw new HttpException("Payment failed", HttpStatus.PAYMENT_REQUIRED);
 
     // convert amount from minor
     const amount = +verificationResult.data.amount / 100;
@@ -35,13 +35,13 @@ export class TransactionService {
     const paidAt = verificationResult.data.paid_at;
     // Check order exists
     const order = await this.prisma.order.findUnique({
-      where: { id: orderId },
+      where: { id: orderId }
     });
 
-    if (!order) throw new BadRequestException('No such order');
+    if (!order) throw new BadRequestException("No such order");
 
-    if (order.status !== 'active')
-      throw new BadRequestException('Order is not active');
+    if (order.status !== "active")
+      throw new BadRequestException("Order is not active");
 
     await this.prisma.payment.create({
       data: {
@@ -49,8 +49,8 @@ export class TransactionService {
         amount,
         paidAt,
         reference,
-        userId: order.customerId,
-      },
+        userId: order.customerId
+      }
     });
 
     await this.prisma.order.update({
@@ -62,11 +62,11 @@ export class TransactionService {
             amount,
             paidAt,
             reference,
-            userId: order.customerId,
-          },
-        },
-      },
+            userId: order.customerId
+          }
+        }
+      }
     });
-    return { message: 'Payment successful', status: 'success' };
+    return { message: "Payment successful", status: "success" };
   }
 }

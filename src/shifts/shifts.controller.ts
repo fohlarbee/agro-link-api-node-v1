@@ -6,34 +6,34 @@ import {
   Param,
   Req,
   UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
-import { ShiftsService } from './shifts.service';
-import { CreateShiftDto } from './dto/create-shift.dto';
+  UseInterceptors
+} from "@nestjs/common";
+import { ShiftsService } from "./shifts.service";
+import { CreateShiftDto } from "./dto/create-shift.dto";
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiHeader,
   ApiOkResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import { AssignShiftTablesDto } from './dto/assign-shift-tables.dto';
+  ApiTags
+} from "@nestjs/swagger";
+import { AssignShiftTablesDto } from "./dto/assign-shift-tables.dto";
 import {
   ShiftCreationResponse,
-  ShiftListResponse,
-} from './entities/shift.entity';
-import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { BusinessAccessInterceptor } from 'src/utils/interceptors/business-access-interceptor';
+  ShiftListResponse
+} from "./entities/shift.entity";
+import { BaseResponse } from "src/app/entities/BaseResponse.entity";
+import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 
-@Controller('admin/shifts')
-@ApiTags('Shifts')
+@Controller("admin/shifts")
+@ApiTags("Shifts")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @ApiHeader({
-  name: 'business_id',
+  name: "business_id",
   required: true,
-  description: "This is the business's id",
+  description: "This is the business's id"
 })
 @UseInterceptors(BusinessAccessInterceptor)
 export class ShiftsController {
@@ -43,7 +43,7 @@ export class ShiftsController {
   @ApiCreatedResponse({ type: ShiftCreationResponse })
   create(
     @Body() createShiftDto: CreateShiftDto,
-    @Req() request: Record<string, any>,
+    @Req() request: Record<string, any>
   ) {
     const { business_id } = request.headers;
     return this.shiftsService.createShift(+business_id, createShiftDto);
@@ -56,18 +56,18 @@ export class ShiftsController {
     return this.shiftsService.findAllShifts(+business_id);
   }
 
-  @Post('/:id/assign-tables')
+  @Post("/:id/assign-tables")
   @ApiOkResponse({ type: BaseResponse })
   assignTables(
-    @Param('id') shiftId: string,
+    @Param("id") shiftId: string,
     @Body() { tableIds }: AssignShiftTablesDto,
-    @Req() request: Record<string, any>,
+    @Req() request: Record<string, any>
   ) {
     const { business_id } = request.headers;
     return this.shiftsService.assignShiftTables(
       +business_id,
       +shiftId,
-      tableIds,
+      tableIds
     );
   }
 

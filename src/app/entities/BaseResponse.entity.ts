@@ -1,6 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from "@nestjs/swagger";
 
-type status = 'success' | 'error';
+type status = "success" | "error";
 
 export class BaseResponse {
   @ApiProperty({ required: true })

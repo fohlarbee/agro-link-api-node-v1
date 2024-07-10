@@ -1,7 +1,7 @@
-import { Outlet } from '@prisma/client';
-import { ApiProperty } from '@nestjs/swagger';
-import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
-import { ValidateNested } from 'class-validator';
+import { Outlet } from "@prisma/client";
+import { ApiProperty } from "@nestjs/swagger";
+import { BaseResponse } from "src/app/entities/BaseResponse.entity";
+import { ValidateNested } from "class-validator";
 
 class OutletEntity implements Partial<Outlet> {
   @ApiProperty({ required: true })
