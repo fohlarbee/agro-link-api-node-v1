@@ -3,7 +3,6 @@ import { AppModule } from './app/app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
-import { PrismaClient } from '@prisma/client';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -28,11 +27,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('bankfieh/api-docs', app, document, { explorer: true });
 
-  const prisma = new PrismaClient().$connect().then(() => {
-    console.log('connected')
-  }).catch((err) => {
-    console.log(err)
-  })
+  
 
   await app.listen(process.env.PORT || 3000);
 }

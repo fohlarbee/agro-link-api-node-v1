@@ -181,3 +181,5 @@ ALTER TABLE "User"
   ADD COLUMN "avatar" TEXT;
 
 -- Add tip column to Order table
+ALTER TABLE "Order" ADD COLUMN     "tip" DOUBLE PRECISION;
+
