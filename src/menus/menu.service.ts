@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-
 import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class MenuService {
@@ -81,11 +80,11 @@ export class MenuService {
     };
   }
 
-  async addMenuMeals(businessId: number, menuId: number, mealIds: number[]) {
+  async addMenuMeals(businessId: number, menuId: number, optionIds: number[]) {
     await this.isValidMenu(businessId, menuId);
     const validIds = (
       await Promise.all(
-        mealIds.map(async (optionId) => {
+        optionIds.map(async (optionId) => {
           const option = await this.prisma.option.findFirst({
             where: { id: optionId, businessId },
           });

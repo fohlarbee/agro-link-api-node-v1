@@ -20,7 +20,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { optionIdsDto } from './dto/option-ids.dto';
 import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
-import { BusinessAccessInterceptor } from 'src/transactions/interceptors/business-access-interceptor';
+import { BusinessAccessInterceptor } from 'src/utils/interceptors/business-access-interceptor';
 
 @Controller('admin/menus')
 @ApiTags('Menus')

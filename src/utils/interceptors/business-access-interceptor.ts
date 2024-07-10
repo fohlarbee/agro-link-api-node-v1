@@ -32,7 +32,7 @@ import {
         where: { userId_businessId: { userId, businessId } },
       });
   
-      if (!staff) throw new UnauthorizedException(`Invalid restaurant`);
+      if (!staff) throw new UnauthorizedException(`Invalid business`);
   
       return next.handle().pipe(
         catchError((error) => {

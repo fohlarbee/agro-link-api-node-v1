@@ -26,9 +26,6 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('bankfieh/api-docs', app, document, { explorer: true });
-
-  
-
   await app.listen(process.env.PORT || 3000);
 }
 bootstrap();

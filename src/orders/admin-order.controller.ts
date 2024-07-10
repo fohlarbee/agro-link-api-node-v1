@@ -8,7 +8,7 @@ import {
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ApiBearerAuth, ApiHeader, ApiTags } from '@nestjs/swagger';
-import { BusinessAccessInterceptor } from 'src/transactions/interceptors/business-access-interceptor';
+import { BusinessAccessInterceptor } from 'src/utils/interceptors/business-access-interceptor';
 @Controller('admin/orders')
 @ApiTags('Orders (Admin)')
 @ApiBearerAuth()

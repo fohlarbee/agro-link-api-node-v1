@@ -20,7 +20,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { BusinessAccessInterceptor } from 'src/transactions/interceptors/business-access-interceptor';
+import { BusinessAccessInterceptor } from 'src/utils/interceptors/business-access-interceptor';
 // import { Bus } from 'src/utils/interceptors/business-access.interceptor';
 
 @Controller('options')

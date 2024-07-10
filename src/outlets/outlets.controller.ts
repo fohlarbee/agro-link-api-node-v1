@@ -23,7 +23,7 @@ import {
 import { CreateTableDto } from './dto/create-table.dto';
 import { TableCreationResponse } from './entities/table.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { BusinessAccessInterceptor } from 'src/transactions/interceptors/business-access-interceptor';
+import { BusinessAccessInterceptor } from 'src/utils/interceptors/business-access-interceptor';
 @Controller('admin/outlets')
 @ApiTags('Outlets')
 @ApiBearerAuth()

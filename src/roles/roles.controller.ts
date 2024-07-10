@@ -17,7 +17,7 @@ import {
 } from '@nestjs/swagger';
 import { RoleCreationResponse, RoleListResponse } from './entities/role.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { BusinessAccessInterceptor } from 'src/transactions/interceptors/business-access-interceptor';
+import { BusinessAccessInterceptor } from 'src/utils/interceptors/business-access-interceptor';
 @Controller('admin/roles')
 @ApiTags('Roles')
 @ApiBearerAuth()

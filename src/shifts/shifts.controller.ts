@@ -24,7 +24,7 @@ import {
 } from './entities/shift.entity';
 import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { BusinessAccessInterceptor } from 'src/transactions/interceptors/business-access-interceptor';
+import { BusinessAccessInterceptor } from 'src/utils/interceptors/business-access-interceptor';
 
 @Controller('admin/shifts')
 @ApiTags('Shifts')

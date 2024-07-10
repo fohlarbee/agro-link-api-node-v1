@@ -1,6 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 
+
+enum optionType{
+  meal='meal',
+  drink='drink'
+}
 export class CreateOptionDto {
   @IsString()
   @IsNotEmpty()
@@ -16,4 +21,10 @@ export class CreateOptionDto {
   @IsNotEmpty()
   @ApiProperty()
   image: string;
+
+  @IsEnum(optionType)
+  @IsString()
+  @ApiProperty({ required: true })
+  type: optionType
+  
 }
