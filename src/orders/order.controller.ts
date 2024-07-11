@@ -59,7 +59,11 @@ export class OrderController {
   ) {
     const { id: customerId } = request.user;
     if (isNaN(optionId)) throw new BadRequestException("Invalid optionId");
-    return this.orderService.removeMealOrder(+optionId, +customerId, +orderId);
+    return this.orderService.removeOptionOrder(
+      +optionId,
+      +customerId,
+      +orderId,
+    );
   }
 
   @Get("/pay")

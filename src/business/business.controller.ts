@@ -37,7 +37,7 @@ export class ClientBusinessController {
 
   @Get()
   @ApiOkResponse({ type: BusinessListResponse })
-  findAllRestaurants() {
+  findAllBusinesses() {
     return this.businessService.findAllBusinesses();
   }
   @Get(":id")
@@ -47,7 +47,7 @@ export class ClientBusinessController {
 
   @Get(":id/menus")
   findMenus(@Param("id") id: string) {
-    return this.menuService.findMenusWithMeals(+id);
+    return this.menuService.findMenusWithOptions(+id);
   }
 
   @Post(":id/orders")
@@ -59,7 +59,7 @@ export class ClientBusinessController {
     @Req() request,
   ) {
     const { id: customerId } = request.user;
-    return this.orderService.orderMeal(
+    return this.orderService.orderOption(
       createOrderDto,
       +customerId,
       +businessId,
@@ -83,14 +83,14 @@ export class AdminBusinessController {
 
   @Get()
   @ApiOkResponse({ type: BusinessListResponse })
-  findMemberRestaurants(@Req() { user: { id: userId } }: Record<string, any>) {
+  findMemberBusinesses(@Req() { user: { id: userId } }: Record<string, any>) {
     console.log(userId);
     return this.businessService.findStaffBusiness(userId);
   }
 
   @Put(":id")
   @ApiOkResponse({ type: BusinessCreationResponse })
-  updateRestaurant(
+  updateBusiness(
     @Param("id") businessId: string,
     @Req() request: Record<string, any>,
     @Body() updateData: UpdateBusinessDto,

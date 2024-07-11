@@ -24,23 +24,23 @@ import { BusinessAccessInterceptor } from "src/utils/interceptors/business-acces
 // import { Bus } from 'src/utils/interceptors/business-access.interceptor';
 
 @Controller("options")
-@ApiTags(" OptionsController")
-export class OptionController {
-  constructor(private readonly mealsService: OptionsService) {}
+@ApiTags(" Options")
+export class OptionsController {
+  constructor(private readonly optionsService: OptionsService) {}
 
   // @Get()
   // findAll() {
-  //   return this.mealsService.findAll();
+  //   return this.optionsService.findAll();
   // }
 
   // @Get(':id')
   // findOne(@Param('id') id: string) {
-  //   return this.mealsService.findOne(+id);
+  //   return this.optionsService.findOne(+id);
   // }
 }
 
 @Controller("admin/options")
-@ApiTags("Meals (Admin)")
+@ApiTags("Options (Admin)")
 @ApiHeader({
   name: "business_id",
   required: true,
@@ -50,24 +50,24 @@ export class OptionController {
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(BusinessAccessInterceptor)
 export class AdminOptionsController {
-  constructor(private readonly optionService: OptionsService) {}
+  constructor(private readonly optionsService: OptionsService) {}
 
   @Post()
   @ApiCreatedResponse()
-  createMeal(@Body() createOptionDto: CreateOptionDto, @Req() request) {
+  createOption(@Body() createOptionDto: CreateOptionDto, @Req() request) {
     const { business_id } = request.headers;
-    return this.optionService.createOption(createOptionDto, +business_id);
+    return this.optionsService.createOption(createOptionDto, +business_id);
   }
 
   @Get()
   async findAll(@Req() request) {
     const { business_id } = request.headers;
     // const baseUrl = request.protocol + "://" + request.headers.host;
-    // const meals = (await this.mealsService.findAll(+business_id)).map(option => {
+    // const options = (await this.optionsService.findAll(+business_id)).map(option => {
     //   option.image = `${baseUrl}/v2/files/image/${option.image}`;
     //   return option;
     // });
-    const options = await this.optionService.findAll(+business_id);
+    const options = await this.optionsService.findAll(+business_id);
     return {
       message: "Menu fetch successful",
       status: "success",
@@ -82,12 +82,12 @@ export class AdminOptionsController {
     @Req() request,
   ) {
     const { business_id } = request.headers;
-    return this.optionService.update(+id, UpdateOptionDto, +business_id);
+    return this.optionsService.update(+id, UpdateOptionDto, +business_id);
   }
 
   @Delete(":id")
   remove(@Param("id") id: string, @Req() request) {
     const { business_id } = request.headers;
-    return this.optionService.remove(+id, +business_id);
+    return this.optionsService.remove(+id, +business_id);
   }
 }

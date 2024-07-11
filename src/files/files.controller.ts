@@ -57,7 +57,7 @@ export class FilesController {
   )
   @ApiConsumes("multipart/form-data")
   @ApiBody({
-    description: "Image of Meal",
+    description: "Image of Option",
     type: FileUploadDto,
   })
   @ApiCreatedResponse()

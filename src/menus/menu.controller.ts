@@ -51,7 +51,7 @@ export class MenuController {
 
   @Post(":id/add-options")
   @ApiOkResponse({ type: BaseResponse })
-  async assignMeals(
+  async assignOptions(
     @Param("id") optionId: number,
     @Body() { optionIds }: optionIdsDto,
     @Req() request,
@@ -62,12 +62,16 @@ export class MenuController {
 
   @Post(":id/remove-options")
   @ApiOkResponse({ type: BaseResponse })
-  async removeMeals(
+  async removeOptions(
     @Param("id") optionId: number,
     @Body() { optionIds }: optionIdsDto,
     @Req() request,
   ) {
     const { business_id } = request.headers;
-    return this.menuService.removeMenuMeals(+business_id, +optionId, optionIds);
+    return this.menuService.removeMenuOptions(
+      +business_id,
+      +optionId,
+      optionIds,
+    );
   }
 }

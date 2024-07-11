@@ -70,7 +70,7 @@ export class OptionsService {
     const option = await this.prisma.option.findUnique({
       where: { id, businessId },
     });
-    if (!option) throw new NotFoundException("Restaurant has no such option");
+    if (!option) throw new NotFoundException("Business has no such option");
     await this.prisma.option.delete({ where: { id } });
     await this.deleteImageFile(option.image);
     return { message: "Option delete successful", status: "success" };

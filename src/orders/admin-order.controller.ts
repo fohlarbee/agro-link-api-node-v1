@@ -28,7 +28,7 @@ export class AdminOrderController {
     const { business_id: businessId } = request.headers;
     // const baseUrl = request.protocol + "://" + request.headers.host;
     // const orders = (await this.orderService.fetchPaidOrders(ownerId, businessId)).map(order => {
-    //   order.meals.map(orderMeal => {
+    //   order.options.map(orderOPtions => {
     //     orderMeal.option.image = `${baseUrl}/v2/files/image/${orderMeal.option.image}`;
     //   });
     //   return order;

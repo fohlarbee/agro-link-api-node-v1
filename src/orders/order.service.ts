@@ -16,7 +16,7 @@ export class OrderService {
     private paystack: PaystackService,
   ) {}
 
-  async orderMeal(
+  async orderOption(
     { tableIdentifier, ...optionOrder }: AddOptionToOrderDto,
     customerId: number,
     businessId: number,
@@ -55,7 +55,7 @@ export class OrderService {
     });
 
     return {
-      message: "Meal added to order successfully",
+      message: "Option added to order successfully",
       status: "success",
     };
   }
@@ -136,7 +136,7 @@ export class OrderService {
     };
   }
 
-  async findOpenRestaurantOrder(customerId: number, businessId: number) {
+  async findOpenBusinessOrder(customerId: number, businessId: number) {
     const currentOrder = await this.prisma.order.findFirst({
       where: { customerId, status: OrderStatus.active, businessId },
       select: {
@@ -195,7 +195,7 @@ export class OrderService {
     });
   }
 
-  async removeMealOrder(id: number, customerId: number, orderId: number) {
+  async removeOptionOrder(id: number, customerId: number, orderId: number) {
     const currentOrderOption = await this.prisma.orderOption.findFirst({
       where: {
         order: { customerId, id: orderId, status: OrderStatus.active },
@@ -208,7 +208,7 @@ export class OrderService {
     await this.prisma.orderOption.delete({
       where: { orderId_optionId: currentOrderOption },
     });
-    return { message: "Meal removed from current order", status: "success" };
+    return { message: "Option removed from current order", status: "success" };
   }
 
   async payOrder(email: string, customerId: number, businessId: number) {
