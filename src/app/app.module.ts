@@ -28,9 +28,9 @@ import { OptionsModule } from "src/options/options.module";
     OrderModule,
     ShiftsModule,
     StaffsModule,
-    TransactionModule
+    TransactionModule,
   ],
   controllers: [AppController],
-  providers: []
+  providers: [],
 })
 export class AppModule {}

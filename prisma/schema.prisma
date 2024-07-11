@@ -44,7 +44,7 @@ model Business {
   creatorId Int
   creator   User     @relation(fields: [creatorId], references: [id])
   menus     Menu[]
-  option    Option[]
+  options    Option[]
   orders    Order[]
   roles     Role[]
   staffs    Staff[]

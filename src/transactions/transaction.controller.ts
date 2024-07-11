@@ -4,7 +4,7 @@ import {
   Param,
   Post,
   UseGuards,
-  UseInterceptors
+  UseInterceptors,
 } from "@nestjs/common";
 import { TransactionService } from "./transaction.service";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
@@ -28,7 +28,7 @@ export class TransactionController {
   async webhookHandler(@Body() body) {
     const {
       event,
-      data: { status, reference }
+      data: { status, reference },
     } = body;
     if (event != "charge.success")
       return { message: "Unsupported event", status: "error" };

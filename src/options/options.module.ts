@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
-import { OptionService } from "./options.service";
+import { OptionsService } from "./options.service";
 import { AdminOptionsController, OptionController } from "./options.controller";
 import { PrismaService } from "src/prisma/prisma.service";
 
 @Module({
   controllers: [AdminOptionsController, OptionController],
-  providers: [OptionService, PrismaService]
+  providers: [OptionsService, PrismaService],
 })
 export class OptionsModule {}

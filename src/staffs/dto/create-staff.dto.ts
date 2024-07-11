@@ -4,7 +4,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsPositive,
-  IsString
+  IsString,
 } from "class-validator";
 
 export class CreateStaffDto {

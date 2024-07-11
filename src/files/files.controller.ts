@@ -7,7 +7,7 @@ import {
   Post,
   Res,
   UploadedFile,
-  UseInterceptors
+  UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
@@ -15,7 +15,7 @@ import {
   ApiConsumes,
   ApiCreatedResponse,
   ApiOkResponse,
-  ApiTags
+  ApiTags,
 } from "@nestjs/swagger";
 import { FileUploadDto } from "./dto/file.dto";
 import * as fs from "fs";
@@ -25,7 +25,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const VALID_UPLOADS_MIME_TYPES = ["image/jpeg", "image/png"];
 const MIME_TYPE_TO_EXTENSION = {
   "image/jpeg": "jpeg",
-  "image/png": "png"
+  "image/png": "png",
 };
 
 @ApiTags("File Management")
@@ -45,20 +45,20 @@ export class FilesController {
             .map(() => Math.round(Math.random() * 153906).toString(16))
             .join("");
           callback(null, `${randomName}-${Date.now()}.${ext}`);
-        }
+        },
       }),
       fileFilter(_req, file, callback) {
         if (!VALID_UPLOADS_MIME_TYPES.includes(file.mimetype)) {
           callback(new BadRequestException("Unaccepted file type"), false);
         }
         callback(null, true);
-      }
-    })
+      },
+    }),
   )
   @ApiConsumes("multipart/form-data")
   @ApiBody({
     description: "Image of Meal",
-    type: FileUploadDto
+    type: FileUploadDto,
   })
   @ApiCreatedResponse()
   @Post("/upload")
@@ -66,7 +66,7 @@ export class FilesController {
     return {
       message: "Image Upload Successful",
       status: "success",
-      data: { image: file.filename }
+      data: { image: file.filename },
     };
   }
 

@@ -1,7 +1,7 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException
+  NotFoundException,
 } from "@nestjs/common";
 import { CreateShiftDto } from "./dto/create-shift.dto";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -12,19 +12,19 @@ export class ShiftsService {
 
   async createShift(businessId: number, shiftData: CreateShiftDto) {
     const business = await this.prisma.business.findUnique({
-      where: { id: businessId }
+      where: { id: businessId },
     });
     if (!business) throw new NotFoundException("No such business.");
     const shiftRole = await this.prisma.role.findFirst({
-      where: { id: shiftData.roleId, businessId }
+      where: { id: shiftData.roleId, businessId },
     });
     const outlet = await this.prisma.outlet.findFirst({
-      where: { id: shiftData.outletId, businessId }
+      where: { id: shiftData.outletId, businessId },
     });
     if (!outlet) throw new BadRequestException("No such outlet in business");
     if (!shiftRole) throw new BadRequestException("Invalid role selected");
     const assignee = await this.prisma.staff.findFirst({
-      where: { userId: shiftData.userId, roleId: shiftRole.id, businessId }
+      where: { userId: shiftData.userId, roleId: shiftRole.id, businessId },
     });
     if (!assignee)
       throw new BadRequestException(`No such staff for ${shiftRole.name} role`);
@@ -38,18 +38,18 @@ export class ShiftsService {
           connect: {
             userId_businessId: {
               userId: assignee.userId,
-              businessId
-            }
-          }
+              businessId,
+            },
+          },
         },
         startTime: shiftData.startTime,
-        endTime: shiftData.endTime
-      }
+        endTime: shiftData.endTime,
+      },
     });
     return {
       message: "Shift created successfully",
       status: "success",
-      data: { shift }
+      data: { shift },
     };
   }
 
@@ -59,50 +59,50 @@ export class ShiftsService {
       include: {
         assignedTables: {
           include: {
-            table: true
-          }
+            table: true,
+          },
         },
         outlet: true,
         user: true,
-        role: true
-      }
+        role: true,
+      },
     });
     return {
       message: "Shifts fetched successfully",
       status: "success",
-      data: shifts
+      data: shifts,
     };
   }
 
   async assignShiftTables(
     businessId: number,
     shiftId: number,
-    tableIds: number[]
+    tableIds: number[],
   ) {
     const shift = await this.prisma.shift.findFirst({
-      where: { id: shiftId, businessId }
+      where: { id: shiftId, businessId },
     });
     const tables = await Promise.all(
       tableIds.map(async (tableId) => {
         const table = await this.prisma.table.findFirst({
-          where: { id: tableId, outletId: shift.outletId }
+          where: { id: tableId, outletId: shift.outletId },
         });
         return { tableId, table };
-      })
+      }),
     );
     const invalidTableIds = tables
       .filter((table) => !table.table)
       .map((table) => table.tableId);
     if (invalidTableIds.length > 0)
       throw new BadRequestException(
-        `These tables do not exist in shift outlet ${invalidTableIds}`
+        `These tables do not exist in shift outlet ${invalidTableIds}`,
       );
     await this.prisma.shiftTables.createMany({
-      data: tableIds.map((tableId) => ({ shiftId, tableId }))
+      data: tableIds.map((tableId) => ({ shiftId, tableId })),
     });
     return {
       message: "Tables assigned successfully",
-      status: "success"
+      status: "success",
     };
   }
 }

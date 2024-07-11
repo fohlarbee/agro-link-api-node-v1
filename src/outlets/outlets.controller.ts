@@ -5,7 +5,7 @@ import {
   Body,
   Req,
   UseGuards,
-  UseInterceptors
+  UseInterceptors,
 } from "@nestjs/common";
 import { OutletsService } from "./outlets.service";
 import { CreateOutletDto } from "./dto/create-outlet.dto";
@@ -14,11 +14,11 @@ import {
   ApiCreatedResponse,
   ApiHeader,
   ApiOkResponse,
-  ApiTags
+  ApiTags,
 } from "@nestjs/swagger";
 import {
   OutletCreationResponse,
-  OutletListResponse
+  OutletListResponse,
 } from "./entities/outlet.entity";
 import { CreateTableDto } from "./dto/create-table.dto";
 import { TableCreationResponse } from "./entities/table.entity";
@@ -31,7 +31,7 @@ import { BusinessAccessInterceptor } from "src/utils/interceptors/business-acces
 @ApiHeader({
   name: "business_id",
   required: true,
-  description: "This is the business id"
+  description: "This is the business id",
 })
 @UseInterceptors(BusinessAccessInterceptor)
 export class OutletsController {
@@ -41,7 +41,7 @@ export class OutletsController {
   @ApiCreatedResponse({ type: OutletCreationResponse })
   createOutlet(
     @Req() request: Record<string, any>,
-    @Body() createData: CreateOutletDto
+    @Body() createData: CreateOutletDto,
   ) {
     const { business_id: businessId } = request.headers;
     return this.outletsService.createOutlet(+businessId, createData);
@@ -58,7 +58,7 @@ export class OutletsController {
   @ApiCreatedResponse({ type: TableCreationResponse })
   createTable(
     @Req() request: Record<string, any>,
-    @Body() tableData: CreateTableDto
+    @Body() tableData: CreateTableDto,
   ) {
     const { business_id: businessId } = request.headers;
     const { outletId } = request.params;
@@ -72,7 +72,7 @@ export class OutletsController {
     const { outletId } = request.params;
     return this.outletsService.GetOutletTables({
       businessId: +businessId,
-      outletId: +outletId
+      outletId: +outletId,
     });
   }
 }

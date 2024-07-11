@@ -6,7 +6,7 @@ import {
   Req,
   UseInterceptors,
   UseGuards,
-  Param
+  Param,
 } from "@nestjs/common";
 import { MenuService } from "./menu.service";
 import {
@@ -14,7 +14,7 @@ import {
   ApiCreatedResponse,
   ApiHeader,
   ApiOkResponse,
-  ApiTags
+  ApiTags,
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { CreateMenuDto } from "./dto/create-menu.dto";
@@ -27,7 +27,7 @@ import { BusinessAccessInterceptor } from "src/utils/interceptors/business-acces
 @ApiHeader({
   name: "business_id",
   required: true,
-  description: "This is the business id"
+  description: "This is the business id",
 })
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -54,10 +54,10 @@ export class MenuController {
   async assignMeals(
     @Param("id") optionId: number,
     @Body() { optionIds }: optionIdsDto,
-    @Req() request
+    @Req() request,
   ) {
     const { business_id } = request.headers;
-    return this.menuService.addMenuMeals(+business_id, +optionId, optionIds);
+    return this.menuService.addMenuOptions(+business_id, +optionId, optionIds);
   }
 
   @Post(":id/remove-options")
@@ -65,7 +65,7 @@ export class MenuController {
   async removeMeals(
     @Param("id") optionId: number,
     @Body() { optionIds }: optionIdsDto,
-    @Req() request
+    @Req() request,
   ) {
     const { business_id } = request.headers;
     return this.menuService.removeMenuMeals(+business_id, +optionId, optionIds);

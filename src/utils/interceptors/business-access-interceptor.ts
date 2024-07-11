@@ -4,7 +4,7 @@ import {
   ExecutionContext,
   CallHandler,
   BadRequestException,
-  UnauthorizedException
+  UnauthorizedException,
 } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { catchError } from "rxjs/operators";
@@ -16,7 +16,7 @@ export class BusinessAccessInterceptor implements NestInterceptor {
 
   async intercept(
     context: ExecutionContext,
-    next: CallHandler
+    next: CallHandler,
   ): Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest();
     if (!request.headers["business_id"])
@@ -25,11 +25,11 @@ export class BusinessAccessInterceptor implements NestInterceptor {
     const { id: userId } = request.user;
     if (isNaN(businessId) || businessId < 1)
       throw new BadRequestException(
-        `Expected positive number for required header: business_id`
+        `Expected positive number for required header: business_id`,
       );
 
     const staff = await this.prisma.staff.findUnique({
-      where: { userId_businessId: { userId, businessId } }
+      where: { userId_businessId: { userId, businessId } },
     });
 
     if (!staff) throw new UnauthorizedException(`Invalid business`);
@@ -37,7 +37,7 @@ export class BusinessAccessInterceptor implements NestInterceptor {
     return next.handle().pipe(
       catchError((error) => {
         throw error;
-      })
+      }),
     );
   }
 }

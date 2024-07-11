@@ -1,7 +1,7 @@
 import {
   ConflictException,
   Injectable,
-  UnauthorizedException
+  UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -14,7 +14,7 @@ import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 export class AuthService {
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
   ) {}
 
   async login(email: string, password: string): Promise<AuthEntity> {
@@ -26,24 +26,24 @@ export class AuthService {
     return {
       message: "Login successful",
       data: { accessToken: this.jwtService.sign(payload) },
-      avatar: `https://ui-avatars.com/api/?name=${user.email}`
+      avatar: `https://ui-avatars.com/api/?name=${user.email}`,
     };
   }
 
   async register({ email, password, name }: AuthDto): Promise<BaseResponse> {
     const existingUser = await this.prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
     if (existingUser)
       throw new ConflictException("Email is already registered");
     const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync());
     await this.prisma.user.create({
-      data: { email, password: hashedPassword, name }
+      data: { email, password: hashedPassword, name },
     });
     return {
       status: "success",
       message:
-        "Registration successful! Please login with your email and password."
+        "Registration successful! Please login with your email and password.",
     };
   }
 }

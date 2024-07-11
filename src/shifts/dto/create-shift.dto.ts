@@ -5,7 +5,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsPositive,
-  MinDate
+  MinDate,
 } from "class-validator";
 
 export class CreateShiftDto {

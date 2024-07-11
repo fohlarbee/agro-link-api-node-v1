@@ -6,7 +6,7 @@ import {
   Param,
   Req,
   UseGuards,
-  UseInterceptors
+  UseInterceptors,
 } from "@nestjs/common";
 import { StaffsService } from "./staffs.service";
 import { CreateStaffDto } from "./dto/create-staff.dto";
@@ -14,7 +14,7 @@ import {
   ApiBearerAuth,
   ApiHeader,
   ApiOkResponse,
-  ApiTags
+  ApiTags,
 } from "@nestjs/swagger";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { StaffFetchResponse, StaffListResponse } from "./entities/staff.entity";
@@ -28,7 +28,7 @@ import { BusinessAccessInterceptor } from "src/utils/interceptors/business-acces
 @ApiHeader({
   name: "business_id",
   required: true,
-  description: "This is the business's id"
+  description: "This is the business's id",
 })
 @UseInterceptors(BusinessAccessInterceptor)
 export class StaffsController {
@@ -38,7 +38,7 @@ export class StaffsController {
   @ApiOkResponse({ type: BaseResponse })
   create(
     @Body() createStaffDto: CreateStaffDto,
-    @Req() request: Record<string, any>
+    @Req() request: Record<string, any>,
   ) {
     const { business_id } = request.headers;
     return this.staffsService.createStaff(+business_id, createStaffDto);

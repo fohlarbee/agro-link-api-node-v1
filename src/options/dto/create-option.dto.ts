@@ -3,7 +3,7 @@ import { IsEnum, IsNotEmpty, IsNumber, IsString, Min } from "class-validator";
 
 enum optionType {
   meal = "meal",
-  drink = "drink"
+  drink = "drink",
 }
 export class CreateOptionDto {
   @IsString()

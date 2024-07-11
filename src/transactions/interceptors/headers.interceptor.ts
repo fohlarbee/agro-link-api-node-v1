@@ -3,7 +3,7 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-  UnauthorizedException
+  UnauthorizedException,
 } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { catchError } from "rxjs/operators";
@@ -14,7 +14,7 @@ export class PaystackAuthInterceptor implements NestInterceptor {
   constructor() {}
   async intercept(
     context: ExecutionContext,
-    next: CallHandler
+    next: CallHandler,
   ): Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest();
     const transactionPayload = JSON.stringify(request.body);
@@ -27,7 +27,7 @@ export class PaystackAuthInterceptor implements NestInterceptor {
     return next.handle().pipe(
       catchError((error) => {
         throw error;
-      })
+      }),
     );
   }
 }

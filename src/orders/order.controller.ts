@@ -5,7 +5,7 @@ import {
   Delete,
   UseGuards,
   Req,
-  BadRequestException
+  BadRequestException,
 } from "@nestjs/common";
 import { OrderService } from "./order.service";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
@@ -47,7 +47,7 @@ export class OrderController {
     return {
       message: "Order history fetch successful",
       status: "success",
-      data: history
+      data: history,
     };
   }
 
@@ -55,7 +55,7 @@ export class OrderController {
   remove(
     @Param("id") orderId: number,
     @Param("optionId") optionId: number,
-    @Req() request
+    @Req() request,
   ) {
     const { id: customerId } = request.user;
     if (isNaN(optionId)) throw new BadRequestException("Invalid optionId");

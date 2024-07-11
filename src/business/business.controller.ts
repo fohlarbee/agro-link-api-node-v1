@@ -6,7 +6,7 @@ import {
   Param,
   Req,
   Put,
-  UseGuards
+  UseGuards,
 } from "@nestjs/common";
 import { BusinessService } from "./business.service";
 import { CreateBusinessDto } from "./dto/create-business.dto";
@@ -15,11 +15,11 @@ import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOkResponse,
-  ApiTags
+  ApiTags,
 } from "@nestjs/swagger";
 import {
   BusinessCreationResponse,
-  BusinessListResponse
+  BusinessListResponse,
 } from "./entities/business.entity";
 import { MenuService } from "src/menus/menu.service";
 import { OrderService } from "src/orders/order.service";
@@ -28,11 +28,11 @@ import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 
 @Controller("business")
 @ApiTags("Business")
-export class ClienBusinessController {
+export class ClientBusinessController {
   constructor(
     private readonly businessService: BusinessService,
     private readonly menuService: MenuService,
-    private readonly orderService: OrderService
+    private readonly orderService: OrderService,
   ) {}
 
   @Get()
@@ -56,13 +56,13 @@ export class ClienBusinessController {
   createOrder(
     @Param("id") businessId: number,
     @Body() createOrderDto: AddOptionToOrderDto,
-    @Req() request
+    @Req() request,
   ) {
     const { id: customerId } = request.user;
     return this.orderService.orderMeal(
       createOrderDto,
       +customerId,
-      +businessId
+      +businessId,
     );
   }
 }
@@ -93,7 +93,7 @@ export class AdminBusinessController {
   updateRestaurant(
     @Param("id") businessId: string,
     @Req() request: Record<string, any>,
-    @Body() updateData: UpdateBusinessDto
+    @Body() updateData: UpdateBusinessDto,
   ) {
     const { id: userId } = request.user;
     return this.businessService.updateBusiness(+businessId, userId, updateData);

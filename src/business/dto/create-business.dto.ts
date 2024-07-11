@@ -4,12 +4,12 @@ import {
   IsEnum,
   IsOptional,
   IsPhoneNumber,
-  IsString
+  IsString,
 } from "class-validator";
 
-enum BusinessType {
+export enum BusinessType {
   restaurant = "restaurant",
-  bar = "bar"
+  bar = "bar",
 }
 export class CreateBusinessDto {
   @IsString()

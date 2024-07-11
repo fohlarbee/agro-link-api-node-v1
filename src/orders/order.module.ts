@@ -7,6 +7,6 @@ import { AdminOrderController } from "./admin-order.controller";
 
 @Module({
   controllers: [OrderController, AdminOrderController],
-  providers: [OrderService, PrismaService, PaystackService]
+  providers: [OrderService, PrismaService, PaystackService],
 })
 export class OrderModule {}

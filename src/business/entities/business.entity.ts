@@ -1,8 +1,9 @@
-import { $Enums, Business } from "@prisma/client";
+import { Business } from "@prisma/client";
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { Type } from "class-transformer";
-import { ValidateNested } from "class-validator";
+import { IsEnum, ValidateNested } from "class-validator";
+import { BusinessType } from "../dto/create-business.dto";
 
 class BusinessEntity implements Business {
   @ApiProperty()
@@ -26,8 +27,9 @@ class BusinessEntity implements Business {
   @ApiProperty()
   updatedAt: Date;
 
+  @IsEnum(BusinessType)
   @ApiProperty({ required: true })
-  type: $Enums.BusinessType;
+  type: BusinessType;
 
   @ApiProperty()
   creatorId: number;
