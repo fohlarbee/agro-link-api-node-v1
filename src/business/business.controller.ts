@@ -76,7 +76,7 @@ export class AdminBusinessController {
 
   @Post()
   @ApiCreatedResponse({ type: BusinessCreationResponse })
-  creatwBusiness(@Body() createBusinessDto: CreateBusinessDto, @Req() request) {
+  createBusiness(@Body() createBusinessDto: CreateBusinessDto, @Req() request) {
     const { id: creatorId } = request.user;
     return this.businessService.createBusiness(createBusinessDto, +creatorId);
   }
@@ -84,7 +84,6 @@ export class AdminBusinessController {
   @Get()
   @ApiOkResponse({ type: BusinessListResponse })
   findMemberBusinesses(@Req() { user: { id: userId } }: Record<string, any>) {
-    console.log(userId);
     return this.businessService.findStaffBusiness(userId);
   }
 
