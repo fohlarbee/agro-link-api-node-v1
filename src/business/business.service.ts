@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { UpdateBusinessDto } from "./dto/updateBusinessDto";
+import { CreateBusinessDto } from "./dto/create-business.dto";
 import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
@@ -121,52 +122,75 @@ export class BusinessService {
     };
   }
 
+
+  //analytic endpoint
+
   async findBusinessWithRelations(
     id: number,
     page: number,
     perPage: number,
     sortBy: string,
-    // filter?: {
-    //   name?: string;
-    //   type?: BusinessType;
-    // },
   ) {
     const skip = (page - 1) * perPage;
+
     let startDate: Date;
     let endDate: Date;
 
     const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    const thisWeek = new Date();
-    thisWeek.setDate(thisWeek.getDate() - thisWeek.getDay());
+    const yesterday =  new Date(today.getTime() - 24 * 60 * 60 * 1000)
+    const thisWeek = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000)); 
     const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const thisYear = new Date(today.getFullYear(), 0, 1);
+    const thisYear = new Date(today.getFullYear(), 0, 1); 
+
+      
 
     switch (sortBy) {
       case "today":
-        startDate = today;
-        endDate = new Date(today.getTime() + 24 * 60 * 60 * 1000); // Next day
-        break;
+          startDate = today;
+          startDate = new Date(startDate.setHours(0, 0, 0, 0)); 
+          endDate = today;
+        endDate = new Date( endDate.setHours(23, 59, 59, 999)); 
+       break;
+
       case "yesterday":
-        startDate = yesterday;
-        endDate = today;
-        break;
+        startDate = yesterday
+        startDate = new Date(startDate.setHours(0, 0, 0, 0)); 
+        endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000)
+        endDate = new Date(endDate.setHours(23, 59, 59, 999)); 
+      break;
+
       case "thisWeek":
         startDate = thisWeek;
-        endDate = today;
+        startDate = new Date(startDate.setHours(0, 0, 0, 0)); 
+         endDate = today;
+        endDate.setHours(23, 59, 59, 999); 
         break;
+
       case "thisMonth":
-        startDate = thisMonth;
-        endDate = today;
+         startDate = thisMonth
+        startDate.setHours(0, 0, 0, 0);
+         endDate = today;
+        endDate.setHours(23, 59, 59, 999); 
+        console.log(startDate);
+        console.log(endDate)
         break;
+
       case "thisYear":
-        startDate = thisYear;
-        endDate = today;
+         startDate = thisYear
+        startDate.setHours(0, 0, 0, 0);
+        
+         endDate = today;
+        endDate.setHours(23, 59, 59, 999);
         break;
+
       default:
         startDate = new Date(0); // All time
+        startDate.setHours(0, 0, 0, 0);
         endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+        console.log(startDate);
+        console.log(endDate);
+
         break;
     }
 
@@ -229,6 +253,7 @@ export class BusinessService {
           take: perPage,
         },
         options: {
+          
           where: { createdAt: { gte: startDate, lt: endDate } },
           orderBy: { createdAt: "desc" },
           skip,
@@ -249,7 +274,8 @@ export class BusinessService {
         page,
         perPage,
         totalPages: Math.ceil(
-          (await this.prisma.menu.count({ where: { businessId: id } })) /
+          (await this.prisma.menu
+            .count({ where: { businessId: id } })) /
             perPage,
         ),
       },
@@ -257,7 +283,8 @@ export class BusinessService {
         page,
         perPage,
         totalPages: Math.ceil(
-          (await this.prisma.staff.count({ where: { businessId: id } })) /
+          (await this.prisma.staff
+            .count({ where: { businessId: id } })) /
             perPage,
         ),
       },
@@ -265,7 +292,8 @@ export class BusinessService {
         page,
         perPage,
         totalPages: Math.ceil(
-          (await this.prisma.order.count({ where: { businessId: id } })) /
+          (await this.prisma.order
+            .count({ where: { businessId: id } })) /
             perPage,
         ),
       },
@@ -273,7 +301,8 @@ export class BusinessService {
         page,
         perPage,
         totalPages: Math.ceil(
-          (await this.prisma.option.count({ where: { businessId: id } })) /
+          (await this.prisma.option
+            .count({ where: { businessId: id } })) /
             perPage,
         ),
       },
@@ -281,7 +310,8 @@ export class BusinessService {
         page,
         perPage,
         totalPages: Math.ceil(
-          (await this.prisma.outlet.count({ where: { businessId: id } })) /
+          (await this.prisma.outlet
+            .count({ where: { businessId: id } })) /
             perPage,
         ),
       },

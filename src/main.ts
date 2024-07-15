@@ -25,15 +25,20 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
-  await new PrismaClient()
-    .$connect()
-    .then(() => {
-      console.log("connected to db");
-    })
-    .catch((err) => console.log("err while connecting to db", err));
+ 
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("bankfieh/api-docs", app, document, { explorer: true });
+
+  
   await app.listen(process.env.PORT || 3000);
+
+
+  await new PrismaClient()
+  .$connect()
+  .then(() => {
+    console.log("connected to db");
+  })
+  .catch((err) => console.log("err while connecting to db", err));
 }
 bootstrap();

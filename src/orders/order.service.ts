@@ -81,6 +81,7 @@ export class OrderService {
             shift: {
               startTime: { lte: new Date() },
               endTime: { gte: new Date() },
+              
             },
           },
           select: { shift: true },

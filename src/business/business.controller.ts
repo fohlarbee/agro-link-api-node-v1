@@ -98,6 +98,8 @@ export class AdminBusinessController {
     const { id: userId } = request.user;
     return this.businessService.updateBusiness(+businessId, userId, updateData);
   }
+
+  @ApiBearerAuth()
   @Get(":id/analytic")
   async getBusinessAnalytic(
     @Param("id") businessId: string,
@@ -111,7 +113,6 @@ export class AdminBusinessController {
       page,
       perPage,
       sortBy,
-      // filter ? JSON.parse(filter) : undefined, // parse filter to JSON if exists
     );
 
     return {

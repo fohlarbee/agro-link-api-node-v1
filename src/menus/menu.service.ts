@@ -6,17 +6,24 @@ export class MenuService {
   constructor(private prisma: PrismaService) {}
 
   async createMenu({ name, businessId }: { name: string; businessId: number }) {
-    await this.isValidBusiness(businessId);
-    const menu = await this.prisma.menu.create({
-      data: { businessId, name },
-      select: { id: true, name: true },
-    });
-    return {
-      message: "Menu successfully created",
-      status: "success",
-      data: { menu },
-    };
+    try {
+      await this.isValidBusiness(businessId);
+      const menu = await this.prisma.menu.create({
+        data: { businessId, name },
+        select: { id: true, name: true },
+      });
+      return {
+        message: "Menu successfully created",
+        status: "success",
+        data: { menu },
+      };
+      
+  } catch (error) {
+      console.log(error);
+      
+    }
   }
+   
 
   private async isValidBusiness(businessId: number) {
     const business = await this.prisma.business.findUnique({

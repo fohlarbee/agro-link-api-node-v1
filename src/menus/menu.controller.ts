@@ -39,7 +39,15 @@ export class MenuController {
   @ApiCreatedResponse()
   createMenu(@Body() { name }: CreateMenuDto, @Req() request) {
     const { business_id } = request.headers;
-    return this.menuService.createMenu({ name, businessId: +business_id });
+
+    try {
+      return this.menuService.createMenu({ name, businessId: +business_id });
+
+      
+    } catch (error) {
+      console.log(error);
+      
+    }
   }
 
   @Get()
