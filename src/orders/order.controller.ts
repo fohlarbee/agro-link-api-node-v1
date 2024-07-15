@@ -26,26 +26,23 @@ export class OrderController {
 
   @Get("/history")
   async findOrderHistory(@Req() request) {
-      const { id: customerId } = request.user;
-      // const baseUrl = request.protocol + "://" + request.headers.host;
-      // const history = (await this.orderService.findOrderHistory(customerId)).map(order => {
-      //   order.meals.map(orderMeal => {
-      //     orderMeal.option.image = `${baseUrl}/v2/files/image/${orderMeal.option.image}`;
-      //     return { ...orderMeal.option, quantity: orderMeal.quantity};
-      //   });
-      //   return order;
-      // });
-  
-      const history = await this.orderService.findOrderHistory(customerId);
-  
-      return {
-        message: "Order history fetch successful",
-        status: "success",
-        data: history,
-      };
-      
-   
-   
+    const { id: customerId } = request.user;
+    // const baseUrl = request.protocol + "://" + request.headers.host;
+    // const history = (await this.orderService.findOrderHistory(customerId)).map(order => {
+    //   order.meals.map(orderMeal => {
+    //     orderMeal.option.image = `${baseUrl}/v2/files/image/${orderMeal.option.image}`;
+    //     return { ...orderMeal.option, quantity: orderMeal.quantity};
+    //   });
+    //   return order;
+    // });
+
+    const history = await this.orderService.findOrderHistory(customerId);
+
+    return {
+      message: "Order history fetch successful",
+      status: "success",
+      data: history,
+    };
   }
 
   @Get("/:id")

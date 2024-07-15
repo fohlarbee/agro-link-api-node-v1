@@ -7,6 +7,7 @@ import {
   Req,
   Put,
   UseGuards,
+  Query,
 } from "@nestjs/common";
 import { BusinessService } from "./business.service";
 import { CreateBusinessDto } from "./dto/create-business.dto";
@@ -96,5 +97,25 @@ export class AdminBusinessController {
   ) {
     const { id: userId } = request.user;
     return this.businessService.updateBusiness(+businessId, userId, updateData);
+  }
+  @Get(":id/analytic")
+  async getBusinessAnalytic(
+    @Param("id") businessId: string,
+    @Query("page") page: any = 1,
+    @Query("perPage") perPage: any = 10,
+    @Query("sortBy") sortBy?: string,
+    // @Query("filter") filter?: string,
+  ) {
+    const result = await this.businessService.findBusinessWithRelations(
+      +businessId,
+      page,
+      perPage,
+      sortBy,
+      // filter ? JSON.parse(filter) : undefined, // parse filter to JSON if exists
+    );
+
+    return {
+      data: result,
+    };
   }
 }
