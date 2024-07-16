@@ -17,13 +17,10 @@ export class MenuService {
         status: "success",
         data: { menu },
       };
-      
-  } catch (error) {
+    } catch (error) {
       console.log(error);
-      
     }
   }
-   
 
   private async isValidBusiness(businessId: number) {
     const business = await this.prisma.business.findUnique({

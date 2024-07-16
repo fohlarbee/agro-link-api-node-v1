@@ -16,6 +16,7 @@ import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOkResponse,
+  ApiQuery,
   ApiTags,
 } from "@nestjs/swagger";
 import {
@@ -100,6 +101,7 @@ export class AdminBusinessController {
   }
 
   @ApiBearerAuth()
+  @ApiQuery({})
   @Get(":id/analytic")
   async getBusinessAnalytic(
     @Param("id") businessId: string,

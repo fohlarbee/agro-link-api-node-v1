@@ -42,11 +42,8 @@ export class MenuController {
 
     try {
       return this.menuService.createMenu({ name, businessId: +business_id });
-
-      
     } catch (error) {
       console.log(error);
-      
     }
   }
 

@@ -1,33 +1,60 @@
-import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { Logger } from "@nestjs/common";
+import {
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from "@nestjs/websockets";
+import { Socket, Server } from "socket.io";
 
-@WebSocketGateway( {namespace:'events'})
-export class EventsGateway implements  OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+@WebSocketGateway(4001)
+export class EventsGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
+  private readonly logger = new Logger(EventsGateway.name);
 
   @WebSocketServer()
   server: Server;
   socket: Socket;
 
-  afterInit(server: Server) {
-    console.log('WebSocket Gateway initialized', server);
+  async afterInit() {
+    this.logger.log("afterInit");
+    if (this.server) {
+      // Check if server is initialized
+      const sockets = await this.server.sockets.name; // Use await with all()
+      console.log(sockets);
+      console.log("WebSocket Gateway initialized");
+    }
   }
 
-  handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
- 
+  handleConnection(client: any, ...args: any[]) {
+    const { sockets } = this.server.sockets;
+
+    this.logger.log(`Client id: ${client.id} connected`);
+    this.logger.debug(`Number of connected clients: ${sockets.size}`);
   }
+
+  // handleConnection(client: Socket) {
+  //   console.log(`Client connected: ${client.id}`);
+  // }
 
   handleDisconnect(client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
   }
 
-  @SubscribeMessage('message')
+  @SubscribeMessage("message")
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleMessage(@ConnectedSocket() client:Socket, @MessageBody() messsage:string): string {
+  handleMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messsage: string,
+  ): string {
+    client.broadcast.emit("messsage", messsage);
+    client.emit("message", "Your message was received");
 
-    client.broadcast.emit('messsage', messsage);
-    client.emit('message', 'Your message was received');
-
-    return 'Hello world!';
+    return "Hello world!";
   }
 }
