@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-access.interceptor';
+import { ValidPathParamInterceptor } from 'src/utils/interceptors/valid-path-param.interceptor';
 
 @Controller('meals')
 @ApiTags('Meals')
@@ -61,11 +62,6 @@ export class AdminMealsController {
   @Get()
   async findAll(@Req() request) {
     const { business_id } = request.headers;
-    // const baseUrl = request.protocol + "://" + request.headers.host;
-    // const meals = (await this.mealsService.findAll(+business_id)).map(meal => {
-    //   meal.image = `${baseUrl}/v2/files/image/${meal.image}`;
-    //   return meal;
-    // });
     const meals = await this.mealsService.findAll(+business_id);
     return {
       message: 'Menu fetch successful',
@@ -75,6 +71,7 @@ export class AdminMealsController {
   }
 
   @Put('/:id')
+  @UseInterceptors(new ValidPathParamInterceptor())
   update(
     @Param('id') id: string,
     @Body() updateMealDto: UpdateMealDto,
