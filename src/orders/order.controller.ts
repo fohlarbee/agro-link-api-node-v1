@@ -6,10 +6,13 @@ import {
   UseGuards,
   Req,
   BadRequestException,
+  UseInterceptors,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiAcceptedResponse, ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ValidPathParamInterceptor } from 'src/utils/interceptors/valid-path-param.interceptor';
+import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
 
 @Controller('orders')
 @ApiTags('Orders')
@@ -24,24 +27,9 @@ export class OrderController {
     return this.orderService.findCustomerOrders(+customerId);
   }
 
-  @Get('/:id')
-  async findOrder(@Param('id') orderId: number, @Req() request) {
-    const { id: customerId } = request.user;
-    return this.orderService.findOrder(customerId, +orderId);
-  }
-
   @Get('/history')
   async findOrderHistory(@Req() request) {
     const { id: customerId } = request.user;
-    // const baseUrl = request.protocol + "://" + request.headers.host;
-    // const history = (await this.orderService.findOrderHistory(customerId)).map(order => {
-    //   order.meals.map(orderMeal => {
-    //     orderMeal.meal.image = `${baseUrl}/v2/files/image/${orderMeal.meal.image}`;
-    //     return { ...orderMeal.meal, quantity: orderMeal.quantity};
-    //   });
-    //   return order;
-    // });
-
     const history = await this.orderService.findOrderHistory(customerId);
 
     return {
@@ -51,7 +39,19 @@ export class OrderController {
     };
   }
 
+  @Get('/:id')
+  @UseInterceptors(new ValidPathParamInterceptor())
+  async findOrder(@Param('id') orderId: number, @Req() request) {
+    const { id: customerId } = request.user;
+    return this.orderService.findOrder(customerId, +orderId);
+  }
+
   @Delete(':id/:mealId')
+  @UseInterceptors(
+    new ValidPathParamInterceptor(),
+    new ValidPathParamInterceptor('mealId'),
+  )
+  @ApiAcceptedResponse({ type: BaseResponse })
   remove(
     @Param('id') orderId: number,
     @Param('mealId') mealId: number,
@@ -62,10 +62,10 @@ export class OrderController {
     return this.orderService.removeMealOrder(+mealId, +customerId, +orderId);
   }
 
-  @Get('/pay')
-  payOrder(@Req() request) {
-    const { id: customerId, email } = request.user;
-    const { id: restaurantId } = request.restaurant;
-    return this.orderService.payOrder(email, customerId, restaurantId);
-  }
+  // @Get('/pay')
+  // payOrder(@Req() request) {
+  //   const { id: customerId, email } = request.user;
+  //   const { id: restaurantId } = request.restaurant;
+  //   return this.orderService.payOrder(email, customerId, restaurantId);
+  // }
 }

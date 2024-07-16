@@ -7,7 +7,7 @@ import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-cl
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     // logger: console,
-    cors: true 
+    cors: true,
   });
 
   app.setGlobalPrefix('v2');
