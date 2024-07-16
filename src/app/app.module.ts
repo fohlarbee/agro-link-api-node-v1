@@ -13,6 +13,7 @@ import { StaffsModule } from "src/staffs/staffs.module";
 import { RolesModule } from "src/roles/roles.module";
 import { OutletsModule } from "src/outlets/outlets.module";
 import { OptionsModule } from "src/options/options.module";
+import { EventsGatewayModule } from "src/events/events.module";
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { OptionsModule } from "src/options/options.module";
     ShiftsModule,
     StaffsModule,
     TransactionModule,
+    EventsGatewayModule,
   ],
   controllers: [AppController],
   providers: [],
