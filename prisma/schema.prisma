@@ -246,3 +246,14 @@ model Payment {
   userId  Int
   user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model Otp {
+  id               Int      @id @default(autoincrement())
+  email            String   
+  otp              String
+  isVerified        Boolean
+  for               String
+  expiresAt         DateTime    
+  createdAt   DateTime           @default(now()) 
+  updatedAt   DateTime           @updatedAt
+}

@@ -227,9 +227,7 @@ const businessData =  [
 
   const menuData = [
     
-        {
-          "businessId": 1
-        },
+      
         {
           "name": "Relieve Plate",
           "businessId": 5
@@ -253,59 +251,8 @@ const businessData =  [
         {
           "name": "Food Truck",
           "businessId": 6
-        },
-        {
-          "name": "Event Space",
-          "businessId": 7
-        },
-        {
-          "name": "Spa",
-          "businessId": 9
-        },
-        {
-          "name": "Gym",
-          "businessId": 10
-        },
-        {
-          "name": "Yoga Studio",
-          "businessId": 11
-        },
-        {
-          "name": "Art Gallery",
-          "businessId": 12
-        },
-        {
-          "name": "Music Venue",
-          "businessId": 13
-        },
-        {
-          "name": "Theater",
-          "businessId": 14
-        },
-        {
-          "name": "Museum",
-          "businessId": 15
-        },
-        {
-          "name": "Park",
-          "businessId": 16
-        },
-        {
-          "name": "Library",
-          "businessId": 17
-        },
-        {
-          "name": "School",
-          "businessId": 18
-        },
-        {
-          "name": "Hospital",
-          "businessId": 19
-        },
-        {
-          "name": "Office Building",
-          "businessId": 20
         }
+       
   ]
   const optionsData = 
     [
@@ -381,54 +328,7 @@ const businessData =  [
           "image": "image12.jpg",
           "businessId": 12
         },
-        {
-          "name": "Product 13",
-          "price": 10.99,
-          "image": "image13.jpg",
-          "businessId": 13
-        },
-        {
-          "name": "Product 14",
-          "price": 9.99,
-          "image": "image14.jpg",
-          "businessId": 14
-        },
-        {
-          "name": "Product 15",
-          "price": 12.99,
-          "image": "image15.jpg",
-          "businessId": 15
-        },
-        {
-          "name": "Product 16",
-          "price": 11.99,
-          "image": "image16.jpg",
-          "businessId": 1
-        },
-        {
-          "name": "Product 17",
-          "price": 10.99,
-          "image": "image17.jpg",
-          "businessId": 1
-        },
-        {
-          "name": "Product 18",
-          "price": 9.99,
-          "image": "image18.jpg",
-          "businessId": 4
-        },
-        {
-          "name": "Product 19",
-          "price": 12.99,
-          "image": "image19.jpg",
-           "businessId": 5
-        },
-        {
-          "name": "Product 20",
-          "price": 12.99,
-          "image": "image20.jpg",
-           "businessId": 6
-        }  
+        
       ]
 
     const roleData = [
@@ -477,114 +377,7 @@ const businessData =  [
           "name": "admin",
           "businessId": 6
         },
-        {
-          "name": "owner",
-          "businessId": 6
-        },
-        {
-          "name": "admin",
-          "businessId": 7
-        },
-        {
-          "name": "owner",
-          "businessId": 7
-        },
-        {
-          "name": "admin",
-          "businessId": 8
-        },
-        {
-          "name": "owner",
-          "businessId": 8
-        },
-        {
-          "name": "admin",
-          "businessId": 9
-        },
-        {
-          "name": "owner",
-          "businessId":9
-        },
-        {
-          "name": "admin",
-          "businessId": 10
-        },
-        {
-          "name": "owner",
-          "businessId": 10
-        },
-        {
-          "name": "admin",
-          "businessId": 11
-        },
-        {
-          "name": "owner",
-          "businessId": 11
-        },
-        {
-          "name": "admin",
-          "businessId": 12
-        },
-        {
-          "name": "owner",
-          "businessId": 12
-        },
-        {
-          "name": "admin",
-          "businessId": 13
-        },
-        {
-          "name": "owner",
-          "businessId": 13
-        },
-        {
-          "name": "admin",
-          "businessId": 14
-        },
-        {
-          "name": "owner",
-          "businessId":14
-        },
-        {
-          "name": "admin",
-          "businessId":15
-        },
-        {
-          "name": "owner",
-          "businessId": 15
-        },
-        {
-          "name": "admin",
-          "businessId": 16
-        },
-        {
-          "name": "owner",
-          "businessId": 16
-        },
-        {
-          "name": "admin",
-          "businessId": 17
-        },
-        {
-          "name": "owner",
-          "businessId": 17
-        },
-        {
-          "name": "admin",
-          "businessId": 18
-        },
-        {
-          "name": "owner",
-          "businessId": 18
-        },
-        {
-          "name": "admin",
-          "businessId": 19
-        },
-        {
-          "name": "owner",
-          "businessId": 19
-        }
+      
       ]
 
 
@@ -593,122 +386,47 @@ const businessData =  [
           "userId": 1,
           "businessId": 1,
           "roleId": 1,
-          "email": "staff1@example.com"
         },
         {
           "userId": 2,
           "businessId": 2,
           "roleId": 2,
-          "email": "staff2@example.com"
         },
         {
           "userId": 3,
           "businessId": 3,
           "roleId": 1,
-          "email": "staff3@example.com"
         },
         {
           "userId": 4,
           "businessId": 4,
           "roleId": 2,
-          "email": "staff4@example.com"
         },
         {
           "userId": 5,
           "businessId": 5,
           "roleId": 1,
-          "email": "staff5@example.com"
         },
         {
           "userId": 6,
           "businessId": 6,
           "roleId": 2,
-          "email": "staff6@example.com"
         },
         {
           "userId": 7,
           "businessId": 7,
           "roleId": 1,
-          "email": "staff7@example.com"
         },
         {
           "userId": 8,
           "businessId": 8,
           "roleId": 2,
-          "email": "staff8@example.com"
         },
         {
           "userId": 9,
           "businessId": 9,
           "roleId": 1,
-          "email": "staff9@example.com"
         },
-        {
-          "userId": 10,
-          "businessId": 10,
-          "roleId": 2,
-          "email": "staff10@example.com"
-        },
-        {
-          "userId": 11,
-          "businessId": 11,
-          "roleId": 1,
-          "email": "staff11@example.com"
-        },
-        {
-          "userId": 12,
-          "businessId": 12,
-          "roleId": 2,
-          "email": "staff12@example.com"
-        },
-        {
-          "userId": 13,
-          "businessId": 13,
-          "roleId": 1,
-          "email": "staff13@example.com"
-        },
-        {
-          "userId": 14,
-          "businessId": 14,
-          "roleId": 2,
-          "email": "staff14@example.com"
-        },
-        {
-          "userId": 15,
-          "businessId": 15,
-          "roleId": 1,
-          "email": "staff15@example.com"
-        },
-        {
-          "userId": 16,
-          "businessId": 16,
-          "roleId": 2,
-          "email": "staff16@example.com"
-        },
-        {
-          "userId": 17,
-          "businessId": 17,
-          "roleId": 1,
-          "email": "staff17@example.com"
-        },
-        {
-          "userId": 18,
-          "businessId": 18,
-          "roleId": 2,
-          "email": "staff18@example.com"
-        },
-        {
-          "userId": 19,
-          "businessId": 19,
-          "roleId": 1,
-          "email": "staff19@example.com"
-        },
-        {
-          "userId": 20,
-          "businessId": 20,
-          "roleId": 2,
-          "email": "staff20@example.com"
-        }
       ]
 
 
