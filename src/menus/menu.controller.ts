@@ -40,11 +40,7 @@ export class MenuController {
   createMenu(@Body() { name }: CreateMenuDto, @Req() request) {
     const { business_id } = request.headers;
 
-    try {
-      return this.menuService.createMenu({ name, businessId: +business_id });
-    } catch (error) {
-      console.log(error);
-    }
+    return this.menuService.createMenu({ name, businessId: +business_id });
   }
 
   @Get()

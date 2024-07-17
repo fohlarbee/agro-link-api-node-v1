@@ -249,7 +249,7 @@ model Payment {
 
 model Otp {
   id               Int      @id @default(autoincrement())
-  email            String   
+  email            String   @unique
   otp              String
   isVerified        Boolean
   for               String

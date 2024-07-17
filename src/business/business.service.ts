@@ -168,8 +168,6 @@ export class BusinessService {
         startDate.setHours(0, 0, 0, 0);
         endDate = today;
         endDate.setHours(23, 59, 59, 999);
-        console.log(startDate);
-        console.log(endDate);
         break;
 
       case "thisYear":
@@ -185,8 +183,6 @@ export class BusinessService {
         startDate.setHours(0, 0, 0, 0);
         endDate = today;
         endDate.setHours(23, 59, 59, 999);
-        console.log(startDate);
-        console.log(endDate);
 
         break;
     }

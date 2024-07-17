@@ -21,3 +21,34 @@ export class AuthDto extends LoginDto {
   @ApiProperty()
   name: string;
 }
+
+export class SendVRegistrationEmailDto {
+  @IsEmail()
+  @IsNotEmpty()
+  @ApiProperty({ required: true })
+  email: string;
+}
+
+export class VerificationDto {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ required: true })
+  otp: string;
+
+  @IsEmail()
+  @IsNotEmpty()
+  @ApiProperty({ required: true })
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @IsEmail()
+  @IsNotEmpty()
+  @ApiProperty({ required: true })
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ required: true })
+  newPassword: string;
+}

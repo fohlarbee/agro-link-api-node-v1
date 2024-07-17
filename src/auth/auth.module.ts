@@ -5,11 +5,13 @@ import { PrismaModule } from "src/prisma/prisma.module";
 import { PassportModule } from "@nestjs/passport";
 import { JwtModule } from "@nestjs/jwt";
 import { JwtStrategy } from "./strategy/jwt.strategy";
+import { OtpModule } from "src/otp/otp.module";
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
+    OtpModule,
     JwtModule.registerAsync({
       useFactory: () => ({
         secret: process.env.JWT_SECRET,

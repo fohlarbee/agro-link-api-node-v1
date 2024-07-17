@@ -14,6 +14,8 @@ import { RolesModule } from "src/roles/roles.module";
 import { OutletsModule } from "src/outlets/outlets.module";
 import { OptionsModule } from "src/options/options.module";
 import { EventsGatewayModule } from "src/events/events.module";
+import { MailModule } from "src/mail/mail.module";
+import { OtpModule } from "src/otp/otp.module";
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { EventsGatewayModule } from "src/events/events.module";
     StaffsModule,
     TransactionModule,
     EventsGatewayModule,
+    MailModule,
+    OtpModule,
   ],
   controllers: [AppController],
   providers: [],
