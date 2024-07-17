@@ -149,7 +149,7 @@ export class AuthService {
       throw new HttpException("Error while verifying OTP: " + email, 403);
 
     return {
-      status: "suceess",
+      status: "success",
       message: "OTP Verification Successful",
     };
   }
