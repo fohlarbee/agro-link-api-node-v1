@@ -2,6 +2,7 @@
 /* eslint-disable prettier/prettier */
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { count } from 'console';
 
 const prisma = new PrismaClient();
 
@@ -508,7 +509,7 @@ async function main() {
   await prisma.menuOptions.create({data:{menuId:3, optionId:3}});
   await prisma.outlet.createMany({data:outlets});
   await prisma.table.createMany({data:tables});
-
+  await prisma.table.
 }
 
 main()
@@ -519,3 +520,6 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+
+

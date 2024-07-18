@@ -77,6 +77,7 @@ export class MenuService {
       select: {
         id: true,
         name: true,
+        type: true,
         options: {
           select: {
             option: {
