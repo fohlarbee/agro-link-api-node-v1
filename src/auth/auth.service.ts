@@ -142,7 +142,7 @@ export class AuthService {
     };
   }
 
-  async verifyOTP(otp: string, email:string) {
+  async verifyOTP(otp: string, email: string) {
     const verified = await this.otpService.verifyOTP(otp, email);
 
     if (!verified)

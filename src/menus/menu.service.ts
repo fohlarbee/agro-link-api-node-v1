@@ -1,14 +1,34 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 
+export enum MenuTypes {
+  starters = "starters",
+  breakfast = "breakfast",
+  lunch = "lunch",
+  dinner = "dinner",
+  mains = "mains",
+  // Add more options as needed
+}
 @Injectable()
 export class MenuService {
   constructor(private prisma: PrismaService) {}
 
-  async createMenu({ name, businessId }: { name: string; businessId: number }) {
+  async createMenu({
+    name,
+    businessId,
+    menuType,
+  }: {
+    name: string;
+    businessId: number;
+    menuType: MenuTypes;
+  }) {
     await this.isValidBusiness(businessId);
     const menu = await this.prisma.menu.create({
-      data: { businessId, name },
+      data: {
+        businessId,
+        name,
+        type: menuType,
+      },
       select: { id: true, name: true },
     });
     return {
@@ -30,7 +50,19 @@ export class MenuService {
     await this.isValidBusiness(businessId);
     const menus = await this.prisma.menu.findMany({
       where: { businessId },
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        business: {
+          select: {
+            id: true,
+            name: true,
+          },
+          include: {
+            outlets: true,
+          },
+        },
+      },
     });
 
     return {

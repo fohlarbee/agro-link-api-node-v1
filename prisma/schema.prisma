@@ -143,6 +143,7 @@ model ShiftTables {
 model Menu {
   id        Int      @id @default(autoincrement())
   name      String   @default("All")
+  type      MenuType @default(starters)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -152,6 +153,7 @@ model Menu {
   options    MenuOptions[]
 }
 
+
 model MenuOptions {
   menuId   Int
   menu     Menu   @relation(fields: [menuId], references: [id])
@@ -160,6 +162,13 @@ model MenuOptions {
 
   // Compound key
   @@id([menuId, optionId])
+}
+enum MenuType   {
+  starters
+  breakfast
+  lunch
+  dinner
+  mains
 }
 
 model Option {

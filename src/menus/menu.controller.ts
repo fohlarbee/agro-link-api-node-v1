@@ -8,7 +8,7 @@ import {
   UseGuards,
   Param,
 } from "@nestjs/common";
-import { MenuService } from "./menu.service";
+import { MenuService, MenuTypes } from "./menu.service";
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -37,10 +37,18 @@ export class MenuController {
 
   @Post()
   @ApiCreatedResponse()
-  createMenu(@Body() { name }: CreateMenuDto, @Req() request) {
+  createMenu(
+    @Body() { name }: CreateMenuDto,
+    @Req() request,
+    menuType: MenuTypes,
+  ) {
     const { business_id } = request.headers;
 
-    return this.menuService.createMenu({ name, businessId: +business_id });
+    return this.menuService.createMenu({
+      name,
+      businessId: +business_id,
+      menuType,
+    });
   }
 
   @Get()

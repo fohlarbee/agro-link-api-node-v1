@@ -27,7 +27,7 @@ import { MenuService } from "src/menus/menu.service";
 import { OrderService } from "src/orders/order.service";
 import { AddOptionToOrderDto } from "src/orders/dto/order-option.dto";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
-  
+
 @Controller("business")
 @ApiTags("Business")
 export class ClientBusinessController {
