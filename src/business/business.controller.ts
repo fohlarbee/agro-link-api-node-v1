@@ -102,7 +102,7 @@ export class AdminBusinessController {
 
   @ApiBearerAuth()
   @ApiQuery({})
-  @Get(":id/analytic")
+  @Get(":id/analytics")
   async getBusinessAnalytic(
     @Param("id") businessId: string,
     @Query("page") page: any = 1,

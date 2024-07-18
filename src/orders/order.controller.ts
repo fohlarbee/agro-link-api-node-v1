@@ -24,6 +24,13 @@ export class OrderController {
     return this.orderService.findCustomerOrders(+customerId);
   }
 
+  @Get("/pay")
+  payOrder(@Req() request) {
+    const { id: customerId, email } = request.user;
+    const { business_id: businessId } = request.headers;
+    return this.orderService.payOrder(email, customerId, +businessId);
+  }
+
   @Get("/history")
   async findOrderHistory(@Req() request) {
     const { id: customerId } = request.user;
@@ -64,12 +71,5 @@ export class OrderController {
       +customerId,
       +orderId,
     );
-  }
-
-  @Get("/pay")
-  payOrder(@Req() request) {
-    const { id: customerId, email } = request.user;
-    const { id: businessId } = request.business;
-    return this.orderService.payOrder(email, customerId, businessId);
   }
 }

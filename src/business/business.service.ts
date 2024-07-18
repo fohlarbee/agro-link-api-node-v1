@@ -102,7 +102,7 @@ export class BusinessService {
     let business = await this.prisma.business.findUnique({
       where: {
         id,
-        staffs: { some: { userId, role: { name: "owner " } } },
+        staffs: { some: { userId, role: { name: "owner" } } },
       },
     });
     if (!business)

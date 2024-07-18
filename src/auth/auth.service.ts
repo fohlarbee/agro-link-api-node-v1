@@ -59,7 +59,11 @@ export class AuthService {
   }
 
   async sendVerificationEmail(email: string) {
-    const generatedOTP = `${Math.floor(100000 + Math.random() * 900000)}`;
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (existingUser)
+      throw new ConflictException("Email is already registered");
 
     const otpExits = await this.prisma.otp.findFirst({ where: { email } });
     if (otpExits) {
@@ -69,6 +73,9 @@ export class AuthService {
         throw new HttpException("OTP has been sent to your mail already", 401);
       }
     }
+
+    const generatedOTP = `${Math.floor(100000 + Math.random() * 900000)}`;
+
     await this.otpService.sendVerificationEmail({
       email,
       generatedOTP,
@@ -96,6 +103,21 @@ export class AuthService {
     };
   }
   async sendresetEmail(email: string) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!existingUser)
+      throw new UnauthorizedException("Email address not validd");
+
+    const otpExits = await this.prisma.otp.findFirst({ where: { email } });
+    if (otpExits) {
+      if (otpExits && Number(otpExits.expiresAt.getTime()) < Date.now()) {
+        await this.prisma.otp.delete({ where: { email } });
+      } else {
+        throw new HttpException("OTP has been sent to your mail already", 401);
+      }
+    }
+
     const generatedOTP = `${Math.floor(100000 + Math.random() * 900000)}`;
 
     await this.otpService.sendResetPasswordEmail({ email, generatedOTP });
@@ -126,7 +148,7 @@ export class AuthService {
       where: { email, for: { equals: "resetPassword" } },
     });
     if (!otpRecord)
-      throw new HttpException("PLease verify Email to proceed", 403);
+      throw new UnauthorizedException("PLease verify Email to proceed");
 
     const hashedPassword = bcrypt.hashSync(newPassword, bcrypt.genSaltSync());
     await this.prisma.user.update({

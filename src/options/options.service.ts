@@ -59,7 +59,7 @@ export class OptionsService {
     if (!option) throw new NotFoundException("No such option in business menu");
     await this.prisma.option.update({
       where: { id },
-      data: updateoptionData,
+      data: { ...updateoptionData },
     });
     if (updateoptionData.image && option.image != updateoptionData.image)
       await this.deleteImageFile(option.image);

@@ -154,6 +154,7 @@ export class OrderService {
   }
 
   async findOrder(customerId: number, orderId: number) {
+    console.log(customerId, orderId);
     const order = await this.prisma.order.findFirst({
       where: { customerId, id: orderId },
       select: {

@@ -33,8 +33,8 @@ export class RolesService {
     };
   }
 
-  findAllRoles(businessId: number) {
-    const roles = this.prisma.role.findMany({
+  async findAllRoles(businessId: number) {
+    const roles = await this.prisma.role.findMany({
       where: { businessId },
       select: { id: true, name: true },
     });

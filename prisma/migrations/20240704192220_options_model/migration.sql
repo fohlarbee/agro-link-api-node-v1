@@ -183,3 +183,30 @@ ALTER TABLE "User"
 -- Add tip column to Order table
 ALTER TABLE "Order" ADD COLUMN     "tip" DOUBLE PRECISION;
 
+
+-- CreateTable
+CREATE TABLE "Otp" (
+    "id" SERIAL NOT NULL,
+    "email" TEXT NOT NULL,
+    "otp" TEXT NOT NULL,
+    "isVerified" BOOLEAN NOT NULL,
+    "for" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Otp_pkey" PRIMARY KEY ("id")
+);
+
+
+CREATE UNIQUE INDEX "Otp_email_key" ON "Otp"("email");
+
+-- CreateEnum
+CREATE TYPE "MenuType" AS ENUM ('starters', 'breakfast', 'lunch', 'dinner', 'mains');
+
+-- AlterTable
+ALTER TABLE "Menu" ADD COLUMN     "type" "MenuType" NOT NULL DEFAULT 'starters';
+
+
+
+

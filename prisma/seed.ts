@@ -1,4 +1,6 @@
+/* eslint-disable prettier/prettier */
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -429,9 +431,24 @@ const businessData =  [
         },
       ]
 
+  const createTable = [
+    {
+      "identifier":"one",
+      bu
+    }
+  ]
+
+      const hashedUserData = userData.map((user) => {
+        return {
+          ...user,
+          password: bcrypt.hashSync(user.password,  bcrypt.genSaltSync()),
+
+        };
+      });
+
 
 async function main() {
-  await prisma.user.createMany({ data: userData });
+  await prisma.user.createMany({ data: hashedUserData });
   await prisma.business.createMany({ data: businessData });
   await prisma.menu.createMany({ data: menuData });
   await prisma.option.createMany({ data: optionsData });

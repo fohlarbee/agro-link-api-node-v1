@@ -15,6 +15,8 @@ export class CreateMenuDto {
   @ApiProperty({ required: true })
   name: string;
 
+  @IsString()
+  @IsNotEmpty()
   @IsEnum(MenuType)
   @ApiProperty({ required: true })
   menuType: MenuType;
