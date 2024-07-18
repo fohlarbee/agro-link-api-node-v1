@@ -25,7 +25,7 @@ export class EventsGateway
     this.logger.log("afterInit");
     if (this.server) {
       // Check if server is initialized
-      const sockets = await this.server.sockets.name;
+      // const sockets = await this.server.sockets.name;
       console.log("WebSocket Gateway initialized");
     }
   }

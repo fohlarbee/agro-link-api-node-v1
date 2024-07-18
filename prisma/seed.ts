@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-const userData = [
+const users = [
   {
     "name": "John Doe",
     "email": 'johndoe@example.com',
@@ -116,7 +117,7 @@ const userData = [
     
 ];
 
-const businessData =  [
+const businesses =  [
   {
       "name": "John's Restaurant",
       "cacNumber": "RC123456",
@@ -227,7 +228,7 @@ const businessData =  [
       }
   ]
 
-  const menuData = [
+  const menus = [
     
       
         {
@@ -256,84 +257,84 @@ const businessData =  [
         }
        
   ]
-  const optionsData = 
+  const options = 
     [
         {
           "name": "Product 1",
-          "price": 10.99,
+          "price": 1099,
           "image": "image1.jpg",
           "businessId": 1
         },
         {
           "name": "Product 2",
-          "price": 9.99,
+          "price": 9999,
           "image": "image2.jpg",
           "businessId": 2
         },
         {
           "name": "Product 3",
-          "price": 12.99,
+          "price": 12999,
           "image": "image3.jpg",
           "businessId": 3
         },
         {
           "name": "Product 4",
-          "price": 11.99,
+          "price": 11000,
           "image": "image4.jpg",
           "businessId": 4
         },
         {
           "name": "Product 5",
-          "price": 10.99,
+          "price": 10000,
           "image": "image5.jpg",
           "businessId": 5
         },
         {
           "name": "Product 6",
-          "price": 9.99,
+          "price": 90000,
           "image": "image6.jpg",
           "businessId": 6
         },
         {
           "name": "Product 7",
-          "price": 12.99,
+          "price": 25000,
           "image": "image7.jpg",
           "businessId": 7
         },
         {
           "name": "Product 8",
-          "price": 11.99,
+          "price": 30000,
           "image": "image8.jpg",
           "businessId": 8
         },
         {
           "name": "Product 9",
-          "price": 10.99,
+          "price": 4000,
           "image": "image9.jpg",
           "businessId": 9
         },
         {
           "name": "Product 10",
-          "price": 9.99,
+          "price": 50000,
           "image": "image10.jpg",
           "businessId": 10
         },
         {
           "name": "Product 11",
-          "price": 12.99,
+          "price": 100000,
           "image": "image11.jpg",
           "businessId": 11
         },
         {
           "name": "Product 12",
-          "price": 11.99,
+          "price": 30000,
           "image": "image12.jpg",
           "businessId": 12
         },
         
       ]
 
-    const roleData = [
+    const roles = [
         {
           "name": "admin",
           "businessId": 1
@@ -383,7 +384,7 @@ const businessData =  [
       ]
 
 
-      const staffData = [
+      const staffs = [
         {
           "userId": 1,
           "businessId": 1,
@@ -431,14 +432,63 @@ const businessData =  [
         },
       ]
 
-  const createTable = [
+  const tables = [
     {
       "identifier":"one",
-      bu
+      outletId:1,
+    },
+    {
+      "identifier":"two",
+      outletId:1,
+    },
+    {
+      "identifier":"three",
+      outletId:1,
+    },
+    {
+      "identifier":"four",
+      outletId:2,
+    },
+    {
+      "identifier":"five",
+      outletId:2,
     }
   ]
 
-      const hashedUserData = userData.map((user) => {
+  const outlets = [
+    {
+      "address":"Kubwa",
+      "businessId":1
+    },
+    {
+      "address":"Gwarimpa",
+      "businessId":1
+    },
+    {
+      "address":"Dutse",
+      "businessId":1
+    },
+    {
+      "address":"Gwagwalada",
+      "businessId":2
+    },
+    {
+      "address":"Suleja",
+      "businessId":2
+    },
+
+  ]
+
+  const optionToMenu = [
+    {
+      "optionIds":[ 1, 2]
+    },
+    {
+      "optionIds":[ 2,3]
+    }
+  ]
+
+      const hashedUserData = users.map((user) => {
         return {
           ...user,
           password: bcrypt.hashSync(user.password,  bcrypt.genSaltSync()),
@@ -446,14 +496,19 @@ const businessData =  [
         };
       });
 
-
 async function main() {
   await prisma.user.createMany({ data: hashedUserData });
-  await prisma.business.createMany({ data: businessData });
-  await prisma.menu.createMany({ data: menuData });
-  await prisma.option.createMany({ data: optionsData });
-  await prisma.role.createMany({ data: roleData });
-  await prisma.staff.createMany({ data: staffData });
+  await prisma.business.createMany({ data: businesses });
+  await prisma.menu.createMany({ data: menus });
+  await prisma.option.createMany({ data: options });
+  await prisma.role.createMany({ data: roles });
+  await prisma.staff.createMany({ data: staffs });
+  await prisma.menuOptions.create({data:{menuId:1, optionId:1}});
+  await prisma.menuOptions.create({data:{menuId:2, optionId:2}});
+  await prisma.menuOptions.create({data:{menuId:3, optionId:3}});
+  await prisma.outlet.createMany({data:outlets});
+  await prisma.table.createMany({data:tables});
+
 }
 
 main()
