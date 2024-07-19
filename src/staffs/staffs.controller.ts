@@ -7,6 +7,7 @@ import {
   Req,
   UseGuards,
   UseInterceptors,
+  Query,
 } from "@nestjs/common";
 import { StaffsService } from "./staffs.service";
 import { CreateStaffDto } from "./dto/create-staff.dto";
@@ -56,6 +57,17 @@ export class StaffsController {
   findOne(@Param("id") id: string, @Req() request: Record<string, any>) {
     const { business_id } = request.headers;
     return this.staffsService.findStaff(+id, +business_id);
+  }
+
+  @Get(":id/analytics")
+  @ApiOkResponse({ type: BaseResponse })
+  getWaiterAnalytics(
+    @Param("id") id: string,
+    @Req() request: Record<string, any>,
+    @Query("sortBy") sortBy?: string,
+  ) {
+    const { business_id } = request.headers;
+    return this.staffsService.getWaiterAnalytics(+id, +business_id, sortBy);
   }
 
   // @Patch(':id')

@@ -196,7 +196,7 @@ model Order {
   id          Int         @id @default(autoincrement())
   status      OrderStatus @default(active)
   createdAt   DateTime    @default(now())
-  tip         Float?
+  tip         Float?      @default(0)
   paidAt      DateTime?
   completedAt DateTime?
   cancelledAt DateTime?

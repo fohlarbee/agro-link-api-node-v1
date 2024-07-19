@@ -20,6 +20,7 @@ export class OrderService {
     { tableIdentifier, ...optionOrder }: AddOptionToOrderDto,
     customerId: number,
     businessId: number,
+    tip?: number,
   ) {
     const option = await this.prisma.option.findUnique({
       where: { id: optionOrder.optionId, AND: { businessId } },
@@ -41,6 +42,7 @@ export class OrderService {
         customerId,
         businessId,
         tableIdentifier,
+        tip,
       });
 
     await this.prisma.orderOption.upsert({
@@ -64,10 +66,12 @@ export class OrderService {
     customerId,
     businessId,
     tableIdentifier,
+    tip,
   }: {
     customerId: number;
     businessId: number;
     tableIdentifier: string;
+    tip: number;
   }) {
     const table = await this.prisma.table.findFirst({
       where: {
@@ -100,7 +104,7 @@ export class OrderService {
         business: { connect: { id: businessId } },
         table: { connect: { id: table.id } },
         shift: { connect: { id: shiftId } },
-        // tip:4000,
+        tip,
         waiter: {
           connect: {
             userId_businessId: { userId: waiterId, businessId },

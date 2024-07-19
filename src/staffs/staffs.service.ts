@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   BadRequestException,
   Injectable,
@@ -6,6 +7,7 @@ import {
 import * as bcrypt from "bcrypt";
 import { CreateStaffDto } from "./dto/create-staff.dto";
 import { PrismaService } from "src/prisma/prisma.service";
+import { truncateSync } from "fs";
 
 @Injectable()
 export class StaffsService {
@@ -119,5 +121,147 @@ export class StaffsService {
       status: "success",
       data: { staff },
     };
+  }
+
+  async getWaiterAnalytics(
+    userId: number,
+    businessId: number,
+    sortBy: string,
+  ): Promise<any> {
+    const staff = await this.findStaff(userId, businessId);
+
+    if (staff.data.staff.role.name != "waiter")
+      throw new BadRequestException("This staff is not a waiter");
+
+    let startDate: Date;
+    let endDate: Date;
+
+    const today = new Date();
+    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+    const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const thisYear = new Date(today.getFullYear(), 0, 1);
+
+    switch (sortBy) {
+      case "today":
+        startDate = today;
+        startDate = new Date(startDate.setHours(0, 0, 0, 0));
+        endDate = today;
+        endDate = new Date(endDate.setHours(23, 59, 59, 999));
+        break;
+
+      case "yesterday":
+        startDate = yesterday;
+        startDate = new Date(startDate.setHours(0, 0, 0, 0));
+        endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+        endDate = new Date(endDate.setHours(23, 59, 59, 999));
+        break;
+
+      case "thisWeek":
+        startDate = thisWeek;
+        startDate = new Date(startDate.setHours(0, 0, 0, 0));
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      case "thisMonth":
+        startDate = thisMonth;
+        startDate.setHours(0, 0, 0, 0);
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      case "thisYear":
+        startDate = thisYear;
+        startDate.setHours(0, 0, 0, 0);
+
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      default:
+        startDate = new Date(0); // All time
+        startDate.setHours(0, 0, 0, 0);
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+
+        break;
+    }
+    // Retrieve the orders data for the specified date range
+    const orders = await this.prisma.order.findMany({
+      where: {
+        waiterId: userId,
+        businessId,
+        createdAt: { gte: startDate, lt: endDate },
+      },
+      select: {
+        id: true,
+        tip: true,
+        table: true,
+        status: true,
+        paidAt: true,
+        cancelledAt: true,
+        completedAt: true,
+        payment: true,
+        options: true,
+        _count: true,
+        shift: true,
+        waiter: true,
+        customer: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+        createdAt: true,
+      },
+    });
+
+    const ordersTaken = orders.length;
+
+    const waiterId = userId;
+    const relevantOrders = orders.filter(
+      (order) => order.waiter.userId === waiterId && order.payment !== null,
+    );
+    const totalPaymentAmount = relevantOrders.reduce(
+      (acc, order) => acc + order.payment.amount,
+      0,
+    );
+    const averageOrderValue = totalPaymentAmount / relevantOrders.length;
+
+    console.log(averageOrderValue);
+    return {
+      orders,
+    };
+
+    // const table = await this.prisma.table.findUnique({where:{id:ordersTaken}})
+
+    // //clalculate
+    // const tipsReceived = orders.reduce((acc, order) => acc + order.tip, 0);
+    // // const tablesServed = orders.reduce((acc, order) => acc + order.tableId, 0);
+
+    // const ordersByPaymentMethod = orders.reduce((acc, order) => {
+    //   const paymentType = order.payment.reference;
+    //   acc[paymentType] = (acc[paymentType] || 0) + 1;
+    //   return acc;
+    // }, {});
+
+    //   // Calculate additional metrics
+    //   const totalRevenue = orders.reduce((acc, order) => acc + order.options., 0);
+    //   const averageSalesPerHour = totalRevenue / (endDate.getHours() - startDate.getHours());
+    //   const salesGrowthRate = (totalRevenue - (await this.prisma.order.sum({
+    //     where: {
+    //       waiterId,
+    //       businessId: restaurantId,
+    //       createdAt: {
+    //         gte: dateRange.start - 7,
+    //         lte: dateRange.end - 7,
+    //       },
+    //     },
+    //     select: {
+    //       total: true,
+    //     },
+    //   })) / 7) / 7;
   }
 }
