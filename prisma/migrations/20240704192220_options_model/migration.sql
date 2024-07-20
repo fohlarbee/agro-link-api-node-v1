@@ -206,6 +206,8 @@ CREATE TYPE "MenuType" AS ENUM ('starters', 'breakfast', 'lunch', 'dinner', 'mai
 
 -- AlterTable
 ALTER TABLE "Menu" ADD COLUMN     "type" "MenuType" NOT NULL DEFAULT 'starters';
+ALTER TABLE "Order" ALTER COLUMN "tip" SET DEFAULT 0;
+
 
 
 

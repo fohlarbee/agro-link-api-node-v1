@@ -234,23 +234,23 @@ const businesses =  [
       
         {
           "name": "Relieve Plate",
-          "businessId": 5
+          "businessId": 1
         },
         {
           "name": "Menu pot",
-          "businessId": 3
-        },
-        {
-          "name": "Coffee Shop",
           "businessId": 2
         },
         {
+          "name": "Coffee Shop",
+          "businessId": 3
+        },
+        {
           "name": "Hotel",
-          "businessId": 8
+          "businessId": 4
         },
         {
           "name": "Retail Store",
-          "businessId": 4
+          "businessId": 5
         },
         {
           "name": "Food Truck",
@@ -505,11 +505,39 @@ async function main() {
   await prisma.role.createMany({ data: roles });
   await prisma.staff.createMany({ data: staffs });
   await prisma.menuOptions.create({data:{menuId:1, optionId:1}});
+  await prisma.menuOptions.create({data:{menuId:1, optionId:2}});
+  await prisma.menuOptions.create({data:{menuId:1, optionId:3}});
+  await prisma.menuOptions.create({data:{menuId:1, optionId:4}});
+  await prisma.menuOptions.create({data:{menuId:1, optionId:5}});
+  await prisma.menuOptions.create({data:{menuId:1, optionId:6}});
+  await prisma.menuOptions.create({data:{menuId:1, optionId:7}});
+  await prisma.menuOptions.create({data:{menuId:1, optionId:8}});
+  await prisma.menuOptions.create({data:{menuId:1, optionId:10}});
+
+  await prisma.menuOptions.create({data:{menuId:2, optionId:1}});
   await prisma.menuOptions.create({data:{menuId:2, optionId:2}});
+  await prisma.menuOptions.create({data:{menuId:2, optionId:3}});
+  await prisma.menuOptions.create({data:{menuId:2, optionId:4}});
+  await prisma.menuOptions.create({data:{menuId:2, optionId:5}});
+  await prisma.menuOptions.create({data:{menuId:2, optionId:6}});
+  await prisma.menuOptions.create({data:{menuId:2, optionId:7}});
+  await prisma.menuOptions.create({data:{menuId:2, optionId:8}})
+  await prisma.menuOptions.create({data:{menuId:2, optionId:9}});
+  await prisma.menuOptions.create({data:{menuId:2, optionId:10}});
+
+  await prisma.menuOptions.create({data:{menuId:3, optionId:1}});
+  await prisma.menuOptions.create({data:{menuId:3, optionId:2}});
   await prisma.menuOptions.create({data:{menuId:3, optionId:3}});
+  await prisma.menuOptions.create({data:{menuId:3, optionId:4}});
+  await prisma.menuOptions.create({data:{menuId:3, optionId:5}});
+  await prisma.menuOptions.create({data:{menuId:3, optionId:6}});
+  await prisma.menuOptions.create({data:{menuId:3, optionId:7}});
+  await prisma.menuOptions.create({data:{menuId:3, optionId:8}});
+  await prisma.menuOptions.create({data:{menuId:3, optionId:9}});
+  await prisma.menuOptions.create({data:{menuId:3, optionId:10}});
+
   await prisma.outlet.createMany({data:outlets});
   await prisma.table.createMany({data:tables});
-  await prisma.table.
 }
 
 main()
