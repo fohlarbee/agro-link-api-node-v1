@@ -25,6 +25,7 @@ export class PaystackService {
         },
         { headers: { Authorization: `Bearer ${process.env.PSK_SECRET_KEY}` } },
       );
+      // console.log(response.data.data);
 
       return { status: "success", data: response.data.data };
     } catch (error: any) {

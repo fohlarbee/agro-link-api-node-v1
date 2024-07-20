@@ -7,7 +7,6 @@ import {
 import * as bcrypt from "bcrypt";
 import { CreateStaffDto } from "./dto/create-staff.dto";
 import { PrismaService } from "src/prisma/prisma.service";
-import { truncateSync } from "fs";
 
 @Injectable()
 export class StaffsService {
@@ -128,6 +127,7 @@ export class StaffsService {
     businessId: number,
     sortBy: string,
   ): Promise<any> {
+    if (!sortBy) sortBy = "thisYear";
     const staff = await this.findStaff(userId, businessId);
 
     if (staff.data.staff.role.name != "waiter")
@@ -187,7 +187,7 @@ export class StaffsService {
 
         break;
     }
-    // Retrieve the orders data for the specified date range
+    // Retrieve the orders data for the specified date range and for the specified waiter
     const orders = await this.prisma.order.findMany({
       where: {
         waiterId: userId,
@@ -218,11 +218,15 @@ export class StaffsService {
       },
     });
 
+    const waiterId = userId;
+
     const ordersTaken = orders.length;
 
-    const waiterId = userId;
     const relevantOrders = orders.filter(
-      (order) => order.waiter.userId === waiterId && order.payment !== null,
+      (order) =>
+        order.waiter.userId === waiterId &&
+        order.payment !== null &&
+        order.payment.amount > 0,
     );
     const totalPaymentAmount = relevantOrders.reduce(
       (acc, order) => acc + order.payment.amount,
@@ -230,38 +234,77 @@ export class StaffsService {
     );
     const averageOrderValue = totalPaymentAmount / relevantOrders.length;
 
-    console.log(averageOrderValue);
+    const tipsReceived = orders
+      .filter((order) => order.waiter.userId === waiterId)
+      .reduce((acc, order) => acc + (order.tip || 0), 0);
+    const uniqueTables = new Set(
+      orders
+        .filter((order) => order.waiter.userId === waiterId)
+        .map((order) => order.table.identifier),
+    );
+    const numTables = uniqueTables.size;
+
+    const totalRevenue = orders
+      .filter(
+        (order) => order.waiter.userId === waiterId && order.payment !== null,
+      )
+      .reduce((acc, order) => acc + order.payment.amount, 0);
+
+    
+
+    const paidOrders = orders.filter(
+      (order) => order.waiter.userId === waiterId && order.paidAt !== null,
+    ).length;
+    const completedOrders = orders.filter(
+      (order) => order.waiter.userId === waiterId && order.completedAt !== null,
+    ).length;
+    const cancelledOrders = orders.filter(
+      (order) => order.waiter.userId === waiterId && order.cancelledAt !== null,
+    ).length;
+    const totalSales = orders
+      .filter(
+        (order) => order.waiter.userId === waiterId && order.payment !== null,
+      )
+      .reduce((acc, order) => acc + order.payment.amount, 0);
+    const previousPeriodSales = orders
+      .filter(
+        (order) =>
+          order.waiter.userId === waiterId &&
+          order.createdAt < endDate &&
+          order.payment !== null,
+      )
+      .reduce((acc, order) => acc + order.payment.amount, 0);
+
+    const salesGrowthRate =
+      ((totalSales - previousPeriodSales) / previousPeriodSales) * 100;
     return {
-      orders,
+      // orders,
+      timeFrame: sortBy,
+      date: endDate.toISOString(),
+      businessId: businessId,
+      currency: "NGN",
+      waiter_performance: {
+        waiterId: userId,
+        orders_taken: ordersTaken,
+        total_payment_amount: totalPaymentAmount,
+        average_order_value: averageOrderValue,
+        tips_received: tipsReceived,
+        tables_served: numTables,
+      },
+      waiter_sales_performance: {
+        total_sales: totalSales,
+        sales_growth_rate: salesGrowthRate,
+      },
+      orders: {
+        count: ordersTaken,
+        total_revenue: totalRevenue,
+        average_order_value: averageOrderValue,
+        by_status: {
+          paidAt: paidOrders,
+          completed: completedOrders,
+          cancelled: cancelledOrders,
+        },
+      },
     };
-
-    // const table = await this.prisma.table.findUnique({where:{id:ordersTaken}})
-
-    // //clalculate
-    // const tipsReceived = orders.reduce((acc, order) => acc + order.tip, 0);
-    // // const tablesServed = orders.reduce((acc, order) => acc + order.tableId, 0);
-
-    // const ordersByPaymentMethod = orders.reduce((acc, order) => {
-    //   const paymentType = order.payment.reference;
-    //   acc[paymentType] = (acc[paymentType] || 0) + 1;
-    //   return acc;
-    // }, {});
-
-    //   // Calculate additional metrics
-    //   const totalRevenue = orders.reduce((acc, order) => acc + order.options., 0);
-    //   const averageSalesPerHour = totalRevenue / (endDate.getHours() - startDate.getHours());
-    //   const salesGrowthRate = (totalRevenue - (await this.prisma.order.sum({
-    //     where: {
-    //       waiterId,
-    //       businessId: restaurantId,
-    //       createdAt: {
-    //         gte: dateRange.start - 7,
-    //         lte: dateRange.end - 7,
-    //       },
-    //     },
-    //     select: {
-    //       total: true,
-    //     },
-    //   })) / 7) / 7;
   }
 }
