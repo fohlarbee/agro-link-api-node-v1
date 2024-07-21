@@ -4,7 +4,7 @@ import { ConfigModule } from "@nestjs/config";
 import { PrismaModule } from "src/prisma/prisma.module";
 import { AuthModule } from "src/auth/auth.module";
 import { BusinessModule } from "src/business/business.module";
-import { FilesModule } from "src/files/files.module";
+import { FilesUploadModule } from "src/files/files.module";
 import { MenuModule } from "src/menus/menu.module";
 import { OrderModule } from "src/orders/order.module";
 import { TransactionModule } from "src/transactions/transaction.module";
@@ -22,7 +22,7 @@ import { OtpModule } from "src/otp/otp.module";
     ConfigModule.forRoot(),
     PrismaModule,
     AuthModule,
-    FilesModule,
+    FilesUploadModule,
     OptionsModule,
     MenuModule,
     OutletsModule,

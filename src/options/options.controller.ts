@@ -9,6 +9,7 @@ import {
   Put,
   UseGuards,
   UseInterceptors,
+  UploadedFile,
 } from "@nestjs/common";
 import { OptionsService } from "./options.service";
 import { CreateOptionDto } from "./dto/create-option.dto";
@@ -21,7 +22,14 @@ import {
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
-// import { Bus } from 'src/utils/interceptors/business-access.interceptor';
+import { ValidPathParamInterceptor } from "src/utils/interceptors/valid-path-param.interceptor";
+import { FileInterceptor } from "@nestjs/platform-express";
+
+import { diskStorage } from "multer";
+import { storage, MAX_IMAGE_SIZE, fileFilter } from "src/utils/interceptors/file-upload.interceptor";
+
+
+
 
 @Controller("options")
 @ApiTags(" Options")
@@ -53,10 +61,24 @@ export class AdminOptionsController {
   constructor(private readonly optionsService: OptionsService) {}
 
   @Post()
+  @UseInterceptors(
+    FileInterceptor("file", {
+      storage,
+      fileFilter,
+      limits: { fileSize: MAX_IMAGE_SIZE },
+    }),
+  )
   @ApiCreatedResponse()
-  createOption(@Body() createOptionDto: CreateOptionDto, @Req() request) {
+  async createOption(@UploadedFile() file: Express.Multer.File ,
+  @Req() request,
+  @Body() createOptionDto: CreateOptionDto
+) {
+
     const { business_id } = request.headers;
-    return this.optionsService.createOption(createOptionDto, +business_id);
+    return this.optionsService.createOption(createOptionDto,
+       +business_id,
+        file
+      );
   }
 
   @Get()
@@ -76,6 +98,7 @@ export class AdminOptionsController {
   }
 
   @Put("/:id")
+  @UseInterceptors(new ValidPathParamInterceptor())
   update(
     @Param("id") id: string,
     @Body() createOptionDto: UpdateOptionDto,

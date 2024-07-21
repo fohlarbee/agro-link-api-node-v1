@@ -20,9 +20,13 @@ export class AuthDto extends LoginDto {
   @MinLength(3)
   @ApiProperty()
   name: string;
+
+  @ApiProperty()
+  avatar: string;
+
 }
 
-export class SendVRegistrationEmailDto {
+export class SendRegistrationEmailDto {
   @IsEmail()
   @IsNotEmpty()
   @ApiProperty({ required: true })

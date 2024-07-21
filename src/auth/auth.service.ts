@@ -12,6 +12,7 @@ import * as bcrypt from "bcrypt";
 import { AuthDto } from "./dto/auth.dto";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { OtpService } from "src/otp/otp.service";
+import { FileUploadService } from "src/files/file-upload.service";
 
 @Injectable()
 export class AuthService {
@@ -19,6 +20,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private otpService: OtpService,
+    private fileUploadService: FileUploadService
   ) {}
 
   async login(email: string, password: string): Promise<AuthEntity> {
@@ -34,7 +36,7 @@ export class AuthService {
     };
   }
 
-  async register({ email, password, name }: AuthDto): Promise<BaseResponse> {
+  async register({ email, password, name }: AuthDto, file:Express.Multer.File): Promise<BaseResponse> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -46,8 +48,9 @@ export class AuthService {
     if (!userVerified)
       throw new UnauthorizedException("Please verify your email first");
     const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync());
+   const avatar = await this.fileUploadService.uploadFile(file);
     await this.prisma.user.create({
-      data: { email, password: hashedPassword, name },
+      data: { email, password: hashedPassword, name, avatar },
     });
     await this.prisma.otp.delete({ where: { email } });
 

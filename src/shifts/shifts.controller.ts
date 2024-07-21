@@ -25,6 +25,7 @@ import {
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
+import { ValidPathParamInterceptor } from "src/utils/interceptors/valid-path-param.interceptor";
 
 @Controller("admin/shifts")
 @ApiTags("Shifts")
@@ -57,6 +58,7 @@ export class ShiftsController {
   }
 
   @Post("/:id/assign-tables")
+  @UseInterceptors(new ValidPathParamInterceptor())
   @ApiOkResponse({ type: BaseResponse })
   assignTables(
     @Param("id") shiftId: string,

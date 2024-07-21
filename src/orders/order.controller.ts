@@ -4,12 +4,15 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseInterceptors,
   Req,
   BadRequestException,
 } from "@nestjs/common";
 import { OrderService } from "./order.service";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import { ApiAcceptedResponse, ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import { ValidPathParamInterceptor } from "src/utils/interceptors/valid-path-param.interceptor";
+import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 
 @Controller("orders")
 @ApiTags("Orders")
@@ -53,12 +56,18 @@ export class OrderController {
   }
 
   @Get("/:id")
+  @UseInterceptors(new ValidPathParamInterceptor())
   async findOrder(@Param("id") orderId: number, @Req() request) {
     const { id: customerId } = request.user;
     return this.orderService.findOrder(customerId, +orderId);
   }
 
   @Delete(":id/:optionId")
+  @UseInterceptors(
+    new ValidPathParamInterceptor(),
+    new ValidPathParamInterceptor("optionId"),
+  )
+  @ApiAcceptedResponse({ type: BaseResponse })
   remove(
     @Param("id") orderId: number,
     @Param("optionId") optionId: number,

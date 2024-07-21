@@ -7,19 +7,31 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { CreateOptionDto } from "./dto/create-option.dto";
 import { UpdateOptionDto } from "./dto/update-option.dto";
 import * as fs from "fs";
+import { FileUploadService } from "src/files/file-upload.service";
 
 @Injectable()
 export class OptionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly fileUploadService: FileUploadService,
+  ) {}
 
-  async createOption(optionData: CreateOptionDto, businessId: number) {
-    // if (!fs.existsSync(`./uploads/images/${optionData.image}`)) throw new BadRequestException(`Unknown image file ${optionData.image}`);
+  async createOption(
+    optionData: CreateOptionDto, 
+    businessId: number, 
+    file:Express.Multer.File
+  ) {
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
     });
     if (!business) throw new NotFoundException("Invalid business");
+
+    const imageUrl = await this.fileUploadService.uploadFile(file);
     await this.prisma.option.create({
-      data: { ...optionData, businessId },
+      data: { ...optionData, 
+        businessId,
+        image:imageUrl 
+      },
     });
     return { message: "Option successfully created", status: "success" };
   }
@@ -28,6 +40,7 @@ export class OptionsService {
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
     });
+    // this.deleteImageFile();
     if (!business)
       throw new NotFoundException(`No business with id ${businessId}`);
     const options = await this.prisma.option.findMany({
@@ -59,7 +72,7 @@ export class OptionsService {
     if (!option) throw new NotFoundException("No such option in business menu");
     await this.prisma.option.update({
       where: { id },
-      data: { ...updateoptionData },
+      data: { ...updateoptionData, price:+updateoptionData.price },
     });
     if (updateoptionData.image && option.image != updateoptionData.image)
       await this.deleteImageFile(option.image);

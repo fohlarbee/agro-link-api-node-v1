@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from "@nestjs/common";
+import { Body, Controller, HttpCode, HttpStatus, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { AuthEntity } from "./entities/auth.entity";
@@ -6,9 +6,15 @@ import {
   AuthDto,
   LoginDto,
   ResetPasswordDto,
-  SendVRegistrationEmailDto,
+  SendRegistrationEmailDto,
   VerificationDto,
 } from "./dto/auth.dto";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { storage, 
+  MAX_IMAGE_SIZE, 
+  fileFilter } 
+  from "src/utils/interceptors/file-upload.interceptor";
+
 
 @Controller("auth")
 @ApiTags("Authentication")
@@ -23,14 +29,24 @@ export class AuthController {
   }
 
   @Post("register")
+  @UseInterceptors(
+    FileInterceptor("file", {
+      storage,
+      fileFilter,
+      limits: { fileSize: MAX_IMAGE_SIZE },
+    }),
+  )
   @ApiCreatedResponse()
-  register(@Body() body: AuthDto) {
-    return this.authService.register(body);
+  register(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: AuthDto
+  ) {
+    return this.authService.register(body, file);
   }
 
   @Post("otp/generate")
   @ApiCreatedResponse()
-  sendVerificationEmail(@Body() { email }: SendVRegistrationEmailDto) {
+  sendVerificationEmail(@Body() { email }: SendRegistrationEmailDto) {
     return this.authService.sendVerificationEmail(email);
   }
 
@@ -41,7 +57,7 @@ export class AuthController {
   }
   @Post("reset/otp")
   @ApiCreatedResponse()
-  sendResetEmail(@Body() { email }: SendVRegistrationEmailDto) {
+  sendResetEmail(@Body() { email }: SendRegistrationEmailDto) {
     return this.authService.sendresetEmail(email);
   }
 
