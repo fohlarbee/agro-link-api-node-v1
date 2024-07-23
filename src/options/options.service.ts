@@ -17,9 +17,9 @@ export class OptionsService {
   ) {}
 
   async createOption(
-    optionData: CreateOptionDto, 
-    businessId: number, 
-    file:Express.Multer.File
+    optionData: CreateOptionDto,
+    businessId: number,
+    file: Express.Multer.File,
   ) {
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
@@ -28,10 +28,7 @@ export class OptionsService {
 
     const imageUrl = await this.fileUploadService.uploadFile(file);
     await this.prisma.option.create({
-      data: { ...optionData, 
-        businessId,
-        image:imageUrl 
-      },
+      data: { ...optionData, businessId, image: imageUrl },
     });
     return { message: "Option successfully created", status: "success" };
   }
@@ -72,7 +69,7 @@ export class OptionsService {
     if (!option) throw new NotFoundException("No such option in business menu");
     await this.prisma.option.update({
       where: { id },
-      data: { ...updateoptionData, price:+updateoptionData.price },
+      data: { ...updateoptionData, price: +updateoptionData.price },
     });
     if (updateoptionData.image && option.image != updateoptionData.image)
       await this.deleteImageFile(option.image);

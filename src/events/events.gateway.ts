@@ -40,7 +40,6 @@ export class EventsGateway
   handleDisconnect(client: Socket) {}
 
   @SubscribeMessage("message")
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handleMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody() messsage: string,

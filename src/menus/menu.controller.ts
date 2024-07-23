@@ -21,6 +21,8 @@ import { CreateMenuDto } from "./dto/create-menu.dto";
 import { optionIdsDto } from "./dto/option-ids.dto";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
+import RoleGuard from "src/auth/role/role.guard";
+import { Role } from "src/auth/dto/auth.dto";
 
 @Controller("admin/menus")
 @ApiTags("Menus")
@@ -36,6 +38,7 @@ export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
   @Post()
+  @UseGuards(RoleGuard([Role.admin, Role.owner, Role.manager, Role.kitchen]))
   @ApiCreatedResponse()
   createMenu(
     @Body() { name }: CreateMenuDto,
@@ -59,6 +62,7 @@ export class MenuController {
   }
 
   @Post(":id/add-options")
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
   @ApiOkResponse({ type: BaseResponse })
   async assignOptions(
     @Param("id") optionId: number,
@@ -70,6 +74,8 @@ export class MenuController {
   }
 
   @Post(":id/remove-options")
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
+  @UseGuards(RoleGuard([Role.admin, Role.manager]))
   @ApiOkResponse({ type: BaseResponse })
   async removeOptions(
     @Param("id") optionId: number,
@@ -84,3 +90,7 @@ export class MenuController {
     );
   }
 }
+
+
+
+

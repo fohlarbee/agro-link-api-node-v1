@@ -1,21 +1,16 @@
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-import { Observable } from "rxjs";
+import { CanActivate, ExecutionContext, mixin, Type } from "@nestjs/common";
+import { Role } from "../dto/auth.dto";
 
-@Injectable()
-export class RoleGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+const RoleGuard = (roles: Role[]): Type<CanActivate> => {
+  class RoleGuardMixin implements CanActivate {
+    canActivate(context: ExecutionContext) {
+      const request = context.switchToHttp().getRequest<any>();
+      const user = request.user;
 
-  matchRoles(roles: string[], userRole: string) {
-    return roles.some((role) => role === userRole);
+      return roles.includes(user?.role);
+    }
   }
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    const roles = this.reflector.get<string[]>("roles", context.getHandler());
-    if (!roles) return true;
-    const request = context.switchToHttp().getRequest();
-    const user = request.user;
-    return this.matchRoles(roles, user.role);
-  }
-}
+  return mixin(RoleGuardMixin);
+};
+
+export default RoleGuard;

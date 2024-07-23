@@ -209,6 +209,14 @@ ALTER TABLE "Menu" ADD COLUMN     "type" "MenuType" NOT NULL DEFAULT 'starters';
 ALTER TABLE "Order" ALTER COLUMN "tip" SET DEFAULT 0;
 
 
+-- CreateEnum
+CREATE TYPE "GuardRoles" AS ENUM ('customer', 'admin', 'waiter', 'manager', 'kitchen');
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "role" "GuardRoles";
+
+
+
 
 
 

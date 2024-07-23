@@ -24,6 +24,8 @@ import { CreateTableDto } from "./dto/create-table.dto";
 import { TableCreationResponse } from "./entities/table.entity";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
+import RoleGuard from "src/auth/role/role.guard";
+import { Role } from "src/auth/dto/auth.dto";
 @Controller("admin/outlets")
 @ApiTags("Outlets")
 @ApiBearerAuth()
@@ -38,6 +40,7 @@ export class OutletsController {
   constructor(private readonly outletsService: OutletsService) {}
 
   @Post()
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.owner]))
   @ApiCreatedResponse({ type: OutletCreationResponse })
   createOutlet(
     @Req() request: Record<string, any>,
@@ -55,6 +58,7 @@ export class OutletsController {
   }
 
   @Post(":outletId/tables")
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.owner]))
   @ApiCreatedResponse({ type: TableCreationResponse })
   createTable(
     @Req() request: Record<string, any>,

@@ -16,4 +16,9 @@ export class AddOptionToOrderDto {
   @IsNotEmpty()
   @ApiProperty({ required: true })
   tableIdentifier: string;
+
+  @IsNumber()
+  @Min(0)
+  @ApiProperty()
+  tip: number;
 }

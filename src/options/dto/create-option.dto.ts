@@ -12,13 +12,11 @@ export class CreateOptionDto {
   @ApiProperty({ required: true })
   name: string;
 
-
   @Transform(({ value }) => parseFloat(value))
   @IsNumber({ allowInfinity: false, allowNaN: false, maxDecimalPlaces: 2 })
   @Min(100)
-@ApiProperty({required:true})
+  @ApiProperty({ required: true })
   price: number;
-
 
   @ApiProperty()
   image: string;

@@ -13,12 +13,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+ enum GuardRoles {
+  customer
+  admin
+  waiter
+  manager
+  kitchen 
+  owner
+
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
   name      String
   avatar    String?
+  role       GuardRoles? 
+  // isCustomer Boolean   @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -207,6 +220,7 @@ model Order {
   businessId Int
   business   Business      @relation(fields: [businessId], references: [id])
   payment    Payment?
+  // paymemtId  Int?  
   tableId    Int
   table      Table         @relation(fields: [tableId], references: [id])
   shiftId    Int

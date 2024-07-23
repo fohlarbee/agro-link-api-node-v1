@@ -20,7 +20,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private otpService: OtpService,
-    private fileUploadService: FileUploadService
+    private fileUploadService: FileUploadService,
   ) {}
 
   async login(email: string, password: string): Promise<AuthEntity> {
@@ -36,7 +36,10 @@ export class AuthService {
     };
   }
 
-  async register({ email, password, name }: AuthDto, file:Express.Multer.File): Promise<BaseResponse> {
+  async register(
+    { email, password, name, role }: AuthDto,
+    file: Express.Multer.File,
+  ): Promise<BaseResponse> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -48,9 +51,9 @@ export class AuthService {
     if (!userVerified)
       throw new UnauthorizedException("Please verify your email first");
     const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync());
-   const avatar = await this.fileUploadService.uploadFile(file);
+    const avatar = await this.fileUploadService.uploadFile(file);
     await this.prisma.user.create({
-      data: { email, password: hashedPassword, name, avatar },
+      data: { email, password: hashedPassword, name, avatar, role },
     });
     await this.prisma.otp.delete({ where: { email } });
 

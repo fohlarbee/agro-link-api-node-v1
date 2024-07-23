@@ -16,11 +16,13 @@ export class TransactionService {
   ) {}
   async processTransaction(reference: string) {
     const verificationResult = await this.paystack.verifyPayment(reference);
+    console.log("verifiation result", verificationResult);
 
     // Check that payment already exists
     const payment = await this.prisma.payment.findUnique({
-      where: { reference },
+      where: { reference, orderId: +verificationResult.data.metadata.orderId },
     });
+    console.log("Payment already exists", payment);
     if (payment) return { message: "Payment successful", status: "success" };
 
     // Check that the payment was successful
@@ -31,32 +33,28 @@ export class TransactionService {
     const amount = +verificationResult.data.amount / 100;
     // Parse order id in metadata
     const orderId = +verificationResult.data.metadata.orderId;
+    console.log(orderId);
     // Retrieve payment time
     const paidAt = verificationResult.data.paid_at;
+    const completedAt = verificationResult.data.transaction_date;
     // Check order exists
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
     });
+    // console.log('Heres the order', order);
+    console.log(orderId, paidAt, amount, reference, order.customerId);
 
     if (!order) throw new BadRequestException("No such order");
 
     if (order.status !== "active")
       throw new BadRequestException("Order is not active");
-
-    await this.prisma.payment.create({
-      data: {
-        orderId,
-        amount,
-        paidAt,
-        reference,
-        userId: order.customerId,
-      },
-    });
-
-    await this.prisma.order.update({
+    const updatedOrder = await this.prisma.order.update({
       where: { id: orderId },
       data: {
         status: OrderStatus.paid,
+        paidAt,
+        completedAt,
+        cancelledAt: null,
         payment: {
           create: {
             amount,
@@ -67,6 +65,7 @@ export class TransactionService {
         },
       },
     });
+    console.log(updatedOrder);
     return { message: "Payment successful", status: "success" };
   }
 }

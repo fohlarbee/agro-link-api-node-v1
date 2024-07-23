@@ -21,6 +21,8 @@ import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { StaffFetchResponse, StaffListResponse } from "./entities/staff.entity";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
+import RoleGuard from "src/auth/role/role.guard";
+import { Role } from "src/auth/dto/auth.dto";
 
 @Controller("admin/staffs")
 @ApiTags("Staffs")
@@ -36,6 +38,7 @@ export class StaffsController {
   constructor(private readonly staffsService: StaffsService) {}
 
   @Post()
+  @UseGuards(RoleGuard([Role.admin, Role.manager]))
   @ApiOkResponse({ type: BaseResponse })
   create(
     @Body() createStaffDto: CreateStaffDto,
@@ -46,6 +49,15 @@ export class StaffsController {
   }
 
   @Get()
+  @UseGuards(
+    RoleGuard([
+      Role.admin,
+      Role.manager,
+      Role.waiter,
+      Role.kitchen,
+      Role.owner,
+    ]),
+  )
   @ApiOkResponse({ type: StaffListResponse })
   findAll(@Req() request: Record<string, any>) {
     const { business_id } = request.headers;
@@ -53,6 +65,15 @@ export class StaffsController {
   }
 
   @Get(":id")
+  @UseGuards(
+    RoleGuard([
+      Role.admin,
+      Role.manager,
+      Role.waiter,
+      Role.kitchen,
+      Role.owner,
+    ]),
+  )
   @ApiOkResponse({ type: StaffFetchResponse })
   findOne(@Param("id") id: string, @Req() request: Record<string, any>) {
     const { business_id } = request.headers;
@@ -60,6 +81,17 @@ export class StaffsController {
   }
 
   @Get(":id/analytics")
+  @Get(":id")
+  @UseGuards(
+    RoleGuard([
+      Role.admin,
+      Role.manager,
+      Role.waiter,
+      Role.kitchen,
+      Role.owner,
+    ]),
+  )
+  @UseGuards(RoleGuard([Role.admin, Role.manager]))
   @ApiOkResponse({ type: BaseResponse })
   getWaiterAnalytics(
     @Param("id") id: string,

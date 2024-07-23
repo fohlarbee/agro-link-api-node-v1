@@ -25,7 +25,8 @@ import {
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
-import { ValidPathParamInterceptor } from "src/utils/interceptors/valid-path-param.interceptor";
+import { Role } from "src/auth/dto/auth.dto";
+import RoleGuard from "src/auth/role/role.guard";
 
 @Controller("admin/shifts")
 @ApiTags("Shifts")
@@ -41,6 +42,7 @@ export class ShiftsController {
   constructor(private readonly shiftsService: ShiftsService) {}
 
   @Post()
+  @UseGuards(RoleGuard([Role.admin, Role.manager]))
   @ApiCreatedResponse({ type: ShiftCreationResponse })
   create(
     @Body() createShiftDto: CreateShiftDto,
@@ -51,6 +53,8 @@ export class ShiftsController {
   }
 
   @Get()
+  @UseGuards(RoleGuard([Role.admin, Role.manager]))
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.waiter, Role.kitchen]))
   @ApiOkResponse({ type: ShiftListResponse })
   findAll(CreateShiftDto, @Req() request: Record<string, any>) {
     const { business_id } = request.headers;
@@ -58,7 +62,8 @@ export class ShiftsController {
   }
 
   @Post("/:id/assign-tables")
-  @UseInterceptors(new ValidPathParamInterceptor())
+  @UseGuards(RoleGuard([Role.admin, Role.manager]))
+  // @UseInterceptors(new ValidPathParamInterceptor())
   @ApiOkResponse({ type: BaseResponse })
   assignTables(
     @Param("id") shiftId: string,

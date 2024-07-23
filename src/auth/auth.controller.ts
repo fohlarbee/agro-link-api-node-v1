@@ -1,4 +1,12 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from "@nestjs/common";
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { AuthEntity } from "./entities/auth.entity";
@@ -10,11 +18,11 @@ import {
   VerificationDto,
 } from "./dto/auth.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { storage, 
-  MAX_IMAGE_SIZE, 
-  fileFilter } 
-  from "src/utils/interceptors/file-upload.interceptor";
-
+import {
+  storage,
+  MAX_IMAGE_SIZE,
+  fileFilter,
+} from "src/utils/interceptors/file-upload.interceptor";
 
 @Controller("auth")
 @ApiTags("Authentication")
@@ -37,10 +45,7 @@ export class AuthController {
     }),
   )
   @ApiCreatedResponse()
-  register(
-    @UploadedFile() file: Express.Multer.File,
-    @Body() body: AuthDto
-  ) {
+  register(@UploadedFile() file: Express.Multer.File, @Body() body: AuthDto) {
     return this.authService.register(body, file);
   }
 

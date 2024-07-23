@@ -46,6 +46,9 @@ export class ShiftsService {
         endTime: shiftData.endTime,
       },
     });
+    // await this.prisma.shiftTables.create({
+    //   data:{shiftId:shift?.id, table}
+    // })
     return {
       message: "Shift created successfully",
       status: "success",
@@ -97,9 +100,10 @@ export class ShiftsService {
       throw new BadRequestException(
         `These tables do not exist in shift outlet ${invalidTableIds}`,
       );
-    await this.prisma.shiftTables.createMany({
+    const createdShiftsTables = await this.prisma.shiftTables.createMany({
       data: tableIds.map((tableId) => ({ shiftId, tableId })),
     });
+
     return {
       message: "Tables assigned successfully",
       status: "success",

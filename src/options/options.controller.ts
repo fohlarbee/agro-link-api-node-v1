@@ -25,11 +25,13 @@ import { BusinessAccessInterceptor } from "src/utils/interceptors/business-acces
 import { ValidPathParamInterceptor } from "src/utils/interceptors/valid-path-param.interceptor";
 import { FileInterceptor } from "@nestjs/platform-express";
 
-import { diskStorage } from "multer";
-import { storage, MAX_IMAGE_SIZE, fileFilter } from "src/utils/interceptors/file-upload.interceptor";
-
-
-
+import {
+  storage,
+  MAX_IMAGE_SIZE,
+  fileFilter,
+} from "src/utils/interceptors/file-upload.interceptor";
+import RoleGuard from "src/auth/role/role.guard";
+import { Role } from "src/auth/dto/auth.dto";
 
 @Controller("options")
 @ApiTags(" Options")
@@ -61,6 +63,7 @@ export class AdminOptionsController {
   constructor(private readonly optionsService: OptionsService) {}
 
   @Post()
+  @UseGuards(RoleGuard([Role.admin, Role.manager]))
   @UseInterceptors(
     FileInterceptor("file", {
       storage,
@@ -69,16 +72,17 @@ export class AdminOptionsController {
     }),
   )
   @ApiCreatedResponse()
-  async createOption(@UploadedFile() file: Express.Multer.File ,
-  @Req() request,
-  @Body() createOptionDto: CreateOptionDto
-) {
-
+  async createOption(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() request,
+    @Body() createOptionDto: CreateOptionDto,
+  ) {
     const { business_id } = request.headers;
-    return this.optionsService.createOption(createOptionDto,
-       +business_id,
-        file
-      );
+    return this.optionsService.createOption(
+      createOptionDto,
+      +business_id,
+      file,
+    );
   }
 
   @Get()
@@ -98,6 +102,7 @@ export class AdminOptionsController {
   }
 
   @Put("/:id")
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
   @UseInterceptors(new ValidPathParamInterceptor())
   update(
     @Param("id") id: string,
@@ -109,6 +114,8 @@ export class AdminOptionsController {
   }
 
   @Delete(":id")
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
+  @UseGuards(RoleGuard([Role.admin, Role.manager]))
   remove(@Param("id") id: string, @Req() request) {
     const { business_id } = request.headers;
     return this.optionsService.remove(+id, +business_id);

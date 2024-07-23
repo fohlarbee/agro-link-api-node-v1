@@ -27,6 +27,8 @@ import { MenuService } from "src/menus/menu.service";
 import { OrderService } from "src/orders/order.service";
 import { AddOptionToOrderDto } from "src/orders/dto/order-option.dto";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { Role } from "src/auth/dto/auth.dto";
+import RoleGuard from "src/auth/role/role.guard";
 
 @Controller("business")
 @ApiTags("Business")
@@ -73,10 +75,12 @@ export class ClientBusinessController {
 @ApiTags("Business (Admin)")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+// @Roles(Role.admin)
 export class AdminBusinessController {
   constructor(private readonly businessService: BusinessService) {}
 
   @Post()
+  @UseGuards(RoleGuard([Role.owner, Role.admin, Role.manager]))
   @ApiCreatedResponse({ type: BusinessCreationResponse })
   createBusiness(@Body() createBusinessDto: CreateBusinessDto, @Req() request) {
     const { id: creatorId } = request.user;
@@ -84,12 +88,14 @@ export class AdminBusinessController {
   }
 
   @Get()
+  @UseGuards(RoleGuard([Role.admin]))
   @ApiOkResponse({ type: BusinessListResponse })
   findMemberBusinesses(@Req() { user: { id: userId } }: Record<string, any>) {
     return this.businessService.findStaffBusiness(userId);
   }
 
   @Put(":id")
+  @UseGuards(RoleGuard([Role.admin, Role.owner, Role.manager]))
   @ApiOkResponse({ type: BusinessCreationResponse })
   updateBusiness(
     @Param("id") businessId: string,
@@ -103,12 +109,12 @@ export class AdminBusinessController {
   @ApiBearerAuth()
   @ApiQuery({})
   @Get(":id/analytics")
+  @UseGuards(RoleGuard([Role.admin, Role.owner, Role.manager]))
   async getBusinessAnalytic(
     @Param("id") businessId: string,
     @Query("page") page: any = 1,
     @Query("perPage") perPage: any = 10,
     @Query("sortBy") sortBy?: string,
-    // @Query("filter") filter?: string,
   ) {
     const result = await this.businessService.findBusinessWithRelations(
       +businessId,

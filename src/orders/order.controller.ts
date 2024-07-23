@@ -13,6 +13,8 @@ import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { ApiAcceptedResponse, ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { ValidPathParamInterceptor } from "src/utils/interceptors/valid-path-param.interceptor";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
+import { Role } from "src/auth/dto/auth.dto";
+import RoleGuard from "src/auth/role/role.guard";
 
 @Controller("orders")
 @ApiTags("Orders")
@@ -22,12 +24,14 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get()
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen, Role.waiter]))
   async findOpenOrders(@Req() request) {
     const { id: customerId } = request.user;
     return this.orderService.findCustomerOrders(+customerId);
   }
 
   @Get("/pay")
+  @UseGuards(RoleGuard([Role.admin, Role.waiter]))
   payOrder(@Req() request) {
     const { id: customerId, email } = request.user;
     const { business_id: businessId } = request.headers;
@@ -63,6 +67,7 @@ export class OrderController {
   }
 
   @Delete(":id/:optionId")
+  @UseGuards(RoleGuard([Role.admin, Role.manager]))
   @UseInterceptors(
     new ValidPathParamInterceptor(),
     new ValidPathParamInterceptor("optionId"),

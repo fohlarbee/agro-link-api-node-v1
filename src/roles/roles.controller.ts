@@ -18,6 +18,8 @@ import {
 import { RoleCreationResponse, RoleListResponse } from "./entities/role.entity";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
+import RoleGuard from "src/auth/role/role.guard";
+import { Role } from "src/auth/dto/auth.dto";
 @Controller("admin/roles")
 @ApiTags("Roles")
 @ApiBearerAuth()
@@ -32,6 +34,7 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.owner]))
   @ApiOkResponse({ type: RoleCreationResponse })
   create(
     @Body() createRoleDto: CreateRoleDto,
@@ -42,6 +45,7 @@ export class RolesController {
   }
 
   @Get()
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.owner]))
   @ApiOkResponse({ type: RoleListResponse })
   findAll(@Req() request: Record<string, any>) {
     const { business_id } = request.headers;

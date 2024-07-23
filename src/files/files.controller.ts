@@ -7,7 +7,6 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
-import * as fs from "fs";
 import { FileUploadService } from "./file-upload.service";
 
 const storage = diskStorage({

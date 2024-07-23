@@ -17,10 +17,9 @@ export class OrderService {
   ) {}
 
   async orderOption(
-    { tableIdentifier, ...optionOrder }: AddOptionToOrderDto,
+    { tableIdentifier, tip, ...optionOrder }: AddOptionToOrderDto,
     customerId: number,
     businessId: number,
-    tip?: number,
   ) {
     const option = await this.prisma.option.findUnique({
       where: { id: optionOrder.optionId, AND: { businessId } },
@@ -36,6 +35,7 @@ export class OrderService {
       where: { customerId, status: OrderStatus.active, businessId },
       select: { id: true },
     });
+    console.log(currentOrder);
 
     if (!currentOrder)
       currentOrder = await this.createNewOrder({
@@ -45,7 +45,7 @@ export class OrderService {
         tip,
       });
 
-    await this.prisma.orderOption.upsert({
+    const newOrder = await this.prisma.orderOption.upsert({
       where: {
         orderId_optionId: {
           orderId: currentOrder.id,
@@ -55,6 +55,7 @@ export class OrderService {
       create: { ...optionOrder, orderId: currentOrder.id },
       update: { quantity: optionOrder.quantity },
     });
+    console.log(newOrder);
 
     return {
       message: "Option added to order successfully",
@@ -83,8 +84,8 @@ export class OrderService {
         assignedShifts: {
           where: {
             shift: {
-              startTime: { lte: new Date() },
-              endTime: { gte: new Date() },
+              startTime: { gte: new Date() },
+              endTime: { lte: new Date() },
             },
           },
           select: { shift: true },
@@ -113,6 +114,7 @@ export class OrderService {
       },
       select: { id: true },
     });
+    return null;
   }
 
   async findCustomerOrders(customerId: number) {
@@ -220,9 +222,11 @@ export class OrderService {
       where: { customerId, businessId, status: OrderStatus.active },
       select: {
         id: true,
+        tip: true,
         options: {
           select: {
             quantity: true,
+
             option: { select: { price: true } },
           },
         },
@@ -233,7 +237,7 @@ export class OrderService {
         "You do not currently have any open orders",
       );
     const totalAmount = currentOrder.options.reduce((total, option) => {
-      total += option.quantity * option.option.price;
+      total += option.quantity * option.option.price + currentOrder.tip;
       return total;
     }, 0);
     const paymentLink = await this.paystack.createPaymentLink(
@@ -247,7 +251,10 @@ export class OrderService {
     return {
       message: "Payment initiation successful",
       status: "success",
-      data: { paymentLink: paymentLink.data.authorization_url },
+      data: {
+        paymentLink: paymentLink.data.authorization_url,
+        reference: paymentLink.data.reference,
+      },
     };
   }
 
