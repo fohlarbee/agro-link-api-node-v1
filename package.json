@@ -39,6 +39,7 @@
     "@nestjs/websockets": "^10.3.10",
     "@prisma/client": "^5.11.0",
     "@types/passport-jwt": "^4.0.1",
+    "@types/uuid": "^10.0.0",
     "axios": "^1.6.8",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
@@ -52,6 +53,7 @@
     "prisma": "^5.11.0",
     "reflect-metadata": "^0.2.2",
     "socket.io": "^4.7.5",
+    "uuid": "^10.0.0",
     "yarn": "^1.22.22"
   },
   "devDependencies": {

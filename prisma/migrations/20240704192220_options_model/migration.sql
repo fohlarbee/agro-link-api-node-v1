@@ -214,6 +214,8 @@ CREATE TYPE "GuardRoles" AS ENUM ('customer', 'admin', 'waiter', 'manager', 'kit
 
 -- AlterTable
 ALTER TABLE "User" ADD COLUMN     "role" "GuardRoles";
+ALTER TYPE "GuardRoles" ADD VALUE 'owner';
+
 
 
 
