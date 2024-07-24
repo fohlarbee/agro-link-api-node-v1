@@ -66,7 +66,7 @@ export class AuthController {
     return this.authService.sendresetEmail(email);
   }
 
-  @Post("reset-password")
+  @Post("reset/password")
   @ApiCreatedResponse()
   resetPassword(@Body() { email, newPassword }: ResetPasswordDto) {
     return this.authService.resetPassword(email, newPassword);

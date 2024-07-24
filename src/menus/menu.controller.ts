@@ -7,6 +7,7 @@ import {
   UseInterceptors,
   UseGuards,
   Param,
+  Delete,
 } from "@nestjs/common";
 import { MenuService, MenuTypes } from "./menu.service";
 import {
@@ -61,7 +62,7 @@ export class MenuController {
     return this.menuService.findAllMenus(+business_id);
   }
 
-  @Post(":id/add-options")
+  @Post(":id/options")
   @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
   @ApiOkResponse({ type: BaseResponse })
   async assignOptions(
@@ -73,9 +74,8 @@ export class MenuController {
     return this.menuService.addMenuOptions(+business_id, +optionId, optionIds);
   }
 
-  @Post(":id/remove-options")
+  @Delete(":id/options")
   @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
-  @UseGuards(RoleGuard([Role.admin, Role.manager]))
   @ApiOkResponse({ type: BaseResponse })
   async removeOptions(
     @Param("id") optionId: number,
