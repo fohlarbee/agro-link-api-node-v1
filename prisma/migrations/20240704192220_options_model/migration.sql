@@ -221,6 +221,8 @@ ADD COLUMN     "kitchenStaffId" INTEGER NOT NULL;
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_kitchenStaffId_businessId_fkey" FOREIGN KEY ("kitchenStaffId", "businessId") REFERENCES "Staff"("userId", "businessId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TYPE "GuardRoles" ADD VALUE 'guest';
+
 
 
 
