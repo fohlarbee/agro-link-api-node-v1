@@ -80,8 +80,7 @@ export class StaffsController {
     return this.staffsService.findStaff(+id, +business_id);
   }
 
-  @Get(":id/analytics")
-  @Get(":id")
+  @Get("waiter/:id/analytics")
   @UseGuards(
     RoleGuard([
       Role.admin,
@@ -91,8 +90,6 @@ export class StaffsController {
       Role.owner,
     ]),
   )
-  @UseGuards(RoleGuard([Role.admin, Role.manager]))
-  @ApiOkResponse({ type: BaseResponse })
   getWaiterAnalytics(
     @Param("id") id: string,
     @Req() request: Record<string, any>,
@@ -100,6 +97,25 @@ export class StaffsController {
   ) {
     const { business_id } = request.headers;
     return this.staffsService.getWaiterAnalytics(+id, +business_id, sortBy);
+  }
+
+  @Get("kitchen/:id/analytics")
+  @UseGuards(
+    RoleGuard([
+      Role.admin,
+      Role.manager,
+      Role.waiter,
+      Role.kitchen,
+      Role.owner,
+    ]),
+  )
+  getKitchenStaffAnalytics(
+    @Param("id") id: string,
+    @Req() request: Record<string, any>,
+    @Query("sortBy") sortBy?: string,
+  ) {
+    const { business_id } = request.headers;
+    return this.staffsService.kitchenStaffAnalytics(+id, +business_id, sortBy);
   }
 
   // @Patch(':id')

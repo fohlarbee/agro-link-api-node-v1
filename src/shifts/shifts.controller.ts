@@ -61,7 +61,7 @@ export class ShiftsController {
     return this.shiftsService.findAllShifts(+business_id);
   }
 
-  @Post("/:id/assign-tables")
+  @Post("/:id/assign/tables")
   @UseGuards(RoleGuard([Role.admin, Role.manager]))
   // @UseInterceptors(new ValidPathParamInterceptor())
   @ApiOkResponse({ type: BaseResponse })

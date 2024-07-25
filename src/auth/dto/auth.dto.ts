@@ -14,6 +14,7 @@ export enum Role {
   manager = "manager",
   kitchen = "kitchen",
   owner = "owner",
+  guest = "guest",
 }
 export class LoginDto {
   @IsEmail()

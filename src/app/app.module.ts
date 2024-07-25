@@ -16,6 +16,7 @@ import { OptionsModule } from "src/options/options.module";
 import { EventsGatewayModule } from "src/events/events.module";
 import { MailModule } from "src/mail/mail.module";
 import { OtpModule } from "src/otp/otp.module";
+import { UsersModule } from "src/users/users.module";
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { OtpModule } from "src/otp/otp.module";
     EventsGatewayModule,
     MailModule,
     OtpModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [],

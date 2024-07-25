@@ -9,10 +9,11 @@ import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "src/prisma/prisma.service";
 import { AuthEntity } from "./entities/auth.entity";
 import * as bcrypt from "bcrypt";
-import { AuthDto } from "./dto/auth.dto";
+import { AuthDto, Role } from "./dto/auth.dto";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { OtpService } from "src/otp/otp.service";
 import { FileUploadService } from "src/files/file-upload.service";
+import { v1 as uuidv1 } from "uuid";
 
 @Injectable()
 export class AuthService {
@@ -32,7 +33,8 @@ export class AuthService {
     return {
       message: "Login successful",
       data: { accessToken: this.jwtService.sign(payload) },
-      avatar: `https://ui-avatars.com/api/?name=${user.email}`,
+      avatar: user.avatar,
+      role: user.role,
     };
   }
 
@@ -61,6 +63,41 @@ export class AuthService {
       status: "success",
       message:
         "Registration successful! Please login with your email and password.",
+    };
+  }
+
+  async createGuestUser(isGuest: boolean) {
+    if (!isGuest) throw new UnauthorizedException("Access denied");
+    const guestUser = `guest${uuidv1()}`;
+    console.log(guestUser);
+
+    const guestExists = await this.prisma.user.findFirst({
+      where: { name: guestUser },
+    });
+
+    if (guestExists) throw new ConflictException("Guest user already exists");
+
+    const hashedPassword = bcrypt.hashSync(
+      process.env.GUEST_USER_PASSWORD,
+      bcrypt.genSaltSync(),
+    );
+
+    const newGuestUser = await this.prisma.user.create({
+      data: {
+        email: `${guestUser}${process.env.AUTH_USER}`,
+        password: hashedPassword,
+        name: guestUser,
+        avatar: `https://ui-avatars.com/api/?name=${guestUser}`,
+        role: Role.guest,
+      },
+    });
+    const payload = { email: newGuestUser.email, sub: newGuestUser.id };
+
+    return {
+      message: "Login successful",
+      data: { accessToken: this.jwtService.sign(payload) },
+      avatar: newGuestUser.avatar,
+      role: Role.guest,
     };
   }
 

@@ -54,6 +54,11 @@ export class AuthController {
   sendVerificationEmail(@Body() { email }: SendRegistrationEmailDto) {
     return this.authService.sendVerificationEmail(email);
   }
+  @Post("/create/guestuser")
+  @ApiCreatedResponse()
+  createGuestUser(@Body() isGuest: boolean) {
+    return this.authService.createGuestUser(isGuest);
+  }
 
   @Post("otp/verify")
   @ApiCreatedResponse()

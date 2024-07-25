@@ -16,7 +16,6 @@ export class StaffsService {
     businessId: number,
     { email, name, roleId }: CreateStaffDto,
   ) {
-    console.log(businessId);
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
     });
@@ -28,6 +27,7 @@ export class StaffsService {
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (user)
       return this.inviteExistingUser({ businessId, userId: user.id, roleId });
+
     return this.inviteNewUser({ businessId, email, name, roleId });
   }
 
@@ -123,11 +123,7 @@ export class StaffsService {
     };
   }
 
-  async getWaiterAnalytics(
-    userId: number,
-    businessId: number,
-    sortBy: string,
-  ): Promise<any> {
+  async getWaiterAnalytics(userId: number, businessId: number, sortBy: string) {
     if (!sortBy) sortBy = "thisYear";
     const staff = await this.findStaff(userId, businessId);
 
@@ -208,6 +204,7 @@ export class StaffsService {
         _count: true,
         shift: true,
         waiter: true,
+        cancelledBy: true,
         customer: {
           select: {
             id: true,
@@ -238,6 +235,7 @@ export class StaffsService {
     const tipsReceived = orders
       .filter((order) => order.waiter.userId === waiterId)
       .reduce((acc, order) => acc + (order.tip || 0), 0);
+
     const uniqueTables = new Set(
       orders
         .filter((order) => order.waiter.userId === waiterId)
@@ -258,13 +256,17 @@ export class StaffsService {
       (order) => order.waiter.userId === waiterId && order.completedAt !== null,
     ).length;
     const cancelledOrders = orders.filter(
-      (order) => order.waiter.userId === waiterId && order.cancelledAt !== null,
+      (order) =>
+        order.waiter.userId === waiterId &&
+        order.cancelledAt !== null &&
+        order.cancelledBy === waiterId,
     ).length;
     const totalSales = orders
       .filter(
         (order) => order.waiter.userId === waiterId && order.payment !== null,
       )
       .reduce((acc, order) => acc + order.payment.amount, 0);
+
     const previousPeriodSales = orders
       .filter(
         (order) =>
@@ -291,6 +293,199 @@ export class StaffsService {
         tables_served: numTables,
       },
       waiter_sales_performance: {
+        total_sales: totalSales,
+        sales_growth_rate: salesGrowthRate,
+      },
+      orders: {
+        count: ordersTaken,
+        total_revenue: totalRevenue,
+        average_order_value: averageOrderValue,
+        by_status: {
+          paidAt: paidOrders,
+          completed: completedOrders,
+          cancelled: cancelledOrders,
+        },
+      },
+    };
+  }
+
+  async kitchenStaffAnalytics(
+    userId: number,
+    businessId: number,
+    sortBy: string,
+  ) {
+    if (!sortBy) sortBy = "thisYear";
+    const staff = await this.findStaff(userId, businessId);
+
+    if (staff.data.staff.role.name != "kitchen")
+      throw new BadRequestException("This user is not a Kitchen stafff");
+
+    let startDate: Date;
+    let endDate: Date;
+
+    const today = new Date();
+    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+    const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const thisYear = new Date(today.getFullYear(), 0, 1);
+
+    switch (sortBy) {
+      case "today":
+        startDate = today;
+        startDate = new Date(startDate.setHours(0, 0, 0, 0));
+        endDate = today;
+        endDate = new Date(endDate.setHours(23, 59, 59, 999));
+        break;
+
+      case "yesterday":
+        startDate = yesterday;
+        startDate = new Date(startDate.setHours(0, 0, 0, 0));
+        endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+        endDate = new Date(endDate.setHours(23, 59, 59, 999));
+        break;
+
+      case "thisWeek":
+        startDate = thisWeek;
+        startDate = new Date(startDate.setHours(0, 0, 0, 0));
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      case "thisMonth":
+        startDate = thisMonth;
+        startDate.setHours(0, 0, 0, 0);
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      case "thisYear":
+        startDate = thisYear;
+        startDate.setHours(0, 0, 0, 0);
+
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      default:
+        startDate = new Date(0); // All time
+        startDate.setHours(0, 0, 0, 0);
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+
+        break;
+    }
+    const orders = await this.prisma.order.findMany({
+      where: {
+        kitchenStaffId: userId,
+        businessId,
+        createdAt: { gte: startDate, lt: endDate },
+      },
+      select: {
+        id: true,
+        tip: true,
+        table: true,
+        status: true,
+        paidAt: true,
+        cancelledAt: true,
+        completedAt: true,
+        payment: true,
+        options: true,
+        _count: true,
+        shift: true,
+        waiter: true,
+        kitchenStaff: true,
+        cancelledBy: true,
+        customer: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+        createdAt: true,
+      },
+    });
+
+    const kitchenStaffId = userId;
+
+    const ordersTaken = orders.length;
+
+    const relevantOrders = orders.filter(
+      (order) =>
+        order.kitchenStaff.userId === kitchenStaffId &&
+        order.payment !== null &&
+        order.payment.amount > 0,
+    );
+    const totalPaymentAmount = relevantOrders.reduce(
+      (acc, order) => acc + order.payment.amount,
+      0,
+    );
+    const averageOrderValue = totalPaymentAmount / relevantOrders.length;
+
+    const uniqueTables = new Set(
+      orders
+        .filter((order) => order.kitchenStaff.userId === kitchenStaffId)
+        .map((order) => order.table.identifier),
+    );
+    const numTables = uniqueTables.size;
+
+    const totalRevenue = orders
+      .filter(
+        (order) =>
+          order.kitchenStaff.userId === kitchenStaffId &&
+          order.payment !== null,
+      )
+      .reduce((acc, order) => acc + order.payment.amount, 0);
+
+    const paidOrders = orders.filter(
+      (order) =>
+        order.kitchenStaff.userId === kitchenStaffId && order.paidAt !== null,
+    ).length;
+    const completedOrders = orders.filter(
+      (order) =>
+        order.kitchenStaff.userId === kitchenStaffId &&
+        order.completedAt !== null,
+    ).length;
+    const cancelledOrders = orders.filter(
+      (order) =>
+        order.kitchenStaff.userId === kitchenStaffId &&
+        order.cancelledAt !== null &&
+        order.cancelledBy === kitchenStaffId,
+    ).length;
+    const totalSales = orders
+      .filter(
+        (order) =>
+          order.kitchenStaff.userId === kitchenStaffId &&
+          order.payment !== null,
+      )
+      .reduce((acc, order) => acc + order.payment.amount, 0);
+
+    const previousPeriodSales = orders
+      .filter(
+        (order) =>
+          order.kitchenStaff.userId === kitchenStaffId &&
+          order.createdAt < endDate &&
+          order.payment !== null,
+      )
+      .reduce((acc, order) => acc + order.payment.amount, 0);
+
+    const salesGrowthRate =
+      ((totalSales - previousPeriodSales) / previousPeriodSales) * 100;
+
+    return {
+      // orders,
+      timeFrame: sortBy,
+      date: endDate.toISOString(),
+      businessId: businessId,
+      currency: "NGN",
+      kitchenStaff_performance: {
+        kitchenStaffId,
+        orders_taken: ordersTaken,
+        total_payment_amount: totalPaymentAmount,
+        average_order_value: averageOrderValue,
+        tables_served: numTables,
+      },
+      kichenStaff_sales_performance: {
         total_sales: totalSales,
         sales_growth_rate: salesGrowthRate,
       },

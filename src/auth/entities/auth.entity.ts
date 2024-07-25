@@ -14,6 +14,9 @@ export class AuthEntity {
   @ApiProperty()
   avatar: string;
 
+  @ApiProperty()
+  role: string;
+
   @Type(() => AccessToken)
   @ApiProperty()
   @ValidateNested()

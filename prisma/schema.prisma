@@ -13,27 +13,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
- enum GuardRoles {
+enum GuardRoles {
   customer
   admin
   waiter
   manager
-  kitchen 
+  kitchen
   owner
-
+  guest
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        Int         @id @default(autoincrement())
+  email     String      @unique
   password  String
   name      String
   avatar    String?
-  role       GuardRoles? 
+  role      GuardRoles?
   // isCustomer Boolean   @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   // Relationships
   orders            Order[]
@@ -57,7 +56,7 @@ model Business {
   creatorId Int
   creator   User     @relation(fields: [creatorId], references: [id])
   menus     Menu[]
-  options    Option[]
+  options   Option[]
   orders    Order[]
   roles     Role[]
   staffs    Staff[]
@@ -92,7 +91,10 @@ model Staff {
   roleId     Int
   role       Role     @relation(fields: [roleId], references: [id])
   shifts     Shift[]
-  orders     Order[]
+  // orders     Order[]
+
+  ordersAsWaiter       Order[] @relation("OrderWaiter")
+  ordersAsKitchenStaff Order[] @relation("OrderKitchenStaff")
 
   // Keys
   @@id([userId, businessId])
@@ -166,7 +168,6 @@ model Menu {
   options    MenuOptions[]
 }
 
-
 model MenuOptions {
   menuId   Int
   menu     Menu   @relation(fields: [menuId], references: [id])
@@ -176,7 +177,8 @@ model MenuOptions {
   // Compound key
   @@id([menuId, optionId])
 }
-enum MenuType   {
+
+enum MenuType {
   starters
   breakfast
   lunch
@@ -213,21 +215,26 @@ model Order {
   paidAt      DateTime?
   completedAt DateTime?
   cancelledAt DateTime?
-
+  cancelledBy Int?        @default(0)
   // Relationships
-  customerId Int
-  customer   User          @relation(fields: [customerId], references: [id])
-  businessId Int
-  business   Business      @relation(fields: [businessId], references: [id])
-  payment    Payment?
+  customerId  Int
+  customer    User        @relation(fields: [customerId], references: [id])
+  businessId  Int
+  business    Business    @relation(fields: [businessId], references: [id])
+  payment     Payment?
   // paymemtId  Int?  
-  tableId    Int
-  table      Table         @relation(fields: [tableId], references: [id])
-  shiftId    Int
-  shift      Shift         @relation(fields: [shiftId], references: [id])
-  waiterId   Int
-  waiter     Staff         @relation(fields: [waiterId, businessId], references: [userId, businessId])
-  options    OrderOption[]
+  tableId     Int
+  table       Table       @relation(fields: [tableId], references: [id])
+  shiftId     Int
+  shift       Shift       @relation(fields: [shiftId], references: [id])
+  // waiterId   Int
+  // waiter     Staff         @relation(fields: [waiterId, businessId], references: [userId, businessId])
+
+  waiterId       Int
+  waiter         Staff         @relation("OrderWaiter", fields: [waiterId, businessId], references: [userId, businessId])
+  kitchenStaffId Int
+  kitchenStaff   Staff         @relation("OrderKitchenStaff", fields: [kitchenStaffId, businessId], references: [userId, businessId])
+  options        OrderOption[]
 }
 
 enum OrderStatus {
@@ -271,12 +278,12 @@ model Payment {
 }
 
 model Otp {
-  id               Int      @id @default(autoincrement())
-  email            String   @unique
-  otp              String
-  isVerified        Boolean
-  for               String
-  expiresAt         DateTime    
-  createdAt   DateTime           @default(now()) 
-  updatedAt   DateTime           @updatedAt
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  otp        String
+  isVerified Boolean
+  for        String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

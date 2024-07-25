@@ -216,6 +216,13 @@ CREATE TYPE "GuardRoles" AS ENUM ('customer', 'admin', 'waiter', 'manager', 'kit
 ALTER TABLE "User" ADD COLUMN     "role" "GuardRoles";
 ALTER TYPE "GuardRoles" ADD VALUE 'owner';
 
+ALTER TABLE "Order" ADD COLUMN     "cancelledBy" INTEGER DEFAULT 0,
+ADD COLUMN     "kitchenStaffId" INTEGER NOT NULL;
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_kitchenStaffId_businessId_fkey" FOREIGN KEY ("kitchenStaffId", "businessId") REFERENCES "Staff"("userId", "businessId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+
 
 
 

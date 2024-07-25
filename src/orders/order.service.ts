@@ -83,10 +83,10 @@ export class OrderService {
         id: true,
         assignedShifts: {
           where: {
-            shift: {
-              startTime: { gte: new Date() },
-              endTime: { lte: new Date() },
-            },
+            // shift: {
+            //   startTime: { gte: new Date() },
+            //   endTime: { lte: new Date() },
+            // },
           },
           select: { shift: true },
         },
@@ -98,7 +98,7 @@ export class OrderService {
       throw new UnprocessableEntityException(
         "No waiter to take your order at this moment",
       );
-    const { id: shiftId, userId: waiterId } = table.assignedShifts[0].shift;
+    const { id: shiftId, userId: staffId } = table.assignedShifts[0].shift;
     return this.prisma.order.create({
       data: {
         customer: { connect: { id: customerId } },
@@ -108,9 +108,16 @@ export class OrderService {
         tip,
         waiter: {
           connect: {
-            userId_businessId: { userId: waiterId, businessId },
+            userId_businessId: { userId: staffId, businessId },
           },
         },
+        ////how do i get the kitchenStaffId assined to take the order??
+        kitchenStaff: {
+          connect: {
+            userId_businessId: { userId: staffId, businessId },
+          },
+        },
+        cancelledBy: 0,
       },
       select: { id: true },
     });
