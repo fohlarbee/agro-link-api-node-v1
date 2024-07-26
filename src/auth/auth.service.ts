@@ -3,6 +3,7 @@ import {
   ConflictException,
   HttpException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -69,7 +70,6 @@ export class AuthService {
   async createGuestUser(isGuest: boolean) {
     if (!isGuest) throw new UnauthorizedException("Access denied");
     const guestUser = `guest${uuidv1()}`;
-    console.log(guestUser);
 
     const guestExists = await this.prisma.user.findFirst({
       where: { name: guestUser },

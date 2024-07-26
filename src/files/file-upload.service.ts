@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
 import { v2 as cloudinary } from "cloudinary";
 import * as fs from "fs";
 
@@ -12,6 +16,8 @@ cloudinary.config({
 export class FileUploadService {
   async uploadFile(file: Express.Multer.File): Promise<string> {
     try {
+      if (!file || !file.path)
+        throw new NotFoundException("File && File path must be provided");
       const uploadResult = await cloudinary.uploader.upload(file.path, {
         folder: "uploads",
       });

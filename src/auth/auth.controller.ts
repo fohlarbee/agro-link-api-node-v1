@@ -56,7 +56,8 @@ export class AuthController {
   }
   @Post("/create/guestuser")
   @ApiCreatedResponse()
-  createGuestUser(@Body() isGuest: boolean) {
+  createGuestUser(@Body() body: any) {
+    const { isGuest } = body;
     return this.authService.createGuestUser(isGuest);
   }
 
