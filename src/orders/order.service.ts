@@ -1,12 +1,9 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
   UnprocessableEntityException,
 } from "@nestjs/common";
-import {
-  OrderDto,
-} from "./dto/order-option.dto";
+import { OrderDto } from "./dto/order-option.dto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { OrderStatus } from "@prisma/client";
 import { PaystackService } from "src/paystack/paystack.service";
@@ -23,30 +20,49 @@ export class OrderService {
     customerId: number,
     businessId: number,
   ) {
-    items.forEach(async (optionOrder) => {
-      const option = await this.prisma.option.findUnique({
-        where: { id: optionOrder.optionId, AND: { businessId } },
-        select: { business: true },
-      });
+    const validOptions = await Promise.all(
+      items.filter(async (optionOrder) => {
+        const option = await this.prisma.option.findUnique({
+          where: { id: optionOrder.optionId, AND: { businessId } },
+          select: { id: true },
+        });
+        return option;
+      }),
+    );
 
-      if (!option)
-        throw new NotFoundException(
-          `No such option with id ${optionOrder.optionId}`,
-        );
+    let currentOrder = await this.prisma.order.findFirst({
+      where: { customerId, status: OrderStatus.active, businessId },
+      select: { id: true },
+    });
 
-      const newOrder = await this.createNewOrder({
+    if (!currentOrder)
+      currentOrder = await this.createNewOrder({
         customerId,
         businessId,
         tableIdentifier,
-        tip: tip / items.length,
+        tip,
       });
-    });
+
+    await Promise.all(
+      validOptions.map(async (orderOption) => {
+        await this.prisma.orderOption.upsert({
+          where: {
+            orderId_optionId: {
+              orderId: currentOrder.id,
+              optionId: orderOption.optionId,
+            },
+          },
+          create: { ...orderOption, orderId: currentOrder.id },
+          update: { quantity: orderOption.quantity },
+        });
+      }),
+    );
+
     return {
       message: "Order options added successfully",
       status: "success",
     };
   }
-
 
   private async createNewOrder({
     customerId,
@@ -106,7 +122,6 @@ export class OrderService {
       },
       select: { id: true },
     });
-    return null;
   }
 
   async findCustomerOrders(customerId: number) {
