@@ -16,12 +16,12 @@ export class OrderService {
   ) {}
 
   async orderOption(
-    { items, tableIdentifier, tip }: OrderDto,
+    createOrderDto: OrderDto,
     customerId: number,
     businessId: number,
   ) {
     const validOptions = await Promise.all(
-      items.filter(async (optionOrder) => {
+      createOrderDto.items.filter(async (optionOrder) => {
         const option = await this.prisma.option.findUnique({
           where: { id: optionOrder.optionId, AND: { businessId } },
           select: { id: true },
@@ -39,8 +39,8 @@ export class OrderService {
       currentOrder = await this.createNewOrder({
         customerId,
         businessId,
-        tableIdentifier,
-        tip,
+        tableIdentifier: createOrderDto.tableIdentifier,
+        tip: createOrderDto.tip,
       });
 
     await Promise.all(

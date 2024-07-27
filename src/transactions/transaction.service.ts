@@ -25,10 +25,7 @@ export class TransactionService {
     console.log("Payment already exists", payment);
     if (payment) return { message: "Payment successful", status: "success" };
 
-    // Check that the payment was successful
-    if (verificationResult.status != "success")
-      throw new HttpException("Payment failed", HttpStatus.PAYMENT_REQUIRED);
-
+        
     // convert amount from minor
     const amount = +verificationResult.data.amount / 100;
     // Parse order id in metadata
@@ -37,6 +34,32 @@ export class TransactionService {
     // Retrieve payment time
     const paidAt = verificationResult.data.paid_at;
     const completedAt = verificationResult.data.transaction_date;
+
+    if (verificationResult.status != "success"){
+
+    // Check that the payment was successful
+      // const updatedOrder = await this.prisma.order.update({
+      //   where: { id: orderId },
+      //   data: {
+      //     status: verificationResult.status,
+      //     paidAt,
+      //     completedAt,
+      //     cancelledAt: null,
+      //     payment: {
+      //       create: {
+      //         amount,
+      //         paidAt,
+      //         reference,
+      //         userId: order.customerId,
+      //       },
+      //     },
+      //   },
+      // });
+    
+    throw new HttpException("Payment failed", HttpStatus.PAYMENT_REQUIRED);
+
+
+    }
     // Check order exists
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },

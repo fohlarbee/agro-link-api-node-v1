@@ -239,12 +239,14 @@ model Order {
 }
 
 enum OrderStatus {
-  active
-  paid
-  queue
-  kitchen
-  completed
-  cancelled
+  active  //The order has been placed by the customer but is yet to be processed by the business.
+  paid    //indicates successful payment
+  failed   //means the payment was unsuccessful.
+  preparing   //The business has accepted the order and is currently preparing the food.
+  rejected    //The business has declined the order, possibly due to being too busy, out of stock items, or other reasons.
+  cancelled   //The order has been canceled by either the customer or the business.
+  ready       //The food is prepared and ready for pickup or delivery.
+  completed   //The order has been delivered to the customer or picked up by the customer.
 }
 
 enum BusinessType {
