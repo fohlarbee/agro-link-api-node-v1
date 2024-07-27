@@ -14,6 +14,7 @@ export class ShiftsService {
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
     });
+    console.log(businessId);
     if (!business) throw new NotFoundException("No such business.");
     const shiftRole = await this.prisma.role.findFirst({
       where: { id: shiftData.roleId, businessId },
@@ -46,9 +47,7 @@ export class ShiftsService {
         endTime: shiftData.endTime,
       },
     });
-    // await this.prisma.shiftTables.create({
-    //   data:{shiftId:shift?.id, table}
-    // })
+
     return {
       message: "Shift created successfully",
       status: "success",

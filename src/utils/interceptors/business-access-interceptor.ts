@@ -27,10 +27,12 @@ export class BusinessAccessInterceptor implements NestInterceptor {
       throw new BadRequestException(
         `Expected positive number for required header: business_id`,
       );
+    console.log(userId, businessId);
 
     const staff = await this.prisma.staff.findUnique({
       where: { userId_businessId: { userId, businessId } },
     });
+    console.log("here");
 
     if (!staff) throw new UnauthorizedException(`Invalid business`);
 

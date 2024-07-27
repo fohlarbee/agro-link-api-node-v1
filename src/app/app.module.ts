@@ -17,10 +17,12 @@ import { EventsGatewayModule } from "src/events/events.module";
 import { MailModule } from "src/mail/mail.module";
 import { OtpModule } from "src/otp/otp.module";
 import { UsersModule } from "src/users/users.module";
+import { ScheduleModule } from "@nestjs/schedule";
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     FilesUploadModule,

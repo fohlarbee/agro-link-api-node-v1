@@ -215,6 +215,7 @@ model Order {
   paidAt      DateTime?
   completedAt DateTime?
   cancelledAt DateTime?
+  
   cancelledBy Int?        @default(0)
   // Relationships
   customerId  Int

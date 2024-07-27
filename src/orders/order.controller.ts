@@ -31,7 +31,6 @@ export class OrderController {
   }
 
   @Get("/pay")
-  @UseGuards(RoleGuard([Role.admin, Role.waiter]))
   payOrder(@Req() request) {
     const { id: customerId, email } = request.user;
     const { business_id: businessId } = request.headers;

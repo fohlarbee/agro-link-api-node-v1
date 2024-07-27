@@ -25,7 +25,7 @@ import {
 } from "./entities/business.entity";
 import { MenuService } from "src/menus/menu.service";
 import { OrderService } from "src/orders/order.service";
-import { AddOptionToOrderDto } from "src/orders/dto/order-option.dto";
+import { OrderDto } from "src/orders/dto/order-option.dto";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { Role } from "src/auth/dto/auth.dto";
 import RoleGuard from "src/auth/role/role.guard";
@@ -59,7 +59,7 @@ export class ClientBusinessController {
   @UseGuards(JwtAuthGuard)
   createOrder(
     @Param("id") businessId: number,
-    @Body() createOrderDto: AddOptionToOrderDto,
+    @Body() createOrderDto: OrderDto,
     @Req() request,
   ) {
     const { id: customerId } = request.user;

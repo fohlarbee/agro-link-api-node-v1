@@ -16,6 +16,7 @@ export class StaffsService {
     businessId: number,
     { email, name, roleId }: CreateStaffDto,
   ) {
+    console.log(businessId + " created");
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
     });

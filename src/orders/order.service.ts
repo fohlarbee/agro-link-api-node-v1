@@ -4,7 +4,9 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from "@nestjs/common";
-import { AddOptionToOrderDto } from "./dto/order-option.dto";
+import {
+  OrderDto,
+} from "./dto/order-option.dto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { OrderStatus } from "@prisma/client";
 import { PaystackService } from "src/paystack/paystack.service";
@@ -17,51 +19,34 @@ export class OrderService {
   ) {}
 
   async orderOption(
-    { tableIdentifier, tip, ...optionOrder }: AddOptionToOrderDto,
+    { items, tableIdentifier, tip }: OrderDto,
     customerId: number,
     businessId: number,
   ) {
-    const option = await this.prisma.option.findUnique({
-      where: { id: optionOrder.optionId, AND: { businessId } },
-      select: { business: true },
-    });
+    items.forEach(async (optionOrder) => {
+      const option = await this.prisma.option.findUnique({
+        where: { id: optionOrder.optionId, AND: { businessId } },
+        select: { business: true },
+      });
 
-    if (!option)
-      throw new NotFoundException(
-        `No such option with id ${optionOrder.optionId}`,
-      );
+      if (!option)
+        throw new NotFoundException(
+          `No such option with id ${optionOrder.optionId}`,
+        );
 
-    let currentOrder = await this.prisma.order.findFirst({
-      where: { customerId, status: OrderStatus.active, businessId },
-      select: { id: true },
-    });
-    console.log(currentOrder);
-
-    if (!currentOrder)
-      currentOrder = await this.createNewOrder({
+      const newOrder = await this.createNewOrder({
         customerId,
         businessId,
         tableIdentifier,
-        tip,
+        tip: tip / items.length,
       });
-
-    const newOrder = await this.prisma.orderOption.upsert({
-      where: {
-        orderId_optionId: {
-          orderId: currentOrder.id,
-          optionId: optionOrder.optionId,
-        },
-      },
-      create: { ...optionOrder, orderId: currentOrder.id },
-      update: { quantity: optionOrder.quantity },
     });
-    console.log(newOrder);
-
     return {
-      message: "Option added to order successfully",
+      message: "Order options added successfully",
       status: "success",
     };
   }
+
 
   private async createNewOrder({
     customerId,
@@ -83,10 +68,10 @@ export class OrderService {
         id: true,
         assignedShifts: {
           where: {
-            // shift: {
-            //   startTime: { gte: new Date() },
-            //   endTime: { lte: new Date() },
-            // },
+            shift: {
+              startTime: { lte: new Date() },
+              endTime: { gte: new Date() },
+            },
           },
           select: { shift: true },
         },
@@ -131,6 +116,7 @@ export class OrderService {
         id: true,
         table: { select: { identifier: true } },
         waiter: { select: { user: { select: { name: true } } } },
+        kitchenStaff: { select: { user: { select: { name: true } } } },
         options: {
           select: {
             option: {
@@ -225,7 +211,7 @@ export class OrderService {
   }
 
   async payOrder(email: string, customerId: number, businessId: number) {
-    const currentOrder = await this.prisma.order.findFirst({
+    const currentOrders = await this.prisma.order.findMany({
       where: { customerId, businessId, status: OrderStatus.active },
       select: {
         id: true,
@@ -239,19 +225,22 @@ export class OrderService {
         },
       },
     });
-    if (!currentOrder)
+    if (!currentOrders || currentOrders.length === 0)
       throw new BadRequestException(
         "You do not currently have any open orders",
       );
-    const totalAmount = currentOrder.options.reduce((total, option) => {
-      total += option.quantity * option.option.price + currentOrder.tip;
-      return total;
+    const totalAmount = currentOrders.reduce((total, order) => {
+      const totalPrice = order.options.reduce((acc, option) => {
+        return acc + option.quantity * option.option.price;
+      }, 0);
+      return total + totalPrice + order.tip;
     }, 0);
+
     const paymentLink = await this.paystack.createPaymentLink(
       email,
       totalAmount,
       {
-        orderId: currentOrder.id,
+        orderId: currentOrders[0].id,
         customerId,
       },
     );
