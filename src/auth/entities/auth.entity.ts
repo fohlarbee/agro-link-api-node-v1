@@ -17,6 +17,9 @@ export class AuthEntity {
   @ApiProperty()
   role: string;
 
+  @ApiProperty({ required: false })
+  business_id: number;
+
   @Type(() => AccessToken)
   @ApiProperty()
   @ValidateNested()
