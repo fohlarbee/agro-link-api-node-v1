@@ -7,6 +7,7 @@ import {
   UseInterceptors,
   Req,
   BadRequestException,
+  Post,
 } from "@nestjs/common";
 import { OrderService } from "./order.service";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
@@ -73,6 +74,16 @@ export class OrderController {
       +optionId,
       +customerId,
       +orderId,
+    );
+  }
+  @Post(":id/active")
+  async changeOrderToActive(@Param("id") id: number, @Req() request: any) {
+    const { id: customerId } = request.user;
+    const { bussiness_id: businessId } = request.headers;
+    return await this.orderService.changeOrdertoActive(
+      +customerId,
+      +id,
+      +businessId,
     );
   }
 }
