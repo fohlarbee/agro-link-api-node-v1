@@ -90,27 +90,27 @@ ALTER TABLE  "Restaurant" RENAME to "Business";
 -- Change Staff primary key constraint
 ALTER TABLE "Staff" 
   DROP CONSTRAINT "Staff_pkey",
-  ADD CONSTRAINT "Staff_pkey" PRIMARY KEY ("userId", "businessId");
+   CONSTRAINT "Staff_pkey" PRIMARY KEY ("userId", "businessId");
 
 -- Change Business primary key constraint
 ALTER TABLE "Business" 
   DROP CONSTRAINT "Restaurant_pkey",
-  ADD CONSTRAINT "Business_pkey" PRIMARY KEY ("id");
+   CONSTRAINT "Business_pkey" PRIMARY KEY ("id");
 
 -- Change MenuOptions primary key constraint
 ALTER TABLE "MenuOptions"
   DROP CONSTRAINT "MenuMeals_pkey",
-  ADD CONSTRAINT "MenuOptions_pkey" PRIMARY KEY ("menuId", "optionId");
+   CONSTRAINT "MenuOptions_pkey" PRIMARY KEY ("menuId", "optionId");
 
 -- Change Option primary key constraint
 ALTER TABLE "Option" 
   DROP CONSTRAINT "Meal_pkey",
-  ADD CONSTRAINT "Option_pkey" PRIMARY KEY ("id");
+   CONSTRAINT "Option_pkey" PRIMARY KEY ("id");
 
 -- Change OrderOption primary key constraint
 ALTER TABLE "OrderOption" 
   DROP CONSTRAINT "OrderMeal_pkey",
-  ADD CONSTRAINT "OrderOption_pkey" PRIMARY KEY ("orderId","optionId");
+   CONSTRAINT "OrderOption_pkey" PRIMARY KEY ("orderId","optionId");
 
 -- Create unique business role name index
 CREATE UNIQUE INDEX "Role_businessId_name_key" ON "Role"("businessId", "name");
@@ -118,47 +118,47 @@ CREATE UNIQUE INDEX "Role_businessId_name_key" ON "Role"("businessId", "name");
 -- Create unique business staff index
 CREATE UNIQUE INDEX "Staff_userId_businessId_key" ON "Staff"("userId", "businessId");
 
--- Add creator id foreign key constraint
-ALTER TABLE "Business" ADD CONSTRAINT "Business_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  creator id foreign key constraint
+ALTER TABLE "Business"  CONSTRAINT "Business_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Add business id foreign key constraint
-ALTER TABLE "Role" ADD CONSTRAINT "Role_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  business id foreign key constraint
+ALTER TABLE "Role"  CONSTRAINT "Role_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Add business id foreign key constraint
-ALTER TABLE "Staff" ADD CONSTRAINT "Staff_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  business id foreign key constraint
+ALTER TABLE "Staff"  CONSTRAINT "Staff_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Add business id foreign key constraint
-ALTER TABLE "Outlet" ADD CONSTRAINT "Outlet_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  business id foreign key constraint
+ALTER TABLE "Outlet"  CONSTRAINT "Outlet_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Add business id foreign key constraint
-ALTER TABLE "Shift" ADD CONSTRAINT "Shift_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  business id foreign key constraint
+ALTER TABLE "Shift"  CONSTRAINT "Shift_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Add staff foreign keys constraint
-ALTER TABLE "Shift" ADD CONSTRAINT "Shift_userId_businessId_fkey" FOREIGN KEY ("userId", "businessId") REFERENCES "Staff"("userId", "businessId") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  staff foreign keys constraint
+ALTER TABLE "Shift"  CONSTRAINT "Shift_userId_businessId_fkey" FOREIGN KEY ("userId", "businessId") REFERENCES "Staff"("userId", "businessId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Add business id foreign key constraint
-ALTER TABLE "Menu" ADD CONSTRAINT "Menu_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  business id foreign key constraint
+ALTER TABLE "Menu"  CONSTRAINT "Menu_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Add menu id foreign key constraint
-ALTER TABLE "MenuOptions" ADD CONSTRAINT "MenuOptions_menuId_fkey" FOREIGN KEY ("menuId") REFERENCES "Menu"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  menu id foreign key constraint
+ALTER TABLE "MenuOptions"  CONSTRAINT "MenuOptions_menuId_fkey" FOREIGN KEY ("menuId") REFERENCES "Menu"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Add option id foreign key constraint
-ALTER TABLE "MenuOptions" ADD CONSTRAINT "MenuOptions_optionId_fkey" FOREIGN KEY ("optionId") REFERENCES "Option"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  option id foreign key constraint
+ALTER TABLE "MenuOptions"  CONSTRAINT "MenuOptions_optionId_fkey" FOREIGN KEY ("optionId") REFERENCES "Option"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Add business id foreign key constraint
-ALTER TABLE "Option" ADD CONSTRAINT "Option_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  business id foreign key constraint
+ALTER TABLE "Option"  CONSTRAINT "Option_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Add business id foreign key constraint
-ALTER TABLE "Order" ADD CONSTRAINT "Order_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  business id foreign key constraint
+ALTER TABLE "Order"  CONSTRAINT "Order_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Add staff/waiter foreign keys constraint
-ALTER TABLE "Order" ADD CONSTRAINT "Order_waiterId_businessId_fkey" FOREIGN KEY ("waiterId", "businessId") REFERENCES "Staff"("userId", "businessId") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  staff/waiter foreign keys constraint
+ALTER TABLE "Order"  CONSTRAINT "Order_waiterId_businessId_fkey" FOREIGN KEY ("waiterId", "businessId") REFERENCES "Staff"("userId", "businessId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Add Order foreign key constraint
-ALTER TABLE "OrderOption" ADD CONSTRAINT "OrderOption_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  Order foreign key constraint
+ALTER TABLE "OrderOption"  CONSTRAINT "OrderOption_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Add Option foreign key constraint
-ALTER TABLE "OrderOption" ADD CONSTRAINT "OrderOption_optionId_fkey" FOREIGN KEY ("optionId") REFERENCES "Option"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+--  Option foreign key constraint
+ALTER TABLE "OrderOption"  CONSTRAINT "OrderOption_optionId_fkey" FOREIGN KEY ("optionId") REFERENCES "Option"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- NEW CHANGES
 
@@ -168,20 +168,20 @@ CREATE TYPE "optionType" AS ENUM ('meal', 'drink');
 -- CreateEnum
 CREATE TYPE "BusinessType" AS ENUM ('restaurant', 'bar');
 
--- Add type column to Business table
+--  type column to Business table
 ALTER TABLE "Business"
-  ADD COLUMN "type" "BusinessType" NOT NULL DEFAULT 'restaurant';
+   COLUMN "type" "BusinessType" NOT NULL DEFAULT 'restaurant';
 
--- Add type column to Option table
+--  type column to Option table
 ALTER TABLE "Option"
-  ADD COLUMN "type" "optionType" NOT NULL DEFAULT 'meal';
+   COLUMN "type" "optionType" NOT NULL DEFAULT 'meal';
 
--- Add avatar column to User table
+--  avatar column to User table
 ALTER TABLE "User"
-  ADD COLUMN "avatar" TEXT;
+   COLUMN "avatar" TEXT;
 
--- Add tip column to Order table
-ALTER TABLE "Order" ADD COLUMN     "tip" DOUBLE PRECISION;
+--  tip column to Order table
+ALTER TABLE "Order"  COLUMN     "tip" DOUBLE PRECISION;
 
 
 -- CreateTable
@@ -205,7 +205,7 @@ CREATE UNIQUE INDEX "Otp_email_key" ON "Otp"("email");
 CREATE TYPE "MenuType" AS ENUM ('starters', 'breakfast', 'lunch', 'dinner', 'mains');
 
 -- AlterTable
-ALTER TABLE "Menu" ADD COLUMN     "type" "MenuType" NOT NULL DEFAULT 'starters';
+ALTER TABLE "Menu"  COLUMN     "type" "MenuType" NOT NULL DEFAULT 'starters';
 ALTER TABLE "Order" ALTER COLUMN "tip" SET DEFAULT 0;
 
 
@@ -213,15 +213,15 @@ ALTER TABLE "Order" ALTER COLUMN "tip" SET DEFAULT 0;
 CREATE TYPE "GuardRoles" AS ENUM ('customer', 'admin', 'waiter', 'manager', 'kitchen');
 
 -- AlterTable
-ALTER TABLE "User" ADD COLUMN     "role" "GuardRoles";
-ALTER TYPE "GuardRoles" ADD VALUE 'owner';
+ALTER TABLE "User"  COLUMN     "role" "GuardRoles";
+ALTER TYPE "GuardRoles"  VALUE 'owner';
 
-ALTER TABLE "Order" ADD COLUMN     "cancelledBy" INTEGER DEFAULT 0,
-ADD COLUMN     "kitchenStaffId" INTEGER NOT NULL;
+ALTER TABLE "Order"  COLUMN     "cancelledBy" INTEGER DEFAULT 0,
+ COLUMN     "kitchenStaffId" INTEGER NOT NULL;
 
--- AddForeignKey
-ALTER TABLE "Order" ADD CONSTRAINT "Order_kitchenStaffId_businessId_fkey" FOREIGN KEY ("kitchenStaffId", "businessId") REFERENCES "Staff"("userId", "businessId") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TYPE "GuardRoles" ADD VALUE 'guest';
+-- ForeignKey
+ALTER TABLE "Order"  CONSTRAINT "Order_kitchenStaffId_businessId_fkey" FOREIGN KEY ("kitchenStaffId", "businessId") REFERENCES "Staff"("userId", "businessId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TYPE "GuardRoles"  VALUE 'guest';
 
 
 

@@ -9,7 +9,7 @@ import {
   Param,
   Delete,
 } from "@nestjs/common";
-import { MenuService, MenuTypes } from "./menu.service";
+import { MenuService } from "./menu.service";
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -41,18 +41,10 @@ export class MenuController {
   @Post()
   @UseGuards(RoleGuard([Role.admin, Role.owner, Role.manager, Role.kitchen]))
   @ApiCreatedResponse()
-  createMenu(
-    @Body() { name }: CreateMenuDto,
-    @Req() request,
-    menuType: MenuTypes,
-  ) {
+  createMenu(@Body() { name, menuType }: CreateMenuDto, @Req() request) {
     const { business_id } = request.headers;
 
-    return this.menuService.createMenu({
-      name,
-      businessId: +business_id,
-      menuType,
-    });
+    return this.menuService.createMenu(name, +business_id, menuType);
   }
 
   @Get()

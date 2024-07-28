@@ -33,14 +33,17 @@ export class AuthService {
     let staff;
     if (!user.role) {
       staff = await this.prisma.staff.findFirst({
-        where: { userId: user.id }
+        where: { userId: user.id },
       });
     } else if (user.role != Role.customer && user.role != Role.guest) {
       staff = await this.prisma.staff.findFirst({
-        where: { userId: user.id, role: {
-          name: user.role.toLowerCase()
-        }},
-        select: { businessId: true, role: true }
+        where: {
+          userId: user.id,
+          role: {
+            name: user.role.toLowerCase(),
+          },
+        },
+        select: { businessId: true, role: true },
       });
     }
 
@@ -49,8 +52,8 @@ export class AuthService {
       message: "Login successful",
       data: { accessToken: this.jwtService.sign(payload) },
       avatar: user.avatar,
-      role: user.role ?? (staff?.role.name ?? Role.customer),
-      business_id: staff?.businessId ?? undefined
+      role: user.role ?? staff?.role.name ?? Role.customer,
+      business_id: staff?.businessId ?? undefined,
     };
   }
 

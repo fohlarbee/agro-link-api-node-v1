@@ -7,21 +7,12 @@ export enum MenuTypes {
   lunch = "lunch",
   dinner = "dinner",
   mains = "mains",
-  // Add more options as needed
 }
 @Injectable()
 export class MenuService {
   constructor(private prisma: PrismaService) {}
 
-  async createMenu({
-    name,
-    businessId,
-    menuType,
-  }: {
-    name: string;
-    businessId: number;
-    menuType: MenuTypes;
-  }) {
+  async createMenu(name: string, businessId: number, menuType: any) {
     await this.isValidBusiness(businessId);
     const menu = await this.prisma.menu.create({
       data: {
@@ -78,6 +69,7 @@ export class MenuService {
         id: true,
         name: true,
         type: true,
+        businessId: true,
         options: {
           select: {
             option: {
@@ -90,19 +82,31 @@ export class MenuService {
             },
           },
         },
+        business: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
+    const business = menus[0].business;
+    const menuData = menus.reduce(
+      (acc, menu) => {
+        const typeName = menu.type.toLowerCase();
+        acc.menu[typeName] = acc.menu[typeName] || [];
+        acc.menu[typeName].push(...menu.options.map((option) => option.option));
+        return acc;
+      },
+      { menu: {} },
+    );
+
     return {
-      message: "Menus fetched successfully",
-      status: "success",
-      data: menus.map((menu) => {
-        const { options, ...menuInfo } = menu;
-        return {
-          ...menuInfo,
-          options: options.map((option) => ({ ...option.option })),
-        };
-      }),
+      id: menus[0].id,
+      business_id: business.id,
+      business_name: business.name,
+      ...menuData,
     };
   }
 

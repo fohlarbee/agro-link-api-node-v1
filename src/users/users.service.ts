@@ -73,7 +73,8 @@ export class UsersService {
       });
       if (!existingOrder || existingOrder.payment.reference !== order.reference)
         throw new NotFoundException(
-          `No such order with id ${order.id} and payment reference ${order.reference}`,
+          `No such order with id ${order.id} 
+          and payment reference ${order.reference}`,
         );
 
       if (
@@ -82,7 +83,8 @@ export class UsersService {
         order.createdAt !== existingOrder.createdAt
       ) {
         throw new BadRequestException(
-          `Order with reference ${order.reference} does not match the system requirements`,
+          `Order with reference ${order.reference}
+           does not match the system requirements`,
         );
       }
       await this.prisma.order.update({
@@ -97,5 +99,26 @@ export class UsersService {
     }
 
     return { message: "Migration successful", status: "success" };
+  }
+
+  async profile(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+        role: true,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    return {
+      message: "User profile fetch successful",
+      status: "success",
+      data: user,
+    };
   }
 }

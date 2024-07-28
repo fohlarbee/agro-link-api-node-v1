@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnprocessableEntityException,
 } from "@nestjs/common";
 import { OrderDto } from "./dto/order-option.dto";
@@ -284,5 +285,33 @@ export class OrderService {
       },
       orderBy: { createdAt: "asc" },
     });
+  }
+
+  async changeOrdertoActive(
+    customerId: number,
+    orderId: number,
+    businessId: number,
+  ) {
+    const order = await this.prisma.order.findUnique({
+      where: {
+        id: orderId,
+        customerId,
+        businessId,
+        AND: { status: { equals: OrderStatus.failed } },
+      },
+    });
+
+    if (!order)
+      throw new NotFoundException("No such order found or Order is not active");
+
+    await this.prisma.order.update({
+      where: { id: orderId, customerId, businessId },
+      data: { status: OrderStatus.active },
+    });
+
+    return {
+      message: "Order is now active",
+      status: "success",
+    };
   }
 }
