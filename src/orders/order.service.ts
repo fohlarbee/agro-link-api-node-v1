@@ -41,7 +41,7 @@ export class OrderService {
         customerId,
         businessId,
         tableIdentifier: createOrderDto.tableIdentifier,
-        tip: createOrderDto.tip,
+        tip: validOptions.length / createOrderDto.tip,
       });
 
     await Promise.all(
