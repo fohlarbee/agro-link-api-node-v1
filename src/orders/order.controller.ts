@@ -75,6 +75,8 @@ export class OrderController {
   @Delete(":id/:optionId")
   @UseGuards(RoleGuard([Role.admin, Role.manager]))
   @UseInterceptors(
+    new ValidPathParamInterceptor('id'),
+    new ValidPathParamInterceptor('mealId'),
     new ValidPathParamInterceptor(),
     new ValidPathParamInterceptor("optionId"),
   )
@@ -85,6 +87,16 @@ export class OrderController {
     @Req() request,
   ) {
     const { id: customerId } = request.user;
+    if (isNaN(mealId)) throw new BadRequestException('Invalid mealId');
+    return this.orderService.removeMealOrder(+mealId, +customerId, +orderId);
+  }
+
+  @Get('/pay')
+  payOrder(@Req() request) {
+    const { id: customerId, email } = request.user;
+    const { id: restaurantId } = request.restaurant;
+    return this.orderService.payOrder(email, customerId, restaurantId);
+  }
     if (isNaN(optionId)) throw new BadRequestException("Invalid optionId");
     return this.orderService.removeOptionOrder(
       +optionId,
