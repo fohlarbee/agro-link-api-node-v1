@@ -1,8 +1,8 @@
-import { PrismaService } from 'src/prisma/prisma.service';
-import { RestaurantAccessInterceptor } from '../restaurant-access.interceptor';
+import { PrismaService } from "src/prisma/prisma.service";
+import { BusinessAccessInterceptor } from "../business-access-interceptor";
 
-describe('RestaurantAccessInterceptor', () => {
-  it('should be defined', () => {
-    expect(new RestaurantAccessInterceptor(new PrismaService())).toBeDefined();
+describe("BusinessAccessInterceptor", () => {
+  it("should be defined", () => {
+    expect(new BusinessAccessInterceptor(new PrismaService())).toBeDefined();
   });
 });

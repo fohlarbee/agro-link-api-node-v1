@@ -1,67 +1,70 @@
+/* eslint-disable prettier/prettier */
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import { CreateStaffDto } from './dto/create-staff.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+} from "@nestjs/common";
+import * as bcrypt from "bcrypt";
+import { CreateStaffDto } from "./dto/create-staff.dto";
+import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
 export class StaffsService {
   constructor(private prisma: PrismaService) {}
 
   async createStaff(
-    restaurantId: number,
+    businessId: number,
     { email, name, roleId }: CreateStaffDto,
   ) {
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id: restaurantId },
+    console.log(businessId + " created");
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
     });
-    if (!restaurant) throw new NotFoundException('Invalid restaurant');
+    if (!business) throw new NotFoundException("Invalid business");
     const role = await this.prisma.role.findFirst({
-      where: { id: roleId, restaurantId },
+      where: { id: roleId, businessId },
     });
-    if (!role) throw new BadRequestException('No such role exists');
+    if (!role) throw new BadRequestException("No such role exists");
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (user)
-      return this.inviteExistingUser({ restaurantId, userId: user.id, roleId });
-    return this.inviteNewUser({ restaurantId, email, name, roleId });
+      return this.inviteExistingUser({ businessId, userId: user.id, roleId });
+
+    return this.inviteNewUser({ businessId, email, name, roleId });
   }
 
   private async inviteExistingUser({
-    restaurantId,
+    businessId,
     userId,
     roleId,
   }: {
-    restaurantId: number;
+    businessId: number;
     userId: number;
     roleId: number;
   }) {
     const staff = await this.prisma.staff.findFirst({
-      where: { userId, restaurantId },
+      where: { userId, businessId },
     });
-    if (staff) throw new BadRequestException('Staff already exists');
+    if (staff) throw new BadRequestException("Staff already exists");
     await this.prisma.staff.create({
       data: {
         role: { connect: { id: roleId } },
         user: { connect: { id: userId } },
-        restaurant: { connect: { id: restaurantId } },
+        business: { connect: { id: businessId } },
       },
     });
     return {
-      message: 'User invited successfully',
-      status: 'success',
+      message: "User invited successfully",
+      status: "success",
     };
   }
 
   private async inviteNewUser({
-    restaurantId,
+    businessId,
     email,
     name,
     roleId,
   }: {
-    restaurantId: number;
+    businessId: number;
     email: string;
     name: string;
     roleId: number;
@@ -77,47 +80,426 @@ export class StaffsService {
       data: {
         role: { connect: { id: roleId } },
         user: { connect: { id: user.id } },
-        restaurant: { connect: { id: restaurantId } },
+        business: { connect: { id: businessId } },
       },
     });
     return {
-      message: 'User invited successfully',
-      status: 'success',
+      message: "User invited successfully",
+      status: "success",
     };
   }
 
-  async findAllStaffs(restaurantId: number) {
+  async findAllStaffs(businessId: number) {
     const staffs = await this.prisma.staff.findMany({
-      where: { restaurantId },
+      where: { businessId },
       select: {
         user: { select: { name: true, id: true, email: true } },
         role: { select: { name: true, id: true } },
       },
     });
     return {
-      message: 'Staffs fetched successfully',
-      status: 'success',
+      message: "Staffs fetched successfully",
+      status: "success",
       data: staffs,
     };
   }
 
-  async findStaff(userId: number, restaurantId: number) {
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id: restaurantId },
+  async findStaff(userId: number, businessId: number) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
     });
-    if (!restaurant) throw new NotFoundException('Invalid restaurant');
+    if (!business) throw new NotFoundException("Invalid business");
     const staff = await this.prisma.staff.findFirst({
-      where: { restaurantId, userId },
+      where: { businessId, userId },
       select: {
         user: { select: { name: true, id: true, email: true } },
         role: { select: { name: true, id: true } },
       },
     });
-    if (!staff) throw new NotFoundException('No such staff');
+    if (!staff) throw new NotFoundException("No such staff");
     return {
-      message: 'Staff fetched successfully',
-      status: 'success',
+      message: "Staff fetched successfully",
+      status: "success",
       data: { staff },
+    };
+  }
+
+  async getWaiterAnalytics(userId: number, businessId: number, sortBy: string) {
+    if (!sortBy) sortBy = "thisYear";
+    const staff = await this.findStaff(userId, businessId);
+
+    if (staff.data.staff.role.name != "waiter")
+      throw new BadRequestException("This staff is not a waiter");
+
+    let startDate: Date;
+    let endDate: Date;
+
+    const today = new Date();
+    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+    const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const thisYear = new Date(today.getFullYear(), 0, 1);
+
+    switch (sortBy) {
+      case "today":
+        startDate = today;
+        startDate = new Date(startDate.setHours(0, 0, 0, 0));
+        endDate = today;
+        endDate = new Date(endDate.setHours(23, 59, 59, 999));
+        break;
+
+      case "yesterday":
+        startDate = yesterday;
+        startDate = new Date(startDate.setHours(0, 0, 0, 0));
+        endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+        endDate = new Date(endDate.setHours(23, 59, 59, 999));
+        break;
+
+      case "thisWeek":
+        startDate = thisWeek;
+        startDate = new Date(startDate.setHours(0, 0, 0, 0));
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      case "thisMonth":
+        startDate = thisMonth;
+        startDate.setHours(0, 0, 0, 0);
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      case "thisYear":
+        startDate = thisYear;
+        startDate.setHours(0, 0, 0, 0);
+
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      default:
+        startDate = new Date(0); // All time
+        startDate.setHours(0, 0, 0, 0);
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+
+        break;
+    }
+    // Retrieve the orders data for the specified date range and for the specified waiter
+    const orders = await this.prisma.order.findMany({
+      where: {
+        waiterId: userId,
+        businessId,
+        createdAt: { gte: startDate, lt: endDate },
+      },
+      select: {
+        id: true,
+        tip: true,
+        table: true,
+        status: true,
+        paidAt: true,
+        cancelledAt: true,
+        completedAt: true,
+        payment: true,
+        options: true,
+        _count: true,
+        shift: true,
+        waiter: true,
+        cancelledBy: true,
+        customer: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+        createdAt: true,
+      },
+    });
+
+    const waiterId = userId;
+
+    const ordersTaken = orders.length;
+
+    const relevantOrders = orders.filter(
+      (order) =>
+        order.waiter.userId === waiterId &&
+        order.payment !== null &&
+        order.payment.amount > 0,
+    );
+    const totalPaymentAmount = relevantOrders.reduce(
+      (acc, order) => acc + order.payment.amount,
+      0,
+    );
+    const averageOrderValue = totalPaymentAmount / relevantOrders.length;
+
+    const tipsReceived = orders
+      .filter((order) => order.waiter.userId === waiterId)
+      .reduce((acc, order) => acc + (order.tip || 0), 0);
+
+    const uniqueTables = new Set(
+      orders
+        .filter((order) => order.waiter.userId === waiterId)
+        .map((order) => order.table.identifier),
+    );
+    const numTables = uniqueTables.size;
+
+    const totalRevenue = orders
+      .filter(
+        (order) => order.waiter.userId === waiterId && order.payment !== null,
+      )
+      .reduce((acc, order) => acc + order.payment.amount, 0);
+
+    const paidOrders = orders.filter(
+      (order) => order.waiter.userId === waiterId && order.paidAt !== null,
+    ).length;
+    const completedOrders = orders.filter(
+      (order) => order.waiter.userId === waiterId && order.completedAt !== null,
+    ).length;
+    const cancelledOrders = orders.filter(
+      (order) =>
+        order.waiter.userId === waiterId &&
+        order.cancelledAt !== null &&
+        order.cancelledBy === waiterId,
+    ).length;
+    const totalSales = orders
+      .filter(
+        (order) => order.waiter.userId === waiterId && order.payment !== null,
+      )
+      .reduce((acc, order) => acc + order.payment.amount, 0);
+
+    const previousPeriodSales = orders
+      .filter(
+        (order) =>
+          order.waiter.userId === waiterId &&
+          order.createdAt < endDate &&
+          order.payment !== null,
+      )
+      .reduce((acc, order) => acc + order.payment.amount, 0);
+
+    const salesGrowthRate =
+      ((totalSales - previousPeriodSales) / previousPeriodSales) * 100;
+    return {
+      // orders,
+      timeFrame: sortBy,
+      date: endDate.toISOString(),
+      businessId: businessId,
+      currency: "NGN",
+      waiter_performance: {
+        waiterId: userId,
+        orders_taken: ordersTaken,
+        total_payment_amount: totalPaymentAmount,
+        average_order_value: averageOrderValue,
+        tips_received: tipsReceived,
+        tables_served: numTables,
+      },
+      waiter_sales_performance: {
+        total_sales: totalSales,
+        sales_growth_rate: salesGrowthRate,
+      },
+      orders: {
+        count: ordersTaken,
+        total_revenue: totalRevenue,
+        average_order_value: averageOrderValue,
+        by_status: {
+          paidAt: paidOrders,
+          completed: completedOrders,
+          cancelled: cancelledOrders,
+        },
+      },
+    };
+  }
+
+  async kitchenStaffAnalytics(
+    userId: number,
+    businessId: number,
+    sortBy: string,
+  ) {
+    if (!sortBy) sortBy = "thisYear";
+    const staff = await this.findStaff(userId, businessId);
+
+    if (staff.data.staff.role.name != "kitchen")
+      throw new BadRequestException("This user is not a Kitchen stafff");
+
+    let startDate: Date;
+    let endDate: Date;
+
+    const today = new Date();
+    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+    const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const thisYear = new Date(today.getFullYear(), 0, 1);
+
+    switch (sortBy) {
+      case "today":
+        startDate = today;
+        startDate = new Date(startDate.setHours(0, 0, 0, 0));
+        endDate = today;
+        endDate = new Date(endDate.setHours(23, 59, 59, 999));
+        break;
+
+      case "yesterday":
+        startDate = yesterday;
+        startDate = new Date(startDate.setHours(0, 0, 0, 0));
+        endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+        endDate = new Date(endDate.setHours(23, 59, 59, 999));
+        break;
+
+      case "thisWeek":
+        startDate = thisWeek;
+        startDate = new Date(startDate.setHours(0, 0, 0, 0));
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      case "thisMonth":
+        startDate = thisMonth;
+        startDate.setHours(0, 0, 0, 0);
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      case "thisYear":
+        startDate = thisYear;
+        startDate.setHours(0, 0, 0, 0);
+
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      default:
+        startDate = new Date(0); // All time
+        startDate.setHours(0, 0, 0, 0);
+        endDate = today;
+        endDate.setHours(23, 59, 59, 999);
+
+        break;
+    }
+    const orders = await this.prisma.order.findMany({
+      where: {
+        kitchenStaffId: userId,
+        businessId,
+        createdAt: { gte: startDate, lt: endDate },
+      },
+      select: {
+        id: true,
+        tip: true,
+        table: true,
+        status: true,
+        paidAt: true,
+        cancelledAt: true,
+        completedAt: true,
+        payment: true,
+        options: true,
+        _count: true,
+        shift: true,
+        waiter: true,
+        kitchenStaff: true,
+        cancelledBy: true,
+        customer: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+        createdAt: true,
+      },
+    });
+
+    const kitchenStaffId = userId;
+
+    const ordersTaken = orders.length;
+
+    const relevantOrders = orders.filter(
+      (order) =>
+        order.kitchenStaff.userId === kitchenStaffId &&
+        order.payment !== null &&
+        order.payment.amount > 0,
+    );
+    const totalPaymentAmount = relevantOrders.reduce(
+      (acc, order) => acc + order.payment.amount,
+      0,
+    );
+    const averageOrderValue = totalPaymentAmount / relevantOrders.length;
+
+    const uniqueTables = new Set(
+      orders
+        .filter((order) => order.kitchenStaff.userId === kitchenStaffId)
+        .map((order) => order.table.identifier),
+    );
+    const numTables = uniqueTables.size;
+
+    const totalRevenue = orders
+      .filter(
+        (order) =>
+          order.kitchenStaff.userId === kitchenStaffId &&
+          order.payment !== null,
+      )
+      .reduce((acc, order) => acc + order.payment.amount, 0);
+
+    const paidOrders = orders.filter(
+      (order) =>
+        order.kitchenStaff.userId === kitchenStaffId && order.paidAt !== null,
+    ).length;
+    const completedOrders = orders.filter(
+      (order) =>
+        order.kitchenStaff.userId === kitchenStaffId &&
+        order.completedAt !== null,
+    ).length;
+    const cancelledOrders = orders.filter(
+      (order) =>
+        order.kitchenStaff.userId === kitchenStaffId &&
+        order.cancelledAt !== null &&
+        order.cancelledBy === kitchenStaffId,
+    ).length;
+    const totalSales = orders
+      .filter(
+        (order) =>
+          order.kitchenStaff.userId === kitchenStaffId &&
+          order.payment !== null,
+      )
+      .reduce((acc, order) => acc + order.payment.amount, 0);
+
+    const previousPeriodSales = orders
+      .filter(
+        (order) =>
+          order.kitchenStaff.userId === kitchenStaffId &&
+          order.createdAt < endDate &&
+          order.payment !== null,
+      )
+      .reduce((acc, order) => acc + order.payment.amount, 0);
+
+    const salesGrowthRate =
+      ((totalSales - previousPeriodSales) / previousPeriodSales) * 100;
+
+    return {
+      // orders,
+      timeFrame: sortBy,
+      date: endDate.toISOString(),
+      businessId: businessId,
+      currency: "NGN",
+      kitchenStaff_performance: {
+        kitchenStaffId,
+        orders_taken: ordersTaken,
+        total_payment_amount: totalPaymentAmount,
+        average_order_value: averageOrderValue,
+        tables_served: numTables,
+      },
+      kichenStaff_sales_performance: {
+        total_sales: totalSales,
+        sales_growth_rate: salesGrowthRate,
+      },
+      orders: {
+        count: ordersTaken,
+        total_revenue: totalRevenue,
+        average_order_value: averageOrderValue,
+        by_status: {
+          paidAt: paidOrders,
+          completed: completedOrders,
+          cancelled: cancelledOrders,
+        },
+      },
     };
   }
 }

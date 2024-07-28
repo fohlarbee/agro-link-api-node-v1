@@ -7,61 +7,67 @@ import {
   Req,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
-import { ShiftsService } from './shifts.service';
-import { CreateShiftDto } from './dto/create-shift.dto';
+} from "@nestjs/common";
+import { ShiftsService } from "./shifts.service";
+import { CreateShiftDto } from "./dto/create-shift.dto";
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiHeader,
   ApiOkResponse,
   ApiTags,
-} from '@nestjs/swagger';
-import { AssignShiftTablesDto } from './dto/assign-shift-tables.dto';
+} from "@nestjs/swagger";
+import { AssignShiftTablesDto } from "./dto/assign-shift-tables.dto";
 import {
   ShiftCreationResponse,
   ShiftListResponse,
-} from './entities/shift.entity';
-import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-access.interceptor';
-import { ValidPathParamInterceptor } from 'src/utils/interceptors/valid-path-param.interceptor';
+} from "./entities/shift.entity";
+import { BaseResponse } from "src/app/entities/BaseResponse.entity";
+import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
+import { Role } from "src/auth/dto/auth.dto";
+import RoleGuard from "src/auth/role/role.guard";
 
-@Controller('admin/shifts')
-@ApiTags('Shifts')
+@Controller("admin/shifts")
+@ApiTags("Shifts")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @ApiHeader({
-  name: 'business_id',
+  name: "business_id",
   required: true,
-  description: "This is the restaurant's id",
+  description: "This is the business's id",
 })
-@UseInterceptors(RestaurantAccessInterceptor)
+@UseInterceptors(BusinessAccessInterceptor)
 export class ShiftsController {
   constructor(private readonly shiftsService: ShiftsService) {}
 
   @Post()
+  @UseGuards(RoleGuard([Role.admin, Role.manager]))
   @ApiCreatedResponse({ type: ShiftCreationResponse })
   create(
     @Body() createShiftDto: CreateShiftDto,
     @Req() request: Record<string, any>,
   ) {
     const { business_id } = request.headers;
+    console.log("running");
     return this.shiftsService.createShift(+business_id, createShiftDto);
   }
 
   @Get()
+  @UseGuards(RoleGuard([Role.admin, Role.manager]))
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.waiter, Role.kitchen]))
   @ApiOkResponse({ type: ShiftListResponse })
   findAll(CreateShiftDto, @Req() request: Record<string, any>) {
     const { business_id } = request.headers;
     return this.shiftsService.findAllShifts(+business_id);
   }
 
-  @Post('/:id/assign-tables')
-  @UseInterceptors(new ValidPathParamInterceptor())
+  @Post("/:id/assign/tables")
+  @UseGuards(RoleGuard([Role.admin, Role.manager]))
+  // @UseInterceptors(new ValidPathParamInterceptor())
   @ApiOkResponse({ type: BaseResponse })
   assignTables(
-    @Param('id') shiftId: string,
+    @Param("id") shiftId: string,
     @Body() { tableIds }: AssignShiftTablesDto,
     @Req() request: Record<string, any>,
   ) {

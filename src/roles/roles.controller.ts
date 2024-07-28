@@ -6,33 +6,35 @@ import {
   Req,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
-import { RolesService } from './roles.service';
-import { CreateRoleDto } from './dto/create-role.dto';
+} from "@nestjs/common";
+import { RolesService } from "./roles.service";
+import { CreateRoleDto } from "./dto/create-role.dto";
 import {
   ApiBearerAuth,
   ApiHeader,
   ApiOkResponse,
   ApiTags,
-} from '@nestjs/swagger';
-import { RoleCreationResponse, RoleListResponse } from './entities/role.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-access.interceptor';
-
-@Controller('admin/roles')
-@ApiTags('Roles')
+} from "@nestjs/swagger";
+import { RoleCreationResponse, RoleListResponse } from "./entities/role.entity";
+import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
+import RoleGuard from "src/auth/role/role.guard";
+import { Role } from "src/auth/dto/auth.dto";
+@Controller("admin/roles")
+@ApiTags("Roles")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @ApiHeader({
-  name: 'business_id',
+  name: "business_id",
   required: true,
-  description: "This is the restaurant's id",
+  description: "This is the business's id",
 })
-@UseInterceptors(RestaurantAccessInterceptor)
+@UseInterceptors(BusinessAccessInterceptor)
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.owner]))
   @ApiOkResponse({ type: RoleCreationResponse })
   create(
     @Body() createRoleDto: CreateRoleDto,
@@ -43,6 +45,7 @@ export class RolesController {
   }
 
   @Get()
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.owner]))
   @ApiOkResponse({ type: RoleListResponse })
   findAll(@Req() request: Record<string, any>) {
     const { business_id } = request.headers;

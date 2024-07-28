@@ -1,9 +1,9 @@
-import { User } from '@prisma/client';
-import { ApiProperty } from '@nestjs/swagger';
-import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
-import { Type } from 'class-transformer';
-import { ValidateNested } from 'class-validator';
-import { RoleEntity } from 'src/roles/entities/role.entity';
+import { User } from "@prisma/client";
+import { ApiProperty } from "@nestjs/swagger";
+import { BaseResponse } from "src/app/entities/BaseResponse.entity";
+import { Type } from "class-transformer";
+import { ValidateNested } from "class-validator";
+import { RoleEntity } from "src/roles/entities/role.entity";
 
 class UserEntity implements Partial<User> {
   @ApiProperty({ required: true })

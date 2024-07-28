@@ -1,6 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { ValidateNested } from 'class-validator';
+import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { ValidateNested } from "class-validator";
 
 class AccessToken {
   @ApiProperty()
@@ -10,6 +10,15 @@ class AccessToken {
 export class AuthEntity {
   @ApiProperty()
   message: string;
+
+  @ApiProperty()
+  avatar: string;
+
+  @ApiProperty()
+  role: string;
+
+  @ApiProperty({ required: false })
+  business_id: number;
 
   @Type(() => AccessToken)
   @ApiProperty()

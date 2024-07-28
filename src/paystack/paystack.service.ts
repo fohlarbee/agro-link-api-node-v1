@@ -2,8 +2,8 @@ import {
   Injectable,
   InternalServerErrorException,
   ServiceUnavailableException,
-} from '@nestjs/common';
-import axios from 'axios';
+} from "@nestjs/common";
+import axios from "axios";
 
 @Injectable()
 export class PaystackService {
@@ -14,23 +14,24 @@ export class PaystackService {
   ) {
     try {
       const response = await axios.post(
-        'https://api.paystack.co/transaction/initialize',
+        "https://api.paystack.co/transaction/initialize",
         {
           reference: `CHP_${Date.now()}`,
           amount: amount * 100,
-          currency: 'NGN',
+          currency: "NGN",
           metadata,
           email,
-          callback_url: process.env.PAYMENT_REDIRECT_URL + 'PSK',
+          callback_url: process.env.PAYMENT_REDIRECT_URL + "PSK",
         },
         { headers: { Authorization: `Bearer ${process.env.PSK_SECRET_KEY}` } },
       );
+      // console.log(response.data.data);
 
-      return { status: 'success', data: response.data.data };
+      return { status: "success", data: response.data.data };
     } catch (error: any) {
       if (error.response)
         throw new ServiceUnavailableException({
-          message: 'Partner service is unavailable',
+          message: "Partner service is unavailable",
           failureDetails: {
             message: error.response.data.message,
             statusCode: error.response.status,
@@ -49,11 +50,11 @@ export class PaystackService {
           headers: { Authorization: `Bearer ${process.env.PSK_SECRET_KEY}` },
         },
       );
-      return { status: 'success', data: response.data.data };
+      return { status: "success", data: response.data.data };
     } catch (error: any) {
       if (error.response)
         throw new ServiceUnavailableException({
-          message: 'Partner service is unavailable',
+          message: "Partner service is unavailable",
           failureDetails: {
             message: error.response.data.message,
             statusCode: error.response.status,

@@ -7,39 +7,52 @@ import {
   UseInterceptors,
   UseGuards,
   Param,
-} from '@nestjs/common';
-import { MenuService } from './menu.service';
+  Delete,
+} from "@nestjs/common";
+import { MenuService, MenuTypes } from "./menu.service";
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiHeader,
   ApiOkResponse,
   ApiTags,
-} from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { CreateMenuDto } from './dto/create-menu.dto';
-import { mealIdsDto } from './dto/meal-ids.dto';
-import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
-import { RestaurantAccessInterceptor } from 'src/utils/interceptors/restaurant-access.interceptor';
+} from "@nestjs/swagger";
+import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { CreateMenuDto } from "./dto/create-menu.dto";
+import { optionIdsDto } from "./dto/option-ids.dto";
+import { BaseResponse } from "src/app/entities/BaseResponse.entity";
+import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
+import RoleGuard from "src/auth/role/role.guard";
+import { Role } from "src/auth/dto/auth.dto";
 
-@Controller('admin/menus')
-@ApiTags('Menus')
+@Controller("admin/menus")
+@ApiTags("Menus")
 @ApiHeader({
-  name: 'business_id',
+  name: "business_id",
   required: true,
-  description: 'This is the business id',
+  description: "This is the business id",
 })
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(RestaurantAccessInterceptor)
+@UseInterceptors(BusinessAccessInterceptor)
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
   @Post()
+  @UseGuards(RoleGuard([Role.admin, Role.owner, Role.manager, Role.kitchen]))
   @ApiCreatedResponse()
-  createMenu(@Body() { name }: CreateMenuDto, @Req() request) {
+  createMenu(
+    @Body() { name }: CreateMenuDto,
+    @Req() request,
+    menuType: MenuTypes,
+  ) {
     const { business_id } = request.headers;
-    return this.menuService.createMenu({ name, restaurantId: +business_id });
+
+    return this.menuService.createMenu({
+      name,
+      businessId: +business_id,
+      menuType,
+    });
   }
 
   @Get()
@@ -49,25 +62,31 @@ export class MenuController {
     return this.menuService.findAllMenus(+business_id);
   }
 
-  @Post(':id/add-meals')
+  @Post(":id/options")
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
   @ApiOkResponse({ type: BaseResponse })
-  async assignMeals(
-    @Param('id') mealId: number,
-    @Body() { mealIds }: mealIdsDto,
+  async assignOptions(
+    @Param("id") optionId: number,
+    @Body() { optionIds }: optionIdsDto,
     @Req() request,
   ) {
     const { business_id } = request.headers;
-    return this.menuService.addMenuMeals(+business_id, +mealId, mealIds);
+    return this.menuService.addMenuOptions(+business_id, +optionId, optionIds);
   }
 
-  @Post(':id/remove-meals')
+  @Delete(":id/options")
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
   @ApiOkResponse({ type: BaseResponse })
-  async removeMeals(
-    @Param('id') mealId: number,
-    @Body() { mealIds }: mealIdsDto,
+  async removeOptions(
+    @Param("id") optionId: number,
+    @Body() { optionIds }: optionIdsDto,
     @Req() request,
   ) {
     const { business_id } = request.headers;
-    return this.menuService.removeMenuMeals(+business_id, +mealId, mealIds);
+    return this.menuService.removeMenuOptions(
+      +business_id,
+      +optionId,
+      optionIds,
+    );
   }
 }

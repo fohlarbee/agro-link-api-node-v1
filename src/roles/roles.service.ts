@@ -2,45 +2,45 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import { CreateRoleDto } from './dto/create-role.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+} from "@nestjs/common";
+import { CreateRoleDto } from "./dto/create-role.dto";
+import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
 export class RolesService {
   constructor(private prisma: PrismaService) {}
 
-  async createRole(restaurantId: number, { name }: CreateRoleDto) {
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id: restaurantId },
+  async createRole(businessId: number, { name }: CreateRoleDto) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
     });
-    if (!restaurant) throw new NotFoundException('Invalid restaurant');
+    if (!business) throw new NotFoundException("Invalid business");
     const existingRole = await this.prisma.role.findFirst({
-      where: { restaurantId, name: name.toLowerCase() },
+      where: { businessId, name: name.toLowerCase() },
     });
 
     if (existingRole)
-      throw new ConflictException('Role with name already exists');
+      throw new ConflictException("Role with name already exists");
     const role = await this.prisma.role.create({
-      data: { name: name.toLowerCase(), restaurantId },
+      data: { name: name.toLowerCase(), businessId },
       select: { id: true, name: true },
     });
 
     return {
-      message: 'Role created successfully',
-      status: 'success',
+      message: "Role created successfully",
+      status: "success",
       data: { role },
     };
   }
 
-  findAllRoles(restaurantId: number) {
-    const roles = this.prisma.role.findMany({
-      where: { restaurantId },
+  async findAllRoles(businessId: number) {
+    const roles = await this.prisma.role.findMany({
+      where: { businessId },
       select: { id: true, name: true },
     });
     return {
-      message: 'Roles fetched successfully',
-      status: 'success',
+      message: "Roles fetched successfully",
+      status: "success",
       data: roles,
     };
   }
