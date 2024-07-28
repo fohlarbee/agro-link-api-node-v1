@@ -1,7 +1,7 @@
-import { ValidPathParamInterceptor } from './valid-path-param.interceptor';
+import { ValidPathParamInterceptor } from "./valid-path-param.interceptor";
 
-describe('ValidPathParamInterceptor', () => {
-  it('should be defined', () => {
+describe("ValidPathParamInterceptor", () => {
+  it("should be defined", () => {
     expect(new ValidPathParamInterceptor()).toBeDefined();
   });
 });

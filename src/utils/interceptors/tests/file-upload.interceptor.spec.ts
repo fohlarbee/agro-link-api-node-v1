@@ -1,7 +1,7 @@
-import { FileUploadInterceptor } from '../file-upload.interceptor';
+import { FileUploadInterceptor } from "../file-upload.interceptor";
 
-describe('FileUploadInterceptor', () => {
-  it('should be defined', () => {
+describe("FileUploadInterceptor", () => {
+  it("should be defined", () => {
     expect(new FileUploadInterceptor()).toBeDefined();
   });
 });

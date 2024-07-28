@@ -40,29 +40,12 @@ export class OrderController {
   @Get("/history")
   async findOrderHistory(@Req() request) {
     const { id: customerId } = request.user;
-    // const baseUrl = request.protocol + "://" + request.headers.host;
-    // const history = (await this.orderService.findOrderHistory(customerId)).map(order => {
-    //   order.meals.map(orderMeal => {
-    //     orderMeal.option.image = `${baseUrl}/v2/files/image/${orderMeal.option.image}`;
-    //     return { ...orderMeal.option, quantity: orderMeal.quantity};
-    //   });
-    //   return order;
-    // });
-
     const history = await this.orderService.findOrderHistory(customerId);
-
     return {
       message: "Order history fetch successful",
       status: "success",
       data: history,
     };
-  }
-
-  @Get('/:id')
-  @UseInterceptors(new ValidPathParamInterceptor())
-  async findOrder(@Param('id') orderId: number, @Req() request) {
-    const { id: customerId } = request.user;
-    return this.orderService.findOrder(customerId, +orderId);
   }
 
   @Get("/:id")
@@ -75,8 +58,6 @@ export class OrderController {
   @Delete(":id/:optionId")
   @UseGuards(RoleGuard([Role.admin, Role.manager]))
   @UseInterceptors(
-    new ValidPathParamInterceptor('id'),
-    new ValidPathParamInterceptor('mealId'),
     new ValidPathParamInterceptor(),
     new ValidPathParamInterceptor("optionId"),
   )
@@ -87,16 +68,6 @@ export class OrderController {
     @Req() request,
   ) {
     const { id: customerId } = request.user;
-    if (isNaN(mealId)) throw new BadRequestException('Invalid mealId');
-    return this.orderService.removeMealOrder(+mealId, +customerId, +orderId);
-  }
-
-  @Get('/pay')
-  payOrder(@Req() request) {
-    const { id: customerId, email } = request.user;
-    const { id: restaurantId } = request.restaurant;
-    return this.orderService.payOrder(email, customerId, restaurantId);
-  }
     if (isNaN(optionId)) throw new BadRequestException("Invalid optionId");
     return this.orderService.removeOptionOrder(
       +optionId,

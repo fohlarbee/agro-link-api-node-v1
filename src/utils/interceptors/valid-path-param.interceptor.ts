@@ -4,12 +4,12 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
-} from '@nestjs/common';
-import { Observable, catchError } from 'rxjs';
+} from "@nestjs/common";
+import { Observable, catchError } from "rxjs";
 
 @Injectable()
 export class ValidPathParamInterceptor implements NestInterceptor {
-  constructor(private name: string = 'id') {}
+  constructor(private name: string = "id") {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
