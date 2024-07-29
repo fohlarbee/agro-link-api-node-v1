@@ -21,7 +21,6 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private otpService: OtpService,
-    private fileUploadService: FileUploadService,
   ) {}
 
   async login(email: string, password: string): Promise<AuthEntity> {

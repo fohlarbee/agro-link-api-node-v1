@@ -64,15 +64,17 @@ export class AdminOptionsController {
   @UseInterceptors(parseFileInterceptor, FileUploadInterceptor)
   @ApiCreatedResponse()
   async createOption(
-    @UploadedFile() file: Express.Multer.File,
     @Req() request,
-    @Body() createOptionDto: CreateOptionDto,
+    @Body() body: Record<string, any>,
   ) {
+    const { name, price, type, imageURL: avatar } = body;
     const { business_id } = request.headers;
     return this.optionsService.createOption(
-      createOptionDto,
+      name,
+     +price,
+     type,
+     avatar,
       +business_id,
-      file,
     );
   }
 

@@ -93,7 +93,15 @@ export class MenuService {
       },
     });
 
-    const business = menus[0].business;
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
+      select:{
+        name:true,
+        id:true
+      }
+    })
+
+    
     const menuData = menus.reduce(
       (acc, menu) => {
         const typeName = menu.type.toLowerCase();
@@ -105,7 +113,7 @@ export class MenuService {
     );
 
     return {
-      id: menus[0].id,
+      // id: menus[0].id,
       business_id: business.id,
       business_name: business.name,
       ...menuData,

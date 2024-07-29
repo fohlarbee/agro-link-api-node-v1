@@ -17,21 +17,23 @@ export class OptionsService {
   ) {}
 
   async createOption(
-    optionData: CreateOptionDto,
-    businessId: number,
-    file: Express.Multer.File,
-  ) {
+    name:string,
+    price:number,
+    type:any,
+    avatar:string,
+    businessId: number, ) {
+ 
+   {
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
     });
     if (!business) throw new NotFoundException("Invalid business");
 
-    const imageUrl = await this.fileUploadService.uploadFile(file);
     await this.prisma.option.create({
-      data: { ...optionData, businessId, image: imageUrl },
+      data: { name, price, type ,businessId, image: avatar },
     });
     return { message: "Option successfully created", status: "success" };
-  }
+  }}
 
   async findAll(businessId: number) {
     const business = await this.prisma.business.findUnique({
