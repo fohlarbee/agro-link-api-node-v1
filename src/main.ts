@@ -35,12 +35,5 @@ async function bootstrap() {
     module.hot.accept();
     module.hot.dispose(() => app.close());
   }
-
-  await new PrismaClient()
-    .$connect()
-    .then(() => {
-      console.log("connected to db");
-    })
-    .catch((err) => console.log("err while connecting to db", err));
 }
 bootstrap();

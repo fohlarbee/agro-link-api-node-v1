@@ -8,12 +8,14 @@ import { OrderDto } from "./dto/order-option.dto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { OrderStatus } from "@prisma/client";
 import { PaystackService } from "src/paystack/paystack.service";
+import { MonnifyService } from "src/monnify/monnify.service";
 
 @Injectable()
 export class OrderService {
   constructor(
     private prisma: PrismaService,
     private paystack: PaystackService,
+    private monnify: MonnifyService,
   ) {}
 
   async orderOption(
@@ -226,7 +228,12 @@ export class OrderService {
     return { message: "Option removed from current order", status: "success" };
   }
 
-  async payOrder(email: string, customerId: number, businessId: number) {
+  async payOrder(
+    email: string,
+    customerId: number,
+    businessId: number,
+    provider: string = "FLW",
+  ) {
     const currentOrders = await this.prisma.order.findMany({
       where: { customerId, businessId, status: OrderStatus.active },
       select: {
@@ -235,7 +242,6 @@ export class OrderService {
         options: {
           select: {
             quantity: true,
-
             option: { select: { price: true } },
           },
         },
@@ -245,27 +251,29 @@ export class OrderService {
       throw new BadRequestException(
         "You do not currently have any open orders",
       );
+    if (!["FLW", "MNF", "MNO"].includes(provider.toUpperCase()))
+      throw new BadRequestException(
+        `Invalid payment provider code: "${provider}"`,
+      );
     const totalAmount = currentOrders.reduce((total, order) => {
       const totalPrice = order.options.reduce((acc, option) => {
         return acc + option.quantity * option.option.price;
       }, 0);
       return total + totalPrice + order.tip;
     }, 0);
-
-    const paymentLink = await this.paystack.createPaymentLink(
-      email,
-      totalAmount,
-      {
-        orderId: currentOrders[0].id,
-        customerId,
-      },
-    );
+    const payload = { email, amount: totalAmount, metadata: { customerId } };
+    const { paymentLink, reference } =
+      provider == "FLW"
+        ? await this.paystack.createPaymentLink(payload)
+        : provider == "MNF"
+          ? await this.monnify.createPaymentLink(payload)
+          : { paymentLink: "MON)_LINK", reference: "MONO_REF" };
     return {
       message: "Payment initiation successful",
       status: "success",
       data: {
-        paymentLink: paymentLink.data.authorization_url,
-        reference: paymentLink.data.reference,
+        paymentLink,
+        reference,
       },
     };
   }

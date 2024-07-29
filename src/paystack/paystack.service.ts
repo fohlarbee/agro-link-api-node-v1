@@ -7,11 +7,15 @@ import axios from "axios";
 
 @Injectable()
 export class PaystackService {
-  async createPaymentLink(
-    email: string,
-    amount: number,
-    metadata: Record<string, any>,
-  ) {
+  async createPaymentLink({
+    email,
+    amount,
+    metadata,
+  }: {
+    email: string;
+    amount: number;
+    metadata: Record<string, any>;
+  }) {
     try {
       const response = await axios.post(
         "https://api.paystack.co/transaction/initialize",
@@ -27,7 +31,8 @@ export class PaystackService {
       );
       // console.log(response.data.data);
 
-      return { status: "success", data: response.data.data };
+      const { authorization_url: paymentLink, reference } = response.data.data;
+      return { paymentLink, reference };
     } catch (error: any) {
       if (error.response)
         throw new ServiceUnavailableException({

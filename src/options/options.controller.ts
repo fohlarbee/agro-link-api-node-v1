@@ -23,12 +23,9 @@ import {
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 import { ValidPathParamInterceptor } from "src/utils/interceptors/valid-path-param.interceptor";
-import { FileInterceptor } from "@nestjs/platform-express";
-
 import {
-  storage,
-  MAX_IMAGE_SIZE,
-  fileFilter,
+  parseFileInterceptor,
+  FileUploadInterceptor,
 } from "src/utils/interceptors/file-upload.interceptor";
 import RoleGuard from "src/auth/role/role.guard";
 import { Role } from "src/auth/dto/auth.dto";
@@ -64,13 +61,7 @@ export class AdminOptionsController {
 
   @Post()
   @UseGuards(RoleGuard([Role.admin, Role.manager]))
-  @UseInterceptors(
-    FileInterceptor("file", {
-      storage,
-      fileFilter,
-      limits: { fileSize: MAX_IMAGE_SIZE },
-    }),
-  )
+  @UseInterceptors(parseFileInterceptor, FileUploadInterceptor)
   @ApiCreatedResponse()
   async createOption(
     @UploadedFile() file: Express.Multer.File,
@@ -88,11 +79,6 @@ export class AdminOptionsController {
   @Get()
   async findAll(@Req() request) {
     const { business_id } = request.headers;
-    // const baseUrl = request.protocol + "://" + request.headers.host;
-    // const options = (await this.optionsService.findAll(+business_id)).map(option => {
-    //   option.image = `${baseUrl}/v2/files/image/${option.image}`;
-    //   return option;
-    // });
     const options = await this.optionsService.findAll(+business_id);
     return {
       message: "Menu fetch successful",

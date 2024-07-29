@@ -18,11 +18,17 @@ import { MailModule } from "src/mail/mail.module";
 import { OtpModule } from "src/otp/otp.module";
 import { UsersModule } from "src/users/users.module";
 import { ScheduleModule } from "@nestjs/schedule";
+import { MonnifyModule } from "src/monnify/monnify.module";
+import { CacheModule } from "@nestjs/cache-manager";
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     ScheduleModule.forRoot(),
+    CacheModule.register({
+      isGlobal: true,
+      store: "memory",
+    }),
     PrismaModule,
     AuthModule,
     FilesUploadModule,

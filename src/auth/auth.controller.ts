@@ -17,11 +17,9 @@ import {
   SendRegistrationEmailDto,
   VerificationDto,
 } from "./dto/auth.dto";
-import { FileInterceptor } from "@nestjs/platform-express";
 import {
-  storage,
-  MAX_IMAGE_SIZE,
-  fileFilter,
+  parseFileInterceptor,
+  FileUploadInterceptor,
 } from "src/utils/interceptors/file-upload.interceptor";
 
 @Controller("auth")
@@ -37,13 +35,7 @@ export class AuthController {
   }
 
   @Post("register")
-  @UseInterceptors(
-    FileInterceptor("file", {
-      storage,
-      fileFilter,
-      limits: { fileSize: MAX_IMAGE_SIZE },
-    }),
-  )
+  @UseInterceptors(parseFileInterceptor, FileUploadInterceptor)
   @ApiCreatedResponse()
   register(@UploadedFile() file: Express.Multer.File, @Body() body: AuthDto) {
     return this.authService.register(body, file);
