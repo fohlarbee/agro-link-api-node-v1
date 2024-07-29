@@ -29,7 +29,7 @@ model User {
   password  String
   name      String
   avatar    String?
-  role      GuardRoles?
+  role      GuardRoles   @default(customer)
   // isCustomer Boolean   @default(false)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt

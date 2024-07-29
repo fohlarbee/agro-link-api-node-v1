@@ -3,18 +3,17 @@ import {
   ConflictException,
   HttpException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "src/prisma/prisma.service";
 import { AuthEntity } from "./entities/auth.entity";
 import * as bcrypt from "bcrypt";
-import { AuthDto, Role } from "./dto/auth.dto";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { OtpService } from "src/otp/otp.service";
 import { FileUploadService } from "src/files/file-upload.service";
 import { v1 as uuidv1 } from "uuid";
+import { Role } from "./dto/auth.dto";
 
 @Injectable()
 export class AuthService {
@@ -31,6 +30,7 @@ export class AuthService {
       throw new UnauthorizedException("Invalid email or password");
     }
     let staff;
+    console.log(user);
     if (!user.role) {
       staff = await this.prisma.staff.findFirst({
         where: { userId: user.id },
@@ -46,6 +46,7 @@ export class AuthService {
         select: { businessId: true, role: true },
       });
     }
+    console.log(staff);
 
     const payload = { email: user.email, sub: user.id };
     return {
@@ -57,10 +58,7 @@ export class AuthService {
     };
   }
 
-  async register(
-    { email, password, name, role }: AuthDto,
-    file: Express.Multer.File,
-  ): Promise<BaseResponse> {
+  async register(email, name, password, role, avatar): Promise<BaseResponse> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -72,7 +70,6 @@ export class AuthService {
     if (!userVerified)
       throw new UnauthorizedException("Please verify your email first");
     const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync());
-    const avatar = await this.fileUploadService.uploadFile(file);
     await this.prisma.user.create({
       data: { email, password: hashedPassword, name, avatar, role },
     });

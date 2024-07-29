@@ -4,14 +4,12 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { AuthEntity } from "./entities/auth.entity";
 import {
-  AuthDto,
   LoginDto,
   ResetPasswordDto,
   SendRegistrationEmailDto,
@@ -37,8 +35,9 @@ export class AuthController {
   @Post("register")
   @UseInterceptors(parseFileInterceptor, FileUploadInterceptor)
   @ApiCreatedResponse()
-  register(@UploadedFile() file: Express.Multer.File, @Body() body: AuthDto) {
-    return this.authService.register(body, file);
+  register(@Body() body: Record<string, any>) {
+    const { email, name, password, role, imageURL: avatar } = body;
+    return this.authService.register(email, name, password, role, avatar);
   }
 
   @Post("otp/generate")

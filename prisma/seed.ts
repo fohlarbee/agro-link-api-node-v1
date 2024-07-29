@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
-import { PrismaClient } from '@prisma/client';
+import { GuardRoles, PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { count } from 'console';
 
@@ -10,64 +10,87 @@ const users = [
   {
     "name": "John Doe",
     "email": 'johndoe@example.com',
-    "password":"Sammyola246@1"
+    "password":"Sammyola246@1",
+    "role":GuardRoles.customer,
+
     
   },
   {
     "name": 'Jane Doe',
     "email": 'janedoe@example.com',
-    "password":"Sammyola246@1"
+    "password":"Sammyola246@1",
+    "role":GuardRoles.customer,
+
 
   },
   {
     "name": "Jane Smith",
     "email": 'janesmith@example.com',
-    "password": "Password123!"
+    "password": "Password123!",
+    "role":GuardRoles.customer,
+
     },
     {
     "name": "Michael Brown",
     "email": 'michaelbrown@example.com',
-    "password": "MB123456!"
+    "password": "MB123456!",
+    "role":GuardRoles.customer,
+
     },
     {
     "name": "Emily Davis",
     "email": 'emilydavis@example.com',
-    "password": "ED123456!"
+    "password": "ED123456!",
+    "role":GuardRoles.customer,
+
     },
     {
     "name": "Christopher Lee",
     "email": 'christopherlee@example.com',
-    "password": "CL123456!"
+    "password": "CL123456!",
+    "role":GuardRoles.customer,
+
     },
     {
     "name": "Jessica White",
     "email": 'jessicawhite@example.com',
-    "password": "JW123456!"
+    "password": "JW123456!",
+    "role":GuardRoles.customer,
+
     },
     {
     "name": "Matthew Martin",
     "email": 'matthewmartin@example.com',
-    "password": "MM123456!"
+    "password": "MM123456!",
+    "role":GuardRoles.customer,
+
     },
     {
     "name": "Amanda Johnson",
     "email": 'amandajohnson@example.com',
-    "password": "AJ123456!"
+    "password": "AJ123456!",
+    "role":GuardRoles.customer,
     },
     {
     "name": "Daniel Williams",
     "email": 'danielwilliams@example.com',
-    "password": "DW123456!"
+    "password": "DW123456!",
+    "role":GuardRoles.customer,
+
     },
     {
     "name": "Elizabeth Thompson",
     "email": 'elizabeththompson@example.com',
-    "password": "ET123456!"
+    "password": "ET123456!",
+    "role":GuardRoles.customer,
+
     },
     {
     "name": "Joseph Lewis",
     "email": 'josephlewis@example.com',
-    "password": "JL123456!"
+    "password": "JL123456!",
+    "role":GuardRoles.customer,
+
     },
     {
     "name": "Laura Harris",
@@ -77,7 +100,9 @@ const users = [
     {
     "name": "Thomas Hall",
     "email": 'thomashall@example.com',
-    "password": "TH123456!"
+    "password": "TH123456!",
+    "role":GuardRoles.customer,
+
     },
     {
     "name": "Sophia Jackson",
@@ -87,32 +112,44 @@ const users = [
     {
       "name": "Emily Chen",
       "email": 'emilychen@example.com',
-      "password": "EC123456!"
+      "password": "EC123456!",
+      "role":GuardRoles.customer,
+
       },
       {
       "name": "Michael Kim",
       "email": 'michaelkim@example.com',
-      "password": "MK123456!"
+      "password": "MK123456!",
+      "role":GuardRoles.customer,
+
       },
       {
       "name": "Sarah Taylor",
       "email": 'sarahtaylor@example.com',
-      "password": "ST123456!"
+      "password": "ST123456!",
+      "role":GuardRoles.customer,
+
       },
       {
       "name": "David Lee",
       "email": 'davidlee@example.com',
-      "password": "DL123456!"
+      "password": "DL123456!",
+      "role":GuardRoles.customer,
+
       },
       {
       "name": "Olivia Brown",
       "email": 'oliviabrown@example.com',
-      "password": "OB123456!"
+      "password": "OB123456!",
+      "role":GuardRoles.customer,
+
       },
       {
       "name": "Kevin White",
       "email": 'kevinwhite@example.com',
-      "password": "KW123456"
+      "password": "KW123456",
+      "role":GuardRoles.customer,
+
       }
     
     
