@@ -19,6 +19,7 @@ export class TransactionService {
     console.log("verifiation result", verificationResult);
 
     // Check that payment already exists
+    const orderId = +verificationResult.data.metadata.orderId;
     const payment = await this.prisma.payment.findUnique({
       where: { reference, orderId: +verificationResult.data.metadata.orderId },
     });
@@ -28,7 +29,6 @@ export class TransactionService {
     // convert amount from minor
     const amount = +verificationResult.data.amount / 100;
     // Parse order id in metadata
-    const orderId = +verificationResult.data.metadata.orderId;
     console.log(orderId);
     // Retrieve payment time
     const paidAt = verificationResult.data.paid_at;
