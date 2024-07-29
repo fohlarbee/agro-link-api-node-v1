@@ -26,7 +26,6 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get()
-  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen, Role.waiter]))
   async findOpenOrders(@Req() request) {
     const { id: customerId } = request.user;
     return this.orderService.findCustomerOrders(+customerId);
