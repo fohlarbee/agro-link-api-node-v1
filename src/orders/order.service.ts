@@ -43,7 +43,7 @@ export class OrderService {
         customerId,
         businessId,
         tableIdentifier: createOrderDto.tableIdentifier,
-        tip: validOptions.length / createOrderDto.tip,
+        tip: createOrderDto.tip
       });
 
     await Promise.all(
@@ -89,7 +89,7 @@ export class OrderService {
           where: {
             shift: {
               startTime: { lte: new Date() },
-              endTime: { gte: new Date() },
+              endTime: { gt: new Date() },
             },
           },
           select: { shift: true },
@@ -247,6 +247,7 @@ export class OrderService {
         },
       },
     });
+    console.log(currentOrders);
     if (!currentOrders || currentOrders.length === 0)
       throw new BadRequestException(
         "You do not currently have any open orders",

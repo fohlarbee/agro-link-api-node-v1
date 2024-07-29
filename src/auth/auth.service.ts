@@ -11,7 +11,6 @@ import { AuthEntity } from "./entities/auth.entity";
 import * as bcrypt from "bcrypt";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { OtpService } from "src/otp/otp.service";
-import { FileUploadService } from "src/files/file-upload.service";
 import { v1 as uuidv1 } from "uuid";
 import { Role } from "./dto/auth.dto";
 

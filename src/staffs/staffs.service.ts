@@ -5,52 +5,73 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
-import { CreateStaffDto } from "./dto/create-staff.dto";
+import { _CreateStaffDto, CreateStaffDto } from "./dto/create-staff.dto";
 import { PrismaService } from "src/prisma/prisma.service";
+import { GuardRoles } from "@prisma/client";
 
 @Injectable()
 export class StaffsService {
   constructor(private prisma: PrismaService) {}
 
-  async createStaff(
-    businessId: number,
-    { email, name, roleId }: CreateStaffDto,
-  ) {
-    console.log(businessId + " created");
+  async createStaff(businessId: number, { email, name, role }: CreateStaffDto) {
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
     });
+
     if (!business) throw new NotFoundException("Invalid business");
-    const role = await this.prisma.role.findFirst({
-      where: { id: roleId, businessId },
+    let dbRole = await this.prisma.role.findFirst({
+      where: { name: role, businessId },
     });
-    if (!role) throw new BadRequestException("No such role exists");
+    if (!dbRole)
+      dbRole = await this.prisma.role.create({
+        data: {
+          businessId,
+          name: role,
+        },
+      });
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (user)
-      return this.inviteExistingUser({ businessId, userId: user.id, roleId });
+      return this.inviteExistingUser({
+        businessId,
+        userId: user.id,
+        roleId: dbRole.id,
+        role,
+      });
 
-    return this.inviteNewUser({ businessId, email, name, roleId });
+    return this.inviteNewUser({
+      businessId,
+      email,
+      name,
+      roleId: dbRole.id,
+      role,
+    });
   }
-
   private async inviteExistingUser({
     businessId,
     userId,
     roleId,
+    role,
   }: {
     businessId: number;
     userId: number;
     roleId: number;
+    role: GuardRoles;
   }) {
     const staff = await this.prisma.staff.findFirst({
-      where: { userId, businessId },
+      where: { userId },
     });
-    if (staff) throw new BadRequestException("Staff already exists");
+    if (staff)
+      throw new BadRequestException("Staff already exists in the business");
     await this.prisma.staff.create({
       data: {
         role: { connect: { id: roleId } },
         user: { connect: { id: userId } },
         business: { connect: { id: businessId } },
       },
+    });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { role },
     });
     return {
       message: "User invited successfully",
@@ -63,18 +84,20 @@ export class StaffsService {
     email,
     name,
     roleId,
+    role,
   }: {
     businessId: number;
     email: string;
     name: string;
     roleId: number;
+    role: GuardRoles;
   }) {
     const hashedPassword = bcrypt.hashSync(
       process.env.NEW_ADMIN_PASSWORD,
       bcrypt.genSaltSync(),
     );
     const user = await this.prisma.user.create({
-      data: { email, name, password: hashedPassword },
+      data: { email, name, password: hashedPassword, role },
     });
     await this.prisma.staff.create({
       data: {

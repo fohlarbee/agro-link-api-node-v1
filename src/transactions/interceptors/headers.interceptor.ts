@@ -18,6 +18,7 @@ export class PaystackAuthInterceptor implements NestInterceptor {
   ): Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest();
     const transactionPayload = JSON.stringify(request.body);
+    console.log(crypto)
     const hash = crypto
       .createHmac("sha512", process.env.PSK_SECRET_KEY)
       .update(transactionPayload)

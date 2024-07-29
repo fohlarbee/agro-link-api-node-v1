@@ -63,17 +63,14 @@ export class AdminOptionsController {
   @UseGuards(RoleGuard([Role.admin, Role.manager]))
   @UseInterceptors(parseFileInterceptor, FileUploadInterceptor)
   @ApiCreatedResponse()
-  async createOption(
-    @Req() request,
-    @Body() body: Record<string, any>,
-  ) {
+  async createOption(@Req() request, @Body() body: Record<string, any>) {
     const { name, price, type, imageURL: avatar } = body;
     const { business_id } = request.headers;
     return this.optionsService.createOption(
       name,
-     +price,
-     type,
-     avatar,
+      +price,
+      type,
+      avatar,
       +business_id,
     );
   }

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -49,9 +50,16 @@ export class BusinessService {
   // Admin methods
 
   async createBusiness(createData: CreateBusinessDto, creatorId: number) {
+
+   const staffExists = await this.prisma.staff.findFirst({
+      where:{userId:creatorId}
+    });
+    if(staffExists) throw new BadRequestException('You cant create a business if staff already exist');
+    
     const business = await this.prisma.business.create({
       data: { ...createData, creatorId },
     });
+  
 
     await this.prisma.staff.create({
       data: {

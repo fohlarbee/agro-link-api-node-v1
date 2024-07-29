@@ -17,23 +17,24 @@ export class OptionsService {
   ) {}
 
   async createOption(
-    name:string,
-    price:number,
-    type:any,
-    avatar:string,
-    businessId: number, ) {
- 
-   {
-    const business = await this.prisma.business.findUnique({
-      where: { id: businessId },
-    });
-    if (!business) throw new NotFoundException("Invalid business");
+    name: string,
+    price: number,
+    type: any,
+    avatar: string,
+    businessId: number,
+  ) {
+    {
+      const business = await this.prisma.business.findUnique({
+        where: { id: businessId },
+      });
+      if (!business) throw new NotFoundException("Invalid business");
 
-    await this.prisma.option.create({
-      data: { name, price, type ,businessId, image: avatar },
-    });
-    return { message: "Option successfully created", status: "success" };
-  }}
+      await this.prisma.option.create({
+        data: { name, price, type, businessId, image: avatar },
+      });
+      return { message: "Option successfully created", status: "success" };
+    }
+  }
 
   async findAll(businessId: number) {
     const business = await this.prisma.business.findUnique({
