@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { ClassSerializerInterceptor, ValidationPipe } from "@nestjs/common";
 import { PrismaClientExceptionFilter } from "./prisma-client-exception/prisma-client-exception.filter";
 import { PrismaClient } from "@prisma/client";
+import { PrismaService } from "./prisma/prisma.service";
 declare const module: any;
 
 async function bootstrap() {
@@ -28,6 +29,7 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("bankfieh/api-docs", app, document, { explorer: true });
+
 
   await app.listen(4000);
 

@@ -44,13 +44,13 @@ export class TransactionService {
       throw new BadRequestException("Order is not active");
     console.log(verificationResult.data.status);
 
-    if (verificationResult.data.status === "failed") {
+    if (verificationResult.data.status !== "success") {
       // Check that the payment was successful
       await this.prisma.order.update({
         where: { id: orderId },
         data: {
           status: OrderStatus.failed,
-          paidAt,
+          paidAt: new Date(0),
           completedAt,
           cancelledAt: null,
           payment: {
