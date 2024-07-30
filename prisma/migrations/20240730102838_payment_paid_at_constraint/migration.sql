@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Payment" ALTER COLUMN "paidAt" SET DEFAULT 1970-01-01T00:00:00.000Z;
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "role" SET DEFAULT 'customer';

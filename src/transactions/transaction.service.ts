@@ -5,6 +5,7 @@ import {
   Injectable,
 } from "@nestjs/common";
 import { OrderStatus } from "@prisma/client";
+import { connect } from "http2";
 import { PaystackService } from "src/paystack/paystack.service";
 import { PrismaService } from "src/prisma/prisma.service";
 
@@ -16,20 +17,18 @@ export class TransactionService {
   ) {}
   async processTransaction(reference: string) {
     const verificationResult = await this.paystack.verifyPayment(reference);
-    console.log("verifiation result", verificationResult);
+    // console.log(verificationResult);
 
     // Check that payment already exists
     const orderId = +verificationResult.data.metadata.orderId;
     const payment = await this.prisma.payment.findUnique({
       where: { reference, orderId: +verificationResult.data.metadata.orderId },
     });
-    console.log("Payment already exists", payment);
     if (payment) return { message: "Payment successful", status: "success" };
 
     // convert amount from minor
     const amount = +verificationResult.data.amount / 100;
     // Parse order id in metadata
-    console.log(orderId);
     // Retrieve payment time
     const paidAt = verificationResult.data.paid_at;
     const completedAt = verificationResult.data.transaction_date;
@@ -38,8 +37,14 @@ export class TransactionService {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
     });
+    if (!order) throw new BadRequestException("No such order");
+    console.log('order', order);
 
-    if (verificationResult.status != "success") {
+    if (order.status !== "active")
+      throw new BadRequestException("Order is not active");
+    console.log(verificationResult.data.status);
+
+    if (verificationResult.data.status === "failed") {
       // Check that the payment was successful
       await this.prisma.order.update({
         where: { id: orderId },
@@ -53,40 +58,35 @@ export class TransactionService {
               amount,
               paidAt,
               reference,
-              userId: order.customerId,
+              // userId: order.customerId,
+              user: {
+                connect: { id: order.customerId }, // Link to existing user
+              },
             },
           },
         },
       });
 
       throw new HttpException("Payment failed", HttpStatus.PAYMENT_REQUIRED);
-    }
-
-    // console.log('Heres the order', order);
-    console.log(orderId, paidAt, amount, reference, order.customerId);
-
-    if (!order) throw new BadRequestException("No such order");
-
-    if (order.status !== "active")
-      throw new BadRequestException("Order is not active");
-    const updatedOrder = await this.prisma.order.update({
-      where: { id: orderId },
-      data: {
-        status: OrderStatus.paid,
-        paidAt,
-        completedAt,
-        cancelledAt: null,
-        payment: {
-          create: {
-            amount,
-            paidAt,
-            reference,
-            userId: order.customerId,
+    } else if (verificationResult.data.status === "success") {
+      const updatedOrder = await this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.paid,
+          paidAt,
+          completedAt,
+          cancelledAt: null,
+          payment: {
+            create: {
+              amount,
+              paidAt,
+              reference,
+              userId: order.customerId,
+            },
           },
         },
-      },
-    });
-    console.log(updatedOrder);
-    return { message: "Payment successful", status: "success" };
+      });
+      return { message: "Payment successful", status: "success" };
+    } else throw new BadRequestException("Invalid payment reference");
   }
 }

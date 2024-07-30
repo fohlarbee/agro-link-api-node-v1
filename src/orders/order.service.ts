@@ -43,7 +43,7 @@ export class OrderService {
         customerId,
         businessId,
         tableIdentifier: createOrderDto.tableIdentifier,
-        tip: createOrderDto.tip
+        tip: createOrderDto.tip,
       });
 
     await Promise.all(
@@ -88,7 +88,7 @@ export class OrderService {
         assignedShifts: {
           where: {
             shift: {
-              startTime: { lte: new Date() },
+              // startTime: { lte: new Date() },
               endTime: { gt: new Date() },
             },
           },
@@ -96,7 +96,7 @@ export class OrderService {
         },
       },
     });
-
+    console.log(table);
     if (!table) throw new BadRequestException("Invalid table selected");
     if (table.assignedShifts.length < 1)
       throw new UnprocessableEntityException(
@@ -262,7 +262,11 @@ export class OrderService {
       }, 0);
       return total + totalPrice + order.tip;
     }, 0);
-    const payload = { email, amount: totalAmount, metadata: { customerId } };
+    const payload = {
+      email,
+      amount: totalAmount,
+      metadata: { customerId, orderId: currentOrders[0].id },
+    };
     const { paymentLink, reference } =
       provider == "FLW"
         ? await this.paystack.createPaymentLink(payload)

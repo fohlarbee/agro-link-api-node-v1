@@ -49,7 +49,6 @@ export class ShiftsController {
     @Req() request: Record<string, any>,
   ) {
     const { business_id } = request.headers;
-    console.log("running");
     return this.shiftsService.createShift(+business_id, createShiftDto);
   }
 

@@ -271,7 +271,7 @@ model Payment {
   id        Int      @id @default(autoincrement())
   amount    Float
   reference String   @unique
-  paidAt    DateTime
+  paidAt    DateTime @default(dbgenerated("1970-01-01T00:00:00.000Z"))
 
   // Relationships
   orderId Int   @unique

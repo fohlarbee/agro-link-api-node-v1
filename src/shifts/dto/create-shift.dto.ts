@@ -5,21 +5,18 @@ import {
   IsNotEmpty,
   IsNumber,
   IsPositive,
-  MinDate,
 } from "class-validator";
 
 export class CreateShiftDto {
   @IsNotEmpty()
   @Transform(({ value }) => new Date(value))
   @IsDate()
-  @MinDate(new Date())
   @ApiProperty({ required: true })
   startTime: Date;
 
   @IsNotEmpty()
   @Transform(({ value }) => new Date(value))
   @IsDate()
-  @MinDate(new Date())
   @ApiProperty({ required: true })
   endTime: Date;
 

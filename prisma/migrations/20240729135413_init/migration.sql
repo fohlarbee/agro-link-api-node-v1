@@ -255,3 +255,10 @@ ALTER TABLE "OrderOption" ADD CONSTRAINT "OrderOption_orderId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "OrderOption" ADD CONSTRAINT "OrderOption_optionId_fkey" FOREIGN KEY ("optionId") REFERENCES "Option"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+
+
+ALTER TABLE "Payment" ALTER COLUMN "paidAt" SET DEFAULT 1970-01-01T00:00:00.000Z;
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "role" SET DEFAULT 'customer';
