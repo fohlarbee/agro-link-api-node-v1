@@ -79,7 +79,7 @@ export class UsersService {
 
       if (
         order.amount !== existingOrder.payment.amount ||
-        order.paidAt !== existingOrder.paidAt ||
+        order.paidAt !== existingOrder.payment.paidAt ||
         order.createdAt !== existingOrder.createdAt
       ) {
         throw new BadRequestException(

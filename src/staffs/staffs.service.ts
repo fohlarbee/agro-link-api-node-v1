@@ -220,7 +220,7 @@ export class StaffsService {
         tip: true,
         table: true,
         status: true,
-        paidAt: true,
+        // paidAt: true,
         cancelledAt: true,
         completedAt: true,
         payment: true,
@@ -274,7 +274,7 @@ export class StaffsService {
       .reduce((acc, order) => acc + order.payment.amount, 0);
 
     const paidOrders = orders.filter(
-      (order) => order.waiter.userId === waiterId && order.paidAt !== null,
+      (order) => order.waiter.userId === waiterId && order.payment.paidAt !== null,
     ).length;
     const completedOrders = orders.filter(
       (order) => order.waiter.userId === waiterId && order.completedAt !== null,
@@ -409,7 +409,6 @@ export class StaffsService {
         tip: true,
         table: true,
         status: true,
-        paidAt: true,
         cancelledAt: true,
         completedAt: true,
         payment: true,
@@ -463,7 +462,7 @@ export class StaffsService {
 
     const paidOrders = orders.filter(
       (order) =>
-        order.kitchenStaff.userId === kitchenStaffId && order.paidAt !== null,
+        order.kitchenStaff.userId === kitchenStaffId && order.payment.paidAt !== null,
     ).length;
     const completedOrders = orders.filter(
       (order) =>

@@ -3,6 +3,7 @@
 
   - The values [queue,kitchen] on the enum `OrderStatus` will be removed. If these variants are still used in the database, this will fail.
   - You are about to drop the column `restaurantId` on the `Menu` table. All the data in the column will be lost.
+  - You are about to drop the column `paidAt` on the `Order` table. All the data in the column will be lost.
   - You are about to drop the column `restaurantId` on the `Order` table. All the data in the column will be lost.
   - You are about to drop the column `restaurantId` on the `Outlet` table. All the data in the column will be lost.
   - You are about to drop the column `restaurantId` on the `Role` table. All the data in the column will be lost.
@@ -22,7 +23,6 @@
   - Added the required column `businessId` to the `Role` table without a default value. This is not possible if the table is not empty.
   - Added the required column `businessId` to the `Shift` table without a default value. This is not possible if the table is not empty.
   - Added the required column `businessId` to the `Staff` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `role` to the `User` table without a default value. This is not possible if the table is not empty.
 
 */
 -- CreateEnum
@@ -102,7 +102,8 @@ ADD COLUMN     "businessId" INTEGER NOT NULL,
 ADD COLUMN     "type" "MenuType" NOT NULL DEFAULT 'starters';
 
 -- AlterTable
-ALTER TABLE "Order" DROP COLUMN "restaurantId",
+ALTER TABLE "Order" DROP COLUMN "paidAt",
+DROP COLUMN "restaurantId",
 ADD COLUMN     "businessId" INTEGER NOT NULL,
 ADD COLUMN     "cancelledBy" INTEGER DEFAULT 0,
 ADD COLUMN     "kitchenStaffId" INTEGER NOT NULL,
@@ -111,6 +112,9 @@ ADD COLUMN     "tip" DOUBLE PRECISION DEFAULT 0;
 -- AlterTable
 ALTER TABLE "Outlet" DROP COLUMN "restaurantId",
 ADD COLUMN     "businessId" INTEGER NOT NULL;
+
+-- AlterTable
+ALTER TABLE "Payment" ALTER COLUMN "paidAt" SET DEFAULT '1970-01-01 00:00:00 +00:00';
 
 -- AlterTable
 ALTER TABLE "Role" DROP COLUMN "restaurantId",
@@ -128,7 +132,7 @@ ADD CONSTRAINT "Staff_pkey" PRIMARY KEY ("userId", "businessId");
 
 -- AlterTable
 ALTER TABLE "User" ADD COLUMN     "avatar" TEXT,
-ADD COLUMN     "role" "GuardRoles" NOT NULL;
+ADD COLUMN     "role" "GuardRoles" NOT NULL DEFAULT 'customer';
 
 -- DropTable
 DROP TABLE "Meal";
@@ -255,10 +259,3 @@ ALTER TABLE "OrderOption" ADD CONSTRAINT "OrderOption_orderId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "OrderOption" ADD CONSTRAINT "OrderOption_optionId_fkey" FOREIGN KEY ("optionId") REFERENCES "Option"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
-
-
-ALTER TABLE "Payment" ALTER COLUMN "paidAt" SET DEFAULT 1970-01-01T00:00:00.000Z;
-
--- AlterTable
-ALTER TABLE "User" ALTER COLUMN "role" SET DEFAULT 'customer';

@@ -50,13 +50,11 @@ export class TransactionService {
         where: { id: orderId },
         data: {
           status: OrderStatus.failed,
-          paidAt: new Date(0),
           completedAt,
           cancelledAt: null,
           payment: {
             create: {
               amount,
-              paidAt,
               reference,
               // userId: order.customerId,
               user: {
@@ -73,7 +71,6 @@ export class TransactionService {
         where: { id: orderId },
         data: {
           status: OrderStatus.paid,
-          paidAt,
           completedAt,
           cancelledAt: null,
           payment: {

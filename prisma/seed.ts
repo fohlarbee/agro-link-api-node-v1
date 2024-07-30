@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
-import { GuardRoles, PrismaClient } from '@prisma/client';
+import { GuardRoles, MenuType, PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { count } from 'console';
 
@@ -526,6 +526,7 @@ const businesses =  [
     }
   ]
 
+
       const hashedUserData = users.map((user) => {
         return {
           ...user,
@@ -575,7 +576,106 @@ async function main() {
 
   await prisma.outlet.createMany({data:outlets});
   await prisma.table.createMany({data:tables});
+
+
+ const user = await prisma.user.create({
+    data:{
+      "name": "Fohlarbee",
+      "email": 'sammyola246@gmail.com',
+      "password":"Sammyola246@1",
+      "role":GuardRoles.admin,
+
+    }
+  })
+ const business = await prisma.business.create({data:{
+    "name": "Fohlarbee one",
+    "cacNumber": "RC999999",
+    "phoneNumber": "+2348161174630",
+    "email": "sammyola246@gmail.com",
+    // "creatorId": user.id,
+    "type":"restaurant",
+    creator:{connect:{id:user.id}}
+  }});
+
+  const outlet = await prisma.outlet.create({data:{address:'Fohlar', businessId:business.id}});
+
+  const businessOptions = [
+    {
+    "name": "option 1",
+    "price": 50000,
+    "image": "https://cdn.pixabay.com/photo/2023/10/05/11/47/sweet-potatoes-8295778_960_720.jpg",
+    "businessId": business.id
+  },
+  {
+    "name": "option 2",
+    "price": 100000,
+    "image": "https://cdn.pixabay.com/photo/2019/07/12/02/19/potatoes-4331742_960_720.jpg",
+    "businessId": business.id
+  },
+  {
+    "name": "option 3",
+    "price": 30000,
+    "image": "https://cdn.pixabay.com/photo/2015/05/04/10/16/vegetables-752153_960_720.jpg",
+    "businessId": business.id
+  }
+]
+
+
+  const option1 = await prisma.option.create({data:businessOptions[0]});
+  const option2 = await prisma.option.create({data:businessOptions[1]});
+  const option3 = await prisma.option.create({data:businessOptions[2]});
+
+
+
+  const menu1 = await prisma.menu.create({data:{name:'munu 1', type: MenuType.starters, businessId:business.id}})
+  const menu2 = await prisma.menu.create({data:{name:'munu 2', type: MenuType.lunch,  businessId:business.id}})
+  const menu3 = await prisma.menu.create({data:{name:'munu 3', type: MenuType.dinner,  businessId:business.id}})
+  const menu4 = await prisma.menu.create({data:{name:'munu 4', type: MenuType.mains,  businessId:business.id}})
+  const menu5 = await prisma.menu.create({data:{name:'munu 5', type: MenuType.breakfast,  businessId:business.id}})
+
+
+
+  const optionMenu1 = await prisma.menuOptions.create({data:{menuId:menu1.id, optionId: option1.id}}) 
+  const optionMenu2 = await prisma.menuOptions.create({data:{menuId:menu2.id, optionId: option2.id}}) 
+  const optionMenu3 = await prisma.menuOptions.create({data:{menuId:menu3.id, optionId: option3.id}}) 
+
+  const waiterRole = await prisma.role.create({data:{name:'waiter', businessId: business.id}})
+
+  const table1 = await prisma.table.create({data:{identifier:"Tablen", outletId: outlet.id}})
+  const table2 = await prisma.table.create({data:{identifier:"Tableb", outletId: outlet.id}});
+
+
+  const staff = await prisma.staff.create({
+    data:{businessId:business.id, roleId:waiterRole.id, userId:1}
+  });
+
+  const shift = await prisma.shift.create({
+    data:{
+        startTime:new Date(),
+        endTime: new Date(Date.now() + 7200000),
+        userId:1,
+        roleId: waiterRole.id,
+        outletId:outlet.id,
+        businessId:business.id
+        
+    }
+    
+  })
+  const assignTablesToShift1 = await prisma.shiftTables.create({
+    data:{
+      shiftId: shift.id,
+      tableId: table1.id
+    }
+  });
+  const assignTablesToShift2 = await prisma.shiftTables.create({
+    data:{
+      shiftId: shift.id,
+      tableId: table2.id
+    }
+  })
+
 }
+
 
 main()
   .catch((e) => {
