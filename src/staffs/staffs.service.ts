@@ -274,7 +274,8 @@ export class StaffsService {
       .reduce((acc, order) => acc + order.payment.amount, 0);
 
     const paidOrders = orders.filter(
-      (order) => order.waiter.userId === waiterId && order.payment.paidAt !== null,
+      (order) =>
+        order.waiter.userId === waiterId && order.payment.paidAt !== null,
     ).length;
     const completedOrders = orders.filter(
       (order) => order.waiter.userId === waiterId && order.completedAt !== null,
@@ -462,7 +463,8 @@ export class StaffsService {
 
     const paidOrders = orders.filter(
       (order) =>
-        order.kitchenStaff.userId === kitchenStaffId && order.payment.paidAt !== null,
+        order.kitchenStaff.userId === kitchenStaffId &&
+        order.payment.paidAt !== null,
     ).length;
     const completedOrders = orders.filter(
       (order) =>

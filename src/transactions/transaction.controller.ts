@@ -30,6 +30,8 @@ export class TransactionController {
       event,
       data: { status, reference },
     } = body;
+    console.log("webhook handler running", event);
+
     if (event != "charge.success")
       return { message: "Unsupported event", status: "error" };
     if (status != "success")

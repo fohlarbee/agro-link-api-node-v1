@@ -30,7 +30,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("bankfieh/api-docs", app, document, { explorer: true });
 
-
   await app.listen(4000);
 
   if (module.hot) {

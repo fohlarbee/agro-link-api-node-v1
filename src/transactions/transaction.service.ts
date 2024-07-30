@@ -38,7 +38,7 @@ export class TransactionService {
       where: { id: orderId },
     });
     if (!order) throw new BadRequestException("No such order");
-    console.log('order', order);
+    console.log("order", order);
 
     if (order.status !== "active")
       throw new BadRequestException("Order is not active");
