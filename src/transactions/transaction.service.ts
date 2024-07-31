@@ -17,7 +17,7 @@ export class TransactionService {
   ) {}
   async processTransaction(reference: string) {
     const verificationResult = await this.paystack.verifyPayment(reference);
-    // console.log(verificationResult);
+    // onResult);
 
     // Check that payment already exists
     const orderId = +verificationResult.data.metadata.orderId;
@@ -38,11 +38,9 @@ export class TransactionService {
       where: { id: orderId },
     });
     if (!order) throw new BadRequestException("No such order");
-    console.log("order", order);
 
     if (order.status !== "active")
       throw new BadRequestException("Order is not active");
-    console.log(verificationResult.data.status);
 
     if (verificationResult.data.status !== "success") {
       // Check that the payment was successful

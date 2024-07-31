@@ -18,22 +18,25 @@ import { MailModule } from "src/mail/mail.module";
 import { OtpModule } from "src/otp/otp.module";
 import { UsersModule } from "src/users/users.module";
 import { ScheduleModule } from "@nestjs/schedule";
-import { MonnifyModule } from "src/monnify/monnify.module";
 import { CacheModule } from "@nestjs/cache-manager";
+import { HttpModule } from "@nestjs/axios";
+import { CronService } from "src/cron/cron.service";
+import { CronModule } from "src/cron/cron.module";
 
 @Module({
   imports: [
+    HttpModule,
     ConfigModule.forRoot(),
     ScheduleModule.forRoot(),
     CacheModule.register({
       isGlobal: true,
       store: "memory",
     }),
+    MenuModule,
     PrismaModule,
     AuthModule,
     FilesUploadModule,
     OptionsModule,
-    MenuModule,
     OutletsModule,
     BusinessModule,
     RolesModule,
@@ -45,8 +48,9 @@ import { CacheModule } from "@nestjs/cache-manager";
     MailModule,
     OtpModule,
     UsersModule,
+    CronModule,
   ],
   controllers: [AppController],
-  providers: [],
+  // providers: [CronService],
 })
 export class AppModule {}

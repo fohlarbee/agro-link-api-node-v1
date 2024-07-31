@@ -28,7 +28,6 @@ export class AuthService {
       throw new UnauthorizedException("Invalid email or password");
     }
     let staff;
-    console.log(user);
     if (!user.role) {
       staff = await this.prisma.staff.findFirst({
         where: { userId: user.id },
@@ -44,7 +43,6 @@ export class AuthService {
         select: { businessId: true, role: true },
       });
     }
-    console.log(staff);
 
     const payload = { email: user.email, sub: user.id };
     return {

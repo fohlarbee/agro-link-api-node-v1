@@ -1,5 +1,4 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { GuardRoles } from "@prisma/client";
 import {
   IsEmail,
   IsEnum,
@@ -8,6 +7,7 @@ import {
   IsPositive,
   IsString,
 } from "class-validator";
+import { Role } from "src/auth/dto/auth.dto";
 
 export class _CreateStaffDto {
   @IsEmail()
@@ -39,7 +39,12 @@ export class CreateStaffDto {
   @ApiProperty({ required: true })
   name: string;
 
-  @IsEnum(GuardRoles)
+  // @IsEnum(GuardRoles)
+  // @ApiProperty({ required: true })
+  // role: GuardRoles;
+
+  @IsEnum(Role)
+  @IsString()
   @ApiProperty({ required: true })
-  role: GuardRoles;
+  role: Role;
 }

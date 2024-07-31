@@ -4,7 +4,6 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
-import { CreateOptionDto } from "./dto/create-option.dto";
 import { UpdateOptionDto } from "./dto/update-option.dto";
 import * as fs from "fs";
 import { FileUploadService } from "src/files/file-upload.service";

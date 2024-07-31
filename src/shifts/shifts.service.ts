@@ -81,7 +81,6 @@ export class ShiftsService {
     shiftId: number,
     tableIds: number[],
   ) {
-    console.log(shiftId, businessId);
     const shift = await this.prisma.shift.findFirst({
       where: { id: shiftId, businessId },
     });
@@ -103,7 +102,6 @@ export class ShiftsService {
     const createdShiftsTables = await this.prisma.shiftTables.createMany({
       data: tableIds.map((tableId) => ({ shiftId, tableId })),
     });
-    console.log(createdShiftsTables);
 
     return {
       message: "Tables assigned successfully",

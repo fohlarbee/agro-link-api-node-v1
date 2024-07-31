@@ -96,7 +96,6 @@ export class OrderService {
         },
       },
     });
-    console.log(table);
     if (!table) throw new BadRequestException("Invalid table selected");
     if (table.assignedShifts.length < 1)
       throw new UnprocessableEntityException(
@@ -247,7 +246,6 @@ export class OrderService {
         },
       },
     });
-    console.log(currentOrders);
     if (!currentOrders || currentOrders.length === 0)
       throw new BadRequestException(
         "You do not currently have any open orders",
