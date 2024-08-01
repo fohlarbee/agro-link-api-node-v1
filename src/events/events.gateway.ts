@@ -24,7 +24,6 @@ export class EventsGateway
   async afterInit() {
     this.logger.log("afterInit");
     if (this.server) {
-     
     }
   }
 

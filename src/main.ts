@@ -3,7 +3,6 @@ import { AppModule } from "./app/app.module";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { ClassSerializerInterceptor, ValidationPipe } from "@nestjs/common";
 import { PrismaClientExceptionFilter } from "./prisma-client-exception/prisma-client-exception.filter";
-import { PrismaClient } from "@prisma/client";
 import { PrismaService } from "./prisma/prisma.service";
 declare const module: any;
 
@@ -36,5 +35,19 @@ async function bootstrap() {
     module.hot.accept();
     module.hot.dispose(() => app.close());
   }
+
+  async function connectToDb() {
+    while (true) {
+      try {
+        await new PrismaService().$connect();
+        console.log("connected to db");
+        break;
+      } catch (e) {
+        console.log(`Error connecting to db: ${e}. Retrying in 5 seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+    }
+  }
+  connectToDb();
 }
 bootstrap();

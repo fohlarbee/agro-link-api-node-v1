@@ -20,8 +20,8 @@ import { UsersModule } from "src/users/users.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { CacheModule } from "@nestjs/cache-manager";
 import { HttpModule } from "@nestjs/axios";
-import { CronService } from "src/cron/cron.service";
 import { CronModule } from "src/cron/cron.module";
+import { SecretsModule } from "src/secrets/secrets.module";
 
 @Module({
   imports: [
@@ -49,6 +49,7 @@ import { CronModule } from "src/cron/cron.module";
     OtpModule,
     UsersModule,
     CronModule,
+    SecretsModule,
   ],
   controllers: [AppController],
   // providers: [CronService],

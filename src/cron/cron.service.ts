@@ -12,7 +12,6 @@ export class CronService {
       const response: any = await this.httpService.get(
         "https://quik-quik-api-node-v2.onrender.com/v2",
       );
-      console.log(response)
     } catch (error) {
       if (error instanceof Error) {
         console.log("Error:", error.message);
