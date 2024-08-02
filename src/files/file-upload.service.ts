@@ -24,7 +24,6 @@ export class FileUploadService {
       fs.unlinkSync(file.path);
       return uploadResult.secure_url;
     } catch (error) {
-      console.log("Cloudinary Upload error", error);
       throw new InternalServerErrorException(
         `Currently unable to upload image.`,
       );

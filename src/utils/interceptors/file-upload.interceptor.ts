@@ -39,7 +39,6 @@ export class FileUploadInterceptor implements NestInterceptor {
       request.body.imageURL = uploadResult?.secure_url;
       fs.unlinkSync(file.path);
     } catch (error) {
-      console.log("Cloudinary Upload error", error);
       throw new InternalServerErrorException(
         `Currently unable to upload image.`,
       );
