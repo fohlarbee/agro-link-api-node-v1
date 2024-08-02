@@ -12,9 +12,6 @@ export class AppController {
   @Get()
   @ApiOkResponse({ type: BaseResponse })
   async getBaseMessage(): Promise<BaseResponse | any> {
-    await this.secretService.getMhcpApiToken();
-    // await this.secretService.getSecrets()
-    await this.secretService.getSecret("PORT");
     return { message: BASE_MESSAGE, status: "success" };
   }
 }
