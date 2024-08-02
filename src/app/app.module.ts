@@ -22,6 +22,7 @@ import { CacheModule } from "@nestjs/cache-manager";
 import { HttpModule } from "@nestjs/axios";
 import { CronModule } from "src/cron/cron.module";
 import { SecretsModule } from "src/secrets/secrets.module";
+import { WalletsModule } from "src/wallets/wallets.module";
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { SecretsModule } from "src/secrets/secrets.module";
     UsersModule,
     CronModule,
     SecretsModule,
+    WalletsModule,
   ],
   controllers: [AppController],
   // providers: [CronService],

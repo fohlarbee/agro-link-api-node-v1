@@ -54,6 +54,8 @@ export class TransactionService {
             create: {
               amount,
               reference,
+              type: "ORDER_PAYMENT",
+
               // userId: order.customerId,
               user: {
                 connect: { id: order.customerId }, // Link to existing user
@@ -77,6 +79,7 @@ export class TransactionService {
               paidAt,
               reference,
               userId: order.customerId,
+              type: "ORDER_PAYMENT",
             },
           },
         },

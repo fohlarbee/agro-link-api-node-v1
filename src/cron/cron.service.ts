@@ -1,6 +1,6 @@
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { HttpService } from "@nestjs/axios";
-import { Injectable } from "@nestjs/common";
+import { Injectable, ServiceUnavailableException } from "@nestjs/common";
 
 @Injectable()
 export class CronService {
@@ -9,12 +9,10 @@ export class CronService {
   @Cron(CronExpression.EVERY_30_SECONDS)
   async callServer() {
     try {
-      const response: any = await this.httpService.get(
-        "https://quik-quik-api-node-v2.onrender.com/v2",
-      );
+      await this.httpService.get("http://localhost:4000/v2");
     } catch (error) {
       if (error instanceof Error) {
-        console.log("Error:", error.message);
+        throw new ServiceUnavailableException("Service not available");
       }
     }
     ``;

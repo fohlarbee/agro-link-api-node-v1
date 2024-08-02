@@ -39,10 +39,6 @@ export class CreateStaffDto {
   @ApiProperty({ required: true })
   name: string;
 
-  // @IsEnum(GuardRoles)
-  // @ApiProperty({ required: true })
-  // role: GuardRoles;
-
   @IsEnum(Role)
   @IsString()
   @ApiProperty({ required: true })
