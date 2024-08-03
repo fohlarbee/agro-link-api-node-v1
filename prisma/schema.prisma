@@ -27,6 +27,7 @@ enum PaymentType {
   DEPOSIT
   ORDER_PAYMENT
   REFUND
+  WALLET_TRANSFER
 }
 
 model User {
@@ -282,8 +283,8 @@ model Payment {
   type      PaymentType
 
   // Relationships
-  orderId Int   @unique
-  order   Order @relation(fields: [orderId], references: [id])
+  orderId Int?  @unique
+  order   Order? @relation(fields: [orderId], references: [id])
   userId  Int
 
   user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -305,7 +306,7 @@ model Otp {
 model Wallet {
   id       Int       @id @default(autoincrement())
   balance  Float
-  ownerId  Int       @unique
+  ownerId  Int    @unique
   owner    User      @relation(fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   payments Payment[]
   createdAt DateTime   @default(now())

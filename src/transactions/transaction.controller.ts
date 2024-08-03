@@ -3,6 +3,7 @@ import {
   Controller,
   Param,
   Post,
+  Put,
   UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
@@ -17,7 +18,7 @@ import { MonnifyAuthInterceptor } from "./interceptors/monnify-auth.interceptor"
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
-  @Post("/verify/:reference")
+  @Put("/verify/:reference")
   @ApiBearerAuth()
   @UseGuards(HttpAuthGuard)
   async verifyPayment(@Param("reference") reference: string) {
@@ -29,9 +30,26 @@ export class TransactionController {
   async webhookHandler(@Body() body) {
     const {
       event,
-      data: { status, reference },
+      data: { status, reference, metadata },
     } = body;
 
+    if (event != "charge.success")
+      return { message: "Unsupported event", status: "error" };
+    if (status != "success")
+      return { message: "Unsuccessful transaction", status: "error" };
+
+    if (metadata.type === PaymentType.DEPOSIT)
+      return this.transactionService.processWalletTransaction(reference);
+    return this.transactionService.processTransaction(reference);
+  }
+
+  @Post("/webhook/monnify")
+  @UseInterceptors(MonnifyAuthInterceptor)
+  async monnifyWebhookHandler(@Body() body) {
+    const {
+      event,
+      data: { status, reference },
+    } = body;
     if (event != "charge.success")
       return { message: "Unsupported event", status: "error" };
     if (status != "success")
