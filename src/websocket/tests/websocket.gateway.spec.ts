@@ -1,15 +1,15 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { EventsGateway } from "./events.gateway";
+import { WebsocketGateway } from "./websocket.gateway";
 
-describe("EventsGateway", () => {
-  let gateway: EventsGateway;
+describe("WebsocketGateway", () => {
+  let gateway: WebsocketGateway;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [EventsGateway],
+      providers: [WebsocketGateway],
     }).compile();
 
-    gateway = module.get<EventsGateway>(EventsGateway);
+    gateway = module.get<WebsocketGateway>(WebsocketGateway);
   });
 
   it("should be defined", () => {
