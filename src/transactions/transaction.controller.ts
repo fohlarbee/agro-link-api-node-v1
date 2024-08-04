@@ -1,9 +1,11 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Param,
   Post,
   Put,
+  Req,
   UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
@@ -22,8 +24,20 @@ export class TransactionController {
   @Put("/verify/:reference")
   @ApiBearerAuth()
   @UseGuards(HttpAuthGuard)
-  async verifyPayment(@Param("reference") reference: string) {
-    return this.transactionService.processTransaction(reference);
+  async verifyPayment(@Param("reference") reference: string, @Req() request) {
+    const type = request.headers["type"];
+    console.log("type", type);
+
+    if (!type) throw new BadRequestException("Type is required");
+
+    switch (type) {
+      case "OTV":
+        return this.transactionService.processTransaction(reference);
+      case "WTV":
+        return this.transactionService.processWalletTransaction(reference);
+      default:
+        throw new BadRequestException("Invalid type");
+    }
   }
 
   @Post("/webhook")
