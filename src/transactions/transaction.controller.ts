@@ -8,7 +8,7 @@ import {
 } from "@nestjs/common";
 import { TransactionService } from "./transaction.service";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { PaystackAuthInterceptor } from "./interceptors/paystack-auth.interceptor";
 import { MonnifyAuthInterceptor } from "./interceptors/monnify-auth.interceptor";
 
@@ -19,7 +19,7 @@ export class TransactionController {
 
   @Post("/verify/:reference")
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(HttpAuthGuard)
   async verifyPayment(@Param("reference") reference: string) {
     return this.transactionService.processTransaction(reference);
   }

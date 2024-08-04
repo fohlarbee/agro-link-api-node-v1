@@ -19,7 +19,7 @@ import {
 } from "@nestjs/swagger";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { StaffFetchResponse, StaffListResponse } from "./entities/staff.entity";
-import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 import RoleGuard from "src/auth/role/role.guard";
 import { Role } from "src/auth/dto/auth.dto";
@@ -27,7 +27,7 @@ import { Role } from "src/auth/dto/auth.dto";
 @Controller("admin/staffs")
 @ApiTags("Staffs")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(HttpAuthGuard)
 @ApiHeader({
   name: "business_id",
   required: true,

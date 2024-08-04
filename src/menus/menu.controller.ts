@@ -17,7 +17,7 @@ import {
   ApiOkResponse,
   ApiTags,
 } from "@nestjs/swagger";
-import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { CreateMenuDto } from "./dto/create-menu.dto";
 import { optionIdsDto } from "./dto/option-ids.dto";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
@@ -33,7 +33,7 @@ import { Role } from "src/auth/dto/auth.dto";
   description: "This is the business id",
 })
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(HttpAuthGuard)
 @UseInterceptors(BusinessAccessInterceptor)
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}

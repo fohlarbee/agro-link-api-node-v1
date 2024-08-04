@@ -20,7 +20,7 @@ import {
   ApiHeader,
   ApiTags,
 } from "@nestjs/swagger";
-import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 import { ValidPathParamInterceptor } from "src/utils/interceptors/valid-path-param.interceptor";
 import {
@@ -54,7 +54,7 @@ export class OptionsController {
   description: "This is the business id",
 })
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(HttpAuthGuard)
 @UseInterceptors(BusinessAccessInterceptor)
 export class AdminOptionsController {
   constructor(private readonly optionsService: OptionsService) {}
