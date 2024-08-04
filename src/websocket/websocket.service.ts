@@ -1,9 +1,9 @@
 import { WebsocketGateway } from "./websocket.gateway";
 
 export class WebsocketService {
-    constructor(private gateway: WebsocketGateway) {}
+  constructor(private gateway: WebsocketGateway) {}
 
-    notifyUser(userId: number, event: string, payload: any) {
-        return this.gateway.sendEvent(userId, event, payload);
-    }
+  notifyUser(userId: number, event: string, payload: any) {
+    return this.gateway.sendEvent(userId, event, payload);
+  }
 }
