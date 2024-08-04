@@ -22,7 +22,7 @@ import {
 } from "./entities/outlet.entity";
 import { CreateTableDto } from "./dto/create-table.dto";
 import { TableCreationResponse } from "./entities/table.entity";
-import { HttpAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 import RoleGuard from "src/auth/role/role.guard";
 import { Role } from "src/auth/dto/auth.dto";

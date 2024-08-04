@@ -11,7 +11,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { OrderService } from "./order.service";
-import { HttpAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { ApiAcceptedResponse, ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { ValidPathParamInterceptor } from "src/utils/interceptors/valid-path-param.interceptor";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";

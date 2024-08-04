@@ -8,7 +8,7 @@ import {
 } from "@nestjs/common";
 import { TransactionService } from "./transaction.service";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { HttpAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { PaystackAuthInterceptor } from "./interceptors/paystack-auth.interceptor";
 import { MonnifyAuthInterceptor } from "./interceptors/monnify-auth.interceptor";
 

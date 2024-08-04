@@ -23,7 +23,7 @@ import {
   ShiftListResponse,
 } from "./entities/shift.entity";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
-import { HttpAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 import { Role } from "src/auth/dto/auth.dto";
 import RoleGuard from "src/auth/role/role.guard";

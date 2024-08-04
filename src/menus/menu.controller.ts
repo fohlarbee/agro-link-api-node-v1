@@ -17,7 +17,7 @@ import {
   ApiOkResponse,
   ApiTags,
 } from "@nestjs/swagger";
-import { HttpAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { CreateMenuDto } from "./dto/create-menu.dto";
 import { optionIdsDto } from "./dto/option-ids.dto";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";

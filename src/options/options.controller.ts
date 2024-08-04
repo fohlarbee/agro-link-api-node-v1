@@ -20,7 +20,7 @@ import {
   ApiHeader,
   ApiTags,
 } from "@nestjs/swagger";
-import { HttpAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 import { ValidPathParamInterceptor } from "src/utils/interceptors/valid-path-param.interceptor";
 import {

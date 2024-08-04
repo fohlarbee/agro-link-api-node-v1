@@ -25,7 +25,7 @@ import {
 } from "./entities/business.entity";
 import { MenuService } from "src/menus/menu.service";
 import { OrderService } from "src/orders/order.service";
-import { HttpAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { Role } from "src/auth/dto/auth.dto";
 import RoleGuard from "src/auth/role/role.guard";
 
