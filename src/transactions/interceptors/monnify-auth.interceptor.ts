@@ -22,8 +22,7 @@ export class MonnifyAuthInterceptor implements NestInterceptor {
       .createHmac("sha512", process.env.MONNIFY_SECRET_KEY)
       .update(transactionPayload)
       .digest("hex");
-    if (hash != request.body.transactionHash)
-      throw new UnauthorizedException();
+    if (hash != request.body.transactionHash) throw new UnauthorizedException();
     return next.handle().pipe(
       catchError((error) => {
         throw error;

@@ -29,7 +29,6 @@ export class EventsGateway
 
   handleConnection(client: any, ...args: any[]) {
     const { sockets } = this.server.sockets;
-
     this.logger.log(`Client id: ${client.id} connected`);
     this.logger.debug(`Number of connected clients: ${sockets.size}`);
   }
