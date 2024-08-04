@@ -9,7 +9,8 @@ import {
 import { TransactionService } from "./transaction.service";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
-import { PaystackAuthInterceptor } from "./interceptors/headers.interceptor";
+import { PaystackAuthInterceptor } from "./interceptors/paystack-auth.interceptor";
+import { MonnifyAuthInterceptor } from "./interceptors/monnify-auth.interceptor";
 
 @Controller("transactions")
 @ApiTags("Transactions")
@@ -31,6 +32,20 @@ export class TransactionController {
       data: { status, reference },
     } = body;
 
+    if (event != "charge.success")
+      return { message: "Unsupported event", status: "error" };
+    if (status != "success")
+      return { message: "Unsuccessful transaction", status: "error" };
+    return this.transactionService.processTransaction(reference);
+  }
+
+  @Post("/webhook/monnify")
+  @UseInterceptors(MonnifyAuthInterceptor)
+  async monnifyWebhookHandler(@Body() body) {
+    const {
+      event,
+      data: { status, reference },
+    } = body;
     if (event != "charge.success")
       return { message: "Unsupported event", status: "error" };
     if (status != "success")
