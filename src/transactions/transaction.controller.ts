@@ -12,6 +12,7 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { PaystackAuthInterceptor } from "./interceptors/paystack-auth.interceptor";
 import { MonnifyAuthInterceptor } from "./interceptors/monnify-auth.interceptor";
+import { PaymentType } from "@prisma/client";
 
 @Controller("transactions")
 @ApiTags("Transactions")
@@ -43,19 +44,19 @@ export class TransactionController {
     return this.transactionService.processTransaction(reference);
   }
 
-  @Post("/webhook/monnify")
-  @UseInterceptors(MonnifyAuthInterceptor)
-  async monnifyWebhookHandler(@Body() body) {
-    const {
-      event,
-      data: { status, reference },
-    } = body;
-    if (event != "charge.success")
-      return { message: "Unsupported event", status: "error" };
-    if (status != "success")
-      return { message: "Unsuccessful transaction", status: "error" };
-    return this.transactionService.processTransaction(reference);
-  }
+  // @Post("/webhook/monnify")
+  // @UseInterceptors(MonnifyAuthInterceptor)
+  // async monnifyWebhookHandler(@Body() body) {
+  //   const {
+  //     event,
+  //     data: { status, reference },
+  //   } = body;
+  //   if (event != "charge.success")
+  //     return { message: "Unsupported event", status: "error" };
+  //   if (status != "success")
+  //     return { message: "Unsuccessful transaction", status: "error" };
+  //   return this.transactionService.processTransaction(reference);
+  // }
 
   @Post("/webhook/monnify")
   @UseInterceptors(MonnifyAuthInterceptor)
