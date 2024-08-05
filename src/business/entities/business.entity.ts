@@ -33,6 +33,9 @@ class BusinessEntity implements Business {
 
   @ApiProperty()
   creatorId: number;
+
+  @ApiProperty()
+  walletId: number;
 }
 
 export class BusinessCreationResponse extends BaseResponse {

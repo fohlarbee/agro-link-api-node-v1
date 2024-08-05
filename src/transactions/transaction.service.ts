@@ -115,7 +115,10 @@ export class TransactionService {
     const wallet = await this.prisma.wallet.findUnique({
       where: {
         id: walletId,
-        ownerId: +verificationResult.data.metadata.customerId,
+        OR: [
+          { userId: +verificationResult.data.metadata.customerId },
+          { businessId: +verificationResult.data.metadata.customerId },
+        ],
       },
     });
 

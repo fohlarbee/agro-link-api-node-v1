@@ -34,8 +34,8 @@ export class WalletsController {
   @Post("create")
   @ApiOkResponse({ type: BaseResponse })
   async createWallet(@Req() request: Record<string, any>) {
-    const { id: customerId } = request.user;
-    return await this.walletServive.create(+customerId);
+    const { id: userId } = request.user;
+    return await this.walletServive.create(userId);
   }
 
   @Post("fund")

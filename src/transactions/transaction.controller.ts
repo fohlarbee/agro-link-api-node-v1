@@ -58,7 +58,6 @@ export class TransactionController {
     return this.transactionService.processTransaction(reference);
   }
 
-
   @Post("/webhook/monnify")
   @UseInterceptors(MonnifyAuthInterceptor)
   async monnifyWebhookHandler(@Body() body) {

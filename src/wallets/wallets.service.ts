@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { PaystackService } from "src/paystack/paystack.service";
@@ -18,44 +19,54 @@ export class WalletsService {
     private paystack: PaystackService,
   ) {}
 
-  async create(customerId: number): Promise<any> {
-    const user = await this.usersService.profile(customerId);
-    if (!user) throw new UnauthorizedException("User not found");
+  async create(userId: number): Promise<any> {
+    const user = await this.usersService.profile(userId);
 
-    const existingWallet = await this.prisma.wallet.findFirst({
-      where: { ownerId: user.data.id },
+    if (!user) throw new NotFoundException("No such user found");
+
+    const business = await this.prisma.business.findFirst({
+      where: { creatorId: userId },
     });
-    if (existingWallet)
-      throw new ConflictException("User already has a wallet");
+
+    if (business) {
+      const businessHasWallet = await this.prisma.wallet.findFirst({
+        where: { businessId: business?.id },
+      });
+      if (!businessHasWallet)
+        await this.prisma.wallet.create({
+          data: { businessId: business?.id, balance: 0.0 },
+        });
+    }
+
+    const userHasWallet = await this.prisma.wallet.findFirst({
+      where: { userId },
+    });
+    if (userHasWallet) throw new ConflictException("User already has a wallet");
 
     await this.prisma.wallet.create({
-      data: {
-        ownerId: user.data.id,
-        balance: 0.0,
-      },
+      data: { userId, balance: 0.0 },
     });
 
     return {
-      message: "Wallet created successfully",
+      message: "wallet created successfully",
       status: "success",
     };
-  }
+  };
 
-  async addFunds(customerId: number, amount: number): Promise<any> {
-    const user = await this.usersService.profile(customerId);
+  async addFunds(walletId: number, amount: number): Promise<any> {
+    const user = await this.usersService.profile(id);
     if (!user) throw new UnauthorizedException("User not found");
 
     const wallet = await this.prisma.wallet.findFirst({
-      where: { ownerId: customerId },
+      where: { OR: [{ userId: id }, { businessId: id }] },
       select: { id: true, balance: true },
     });
-    if (!wallet)
-      throw new UnauthorizedException("No wallet for user " + customerId);
+    if (!wallet) throw new UnauthorizedException("No wallet for user " + id);
 
     const payload = {
       email: user.data.email,
       amount,
-      metadata: { customerId, walletId: wallet.id, type: PaymentType.DEPOSIT },
+      metadata: { ownerId: id, walletId: wallet.id, type: PaymentType.DEPOSIT },
     };
 
     const { paymentLink, reference } =
@@ -71,13 +82,14 @@ export class WalletsService {
     } as DepositInitiationResponse;
   }
 
-  async transactionHistory(customerId: number, walletId: number): Promise<any> {
+  async transactionHistory(id: number, walletId: number): Promise<any> {
     const transactions = await this.prisma.wallet.findUnique({
-      where: { id: walletId, ownerId: customerId },
+      where: { id: walletId, OR: [{ userId: id }, { businessId: id }] },
       select: {
         id: true,
         balance: true,
-        ownerId: true,
+        userId: true,
+        businessId: true,
         createdAt: true,
         payments: {
           select: {
@@ -101,7 +113,7 @@ export class WalletsService {
   }
 
   async payOrder(
-    customerId: number,
+    userId: number,
     walletId: number,
     orderId: number,
     businessId,
@@ -109,7 +121,7 @@ export class WalletsService {
     const currentOrder = await this.prisma.order.findUnique({
       where: {
         id: orderId,
-        customerId,
+        customerId: userId,
         businessId,
         status: OrderStatus.active,
       },
@@ -140,7 +152,7 @@ export class WalletsService {
       }, 0) + currentOrder.tip;
 
     const wallet = await this.prisma.wallet.findUnique({
-      where: { id: walletId, ownerId: customerId },
+      where: { id: walletId, OR: [{ userId }, { businessId: userId }] },
       select: { id: true, balance: true },
     });
     if (!wallet) throw new UnauthorizedException("Wallet not found");
@@ -155,9 +167,9 @@ export class WalletsService {
         payments: {
           create: {
             amount: totalAmount,
-            reference: `ORD-${currentOrder.id}${currentOrder.businessId}${customerId}`,
+            reference: `ORD-${currentOrder.id}${currentOrder.businessId}${userId}`,
             type: PaymentType.ORDER_PAYMENT,
-            userId: customerId,
+            userId,
             orderId: currentOrder.id,
           },
         },
@@ -179,9 +191,9 @@ export class WalletsService {
     };
   }
 
-  async getBalance(customerId: number): Promise<any> {
+  async getBalance(id: number): Promise<any> {
     const wallet = await this.prisma.wallet.findFirst({
-      where: { ownerId: customerId },
+      where: { OR: [{ userId: id }, { businessId: id }] },
       select: { balance: true },
     });
     if (!wallet) throw new UnauthorizedException("Wallet not found");
