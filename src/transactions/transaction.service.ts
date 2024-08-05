@@ -54,7 +54,7 @@ export class TransactionService {
             create: {
               amount,
               reference,
-              // userId: order.customerId,
+              type: "ORDER_PAYMENT",
               user: {
                 connect: { id: order.customerId }, // Link to existing user
               },
@@ -65,7 +65,7 @@ export class TransactionService {
 
       throw new HttpException("Payment failed", HttpStatus.PAYMENT_REQUIRED);
     } else if (verificationResult.data.status === "success") {
-      const updatedOrder = await this.prisma.order.update({
+      await this.prisma.order.update({
         where: { id: orderId },
         data: {
           status: OrderStatus.paid,
@@ -76,7 +76,10 @@ export class TransactionService {
               amount,
               paidAt,
               reference,
-              userId: order.customerId,
+              type: "ORDER_PAYMENT",
+              user: {
+                connect: { id: order.customerId },
+              },
             },
           },
         },

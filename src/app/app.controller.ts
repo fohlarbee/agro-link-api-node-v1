@@ -6,8 +6,6 @@ import { BaseResponse } from "./entities/BaseResponse.entity";
 @Controller()
 @ApiTags("/")
 export class AppController {
-  
-
   @Get()
   @ApiOkResponse({ type: BaseResponse })
   async getBaseMessage(): Promise<BaseResponse | any> {
