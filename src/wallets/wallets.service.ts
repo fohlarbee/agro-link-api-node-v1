@@ -57,10 +57,7 @@ export class WalletsService {
     const user = await this.usersService.profile(id);
     if (!user) throw new UnauthorizedException("User not found");
 
-    const wallet = await this.prisma.wallet.findFirst({
-      where: { OR: [{ userId: id }, { businessId: id }] },
-      select: { id: true, balance: true },
-    });
+   const wallet = await this.prisma.wallet.findUnique({where:{id:walletId}});
     if (!wallet) throw new UnauthorizedException("No wallet for user " + id);
 
     const payload = {
