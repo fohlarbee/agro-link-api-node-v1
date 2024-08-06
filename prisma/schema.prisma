@@ -29,16 +29,29 @@ enum PaymentType {
   WALLET_TRANSFER
 }
 
+enum PaymentType {
+  DEPOSIT
+  ORDER_PAYMENT
+  REFUND
+  WALLET_TRANSFER
+}
+
+enum OwnerType {
+  BUSINESS
+  CUSTOMER
+  WAITER
+  KITCHEN_STAFF
+}
+
 model User {
-  id        Int         @id @default(autoincrement())
-  email     String      @unique
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
   password  String
   name      String
   avatar    String?
-  role      GuardRoles   @default(customer)
-  // isCustomer Boolean   @default(false)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  role      GuardRoles @default(customer)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   // Relationships
   orders            Order[]
@@ -46,6 +59,7 @@ model User {
   businesses        Staff[]
   createdBusinesses Business[]
   shifts            Shift[]
+  wallet            Wallet?
 }
 
 model Business {
@@ -68,6 +82,7 @@ model Business {
   staffs    Staff[]
   outlets   Outlet[]
   shifts    Shift[]
+  wallet    Wallet?
 }
 
 model Role {
@@ -221,18 +236,18 @@ model Order {
   // paidAt      DateTime?
   completedAt DateTime?
   cancelledAt DateTime?
-  
-  cancelledBy Int?        @default(0)
+
+  cancelledBy Int?     @default(0)
   // Relationships
   customerId  Int
-  customer    User        @relation(fields: [customerId], references: [id])
+  customer    User     @relation(fields: [customerId], references: [id])
   businessId  Int
-  business    Business    @relation(fields: [businessId], references: [id])
+  business    Business @relation(fields: [businessId], references: [id])
   payment     Payment?
   tableId     Int
-  table       Table       @relation(fields: [tableId], references: [id])
+  table       Table    @relation(fields: [tableId], references: [id])
   shiftId     Int
-  shift       Shift       @relation(fields: [shiftId], references: [id])
+  shift       Shift    @relation(fields: [shiftId], references: [id])
   // waiterId   Int
   // waiter     Staff         @relation(fields: [waiterId, businessId], references: [userId, businessId])
 
@@ -244,14 +259,14 @@ model Order {
 }
 
 enum OrderStatus {
-  active  //The order has been placed by the customer but is yet to be processed by the business.
-  paid    //indicates successful payment
-  failed   //means the payment was unsuccessful.
-  preparing   //The business has accepted the order and is currently preparing the food.
-  rejected    //The business has declined the order, possibly due to being too busy, out of stock items, or other reasons.
-  cancelled   //The order has been canceled by either the customer or the business.
-  ready       //The food is prepared and ready for pickup or delivery.
-  completed   //The order has been delivered to the customer or picked up by the customer.
+  active //The order has been placed by the customer but is yet to be processed by the business.
+  paid //indicates successful payment
+  failed //means the payment was unsuccessful.
+  preparing //The business has accepted the order and is currently preparing the food.
+  rejected //The business has declined the order, possibly due to being too busy, out of stock items, or other reasons.
+  cancelled //The order has been canceled by either the customer or the business.
+  ready //The food is prepared and ready for pickup or delivery.
+  completed //The order has been delivered to the customer or picked up by the customer.
 }
 
 enum BusinessType {
@@ -273,17 +288,26 @@ model OrderOption {
 }
 
 model Payment {
-  id        Int      @id @default(autoincrement())
+  id        Int         @id @default(autoincrement())
   amount    Float
+<<<<<<< HEAD
   reference String   @unique
   type      PaymentType
   paidAt    DateTime @default("1970-01-01T00:00:00.000Z")
+=======
+  reference String      @unique
+  paidAt    DateTime    @default("1970-01-01T00:00:00.000Z")
+  type      PaymentType
+>>>>>>> 4554a7faa26455a1fc9fe18096663467b3001312
 
   // Relationships
-  orderId Int   @unique
-  order   Order @relation(fields: [orderId], references: [id])
+  orderId Int?   @unique
+  order   Order? @relation(fields: [orderId], references: [id])
   userId  Int
-  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletId Int?
+  wallet   Wallet? @relation(fields: [walletId], references: [id])
 }
 
 model Otp {
@@ -295,4 +319,21 @@ model Otp {
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model Wallet {
+  id         Int       @id @default(autoincrement())
+  balance    Float
+  userId     Int?      @unique
+  businessId Int?      @unique
+  // ownerType  OwnerType
+  payments   Payment[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  //Relationships
+  user     User?     @relation(fields: [userId], references: [id])
+  business Business? @relation(fields: [businessId], references: [id])
+
+  @@unique([userId, businessId])
 }

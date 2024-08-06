@@ -19,7 +19,7 @@ import {
 } from "@nestjs/swagger";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { StaffFetchResponse, StaffListResponse } from "./entities/staff.entity";
-import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 import RoleGuard from "src/auth/role/role.guard";
 import { Role } from "src/auth/dto/auth.dto";
@@ -27,7 +27,7 @@ import { Role } from "src/auth/dto/auth.dto";
 @Controller("admin/staffs")
 @ApiTags("Staffs")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(HttpAuthGuard)
 @ApiHeader({
   name: "business_id",
   required: true,
@@ -116,6 +116,14 @@ export class StaffsController {
   ) {
     const { business_id } = request.headers;
     return this.staffsService.kitchenStaffAnalytics(+id, +business_id, sortBy);
+  }
+
+  @Get("waiter/:id")
+  getWaiter(@Param("id") id: string, @Req() request) {
+    const { business_id } = request.headers;
+    const { id: userId } = request.user;
+
+    return this.staffsService.getWaiter(+userId, +business_id);
   }
 
   // @Patch(':id')

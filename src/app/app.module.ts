@@ -13,7 +13,6 @@ import { StaffsModule } from "src/staffs/staffs.module";
 import { RolesModule } from "src/roles/roles.module";
 import { OutletsModule } from "src/outlets/outlets.module";
 import { OptionsModule } from "src/options/options.module";
-import { EventsGatewayModule } from "src/events/events.module";
 import { MailModule } from "src/mail/mail.module";
 import { OtpModule } from "src/otp/otp.module";
 import { UsersModule } from "src/users/users.module";
@@ -22,6 +21,8 @@ import { CacheModule } from "@nestjs/cache-manager";
 import { HttpModule } from "@nestjs/axios";
 import { CronModule } from "src/cron/cron.module";
 import { SecretsModule } from "src/secrets/secrets.module";
+import { WalletsModule } from "src/wallets/wallets.module";
+import { WebsocketModule } from "src/websocket/websocket.module";
 
 @Module({
   imports: [
@@ -44,12 +45,13 @@ import { SecretsModule } from "src/secrets/secrets.module";
     ShiftsModule,
     StaffsModule,
     TransactionModule,
-    EventsGatewayModule,
     MailModule,
     OtpModule,
     UsersModule,
     CronModule,
     SecretsModule,
+    WalletsModule,
+    WebsocketModule,
   ],
   controllers: [AppController],
   // providers: [CronService],

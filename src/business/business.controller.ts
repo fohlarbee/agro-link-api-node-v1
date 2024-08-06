@@ -25,7 +25,7 @@ import {
 } from "./entities/business.entity";
 import { MenuService } from "src/menus/menu.service";
 import { OrderService } from "src/orders/order.service";
-import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { Role } from "src/auth/dto/auth.dto";
 import RoleGuard from "src/auth/role/role.guard";
 
@@ -55,7 +55,7 @@ export class ClientBusinessController {
 
   @Post(":id/orders")
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(HttpAuthGuard)
   createOrder(
     @Param("id") businessId: number,
     @Body() createOrderDto: any,
@@ -73,7 +73,7 @@ export class ClientBusinessController {
 @Controller("admin/businesses")
 @ApiTags("Business (Admin)")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(HttpAuthGuard)
 // @Roles(Role.admin)
 export class AdminBusinessController {
   constructor(private readonly businessService: BusinessService) {}
@@ -83,6 +83,7 @@ export class AdminBusinessController {
   @ApiCreatedResponse({ type: BusinessCreationResponse })
   createBusiness(@Body() createBusinessDto: CreateBusinessDto, @Req() request) {
     const { id: creatorId } = request.user;
+    console.log(request.user.role);
     return this.businessService.createBusiness(createBusinessDto, +creatorId);
   }
 

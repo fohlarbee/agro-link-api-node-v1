@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { catchError } from "rxjs/operators";
-import { createHmac } from "crypto";
+import crypto from "crypto";
 
 @Injectable()
 export class PaystackAuthInterceptor implements NestInterceptor {
@@ -18,7 +18,8 @@ export class PaystackAuthInterceptor implements NestInterceptor {
   ): Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest();
     const transactionPayload = JSON.stringify(request.body);
-    const hash = createHmac("sha512", process.env.PSK_SECRET_KEY)
+    const hash = crypto
+      .createHmac("sha512", process.env.PSK_SECRET_KEY)
       .update(transactionPayload)
       .digest("hex");
     if (hash != request.headers["x-paystack-signature"])

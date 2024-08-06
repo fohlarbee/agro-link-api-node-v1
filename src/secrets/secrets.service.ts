@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  UnprocessableEntityException,
+} from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 
 @Injectable()
@@ -37,7 +41,7 @@ export class SecretsService {
       return res.data.access_token;
     } catch (error) {
       if (error instanceof Error) {
-        console.log(error.message);
+        throw new UnprocessableEntityException("Auth token retrieval error");
       }
     }
   }
@@ -69,7 +73,6 @@ export class SecretsService {
       const token = await this.getMhcpApiToken();
       const secret = await this.getSecretApi(token, name);
 
-      console.log(secret);
       return secret;
     } catch (error) {
       throw new BadRequestException("Invalid API token");

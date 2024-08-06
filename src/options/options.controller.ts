@@ -9,10 +9,8 @@ import {
   Put,
   UseGuards,
   UseInterceptors,
-  UploadedFile,
 } from "@nestjs/common";
 import { OptionsService } from "./options.service";
-import { CreateOptionDto } from "./dto/create-option.dto";
 import { UpdateOptionDto } from "./dto/update-option.dto";
 import {
   ApiBearerAuth,
@@ -20,7 +18,7 @@ import {
   ApiHeader,
   ApiTags,
 } from "@nestjs/swagger";
-import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 import { ValidPathParamInterceptor } from "src/utils/interceptors/valid-path-param.interceptor";
 import {
@@ -54,7 +52,7 @@ export class OptionsController {
   description: "This is the business id",
 })
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(HttpAuthGuard)
 @UseInterceptors(BusinessAccessInterceptor)
 export class AdminOptionsController {
   constructor(private readonly optionsService: OptionsService) {}

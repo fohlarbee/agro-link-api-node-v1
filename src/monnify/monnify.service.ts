@@ -83,7 +83,7 @@ export class MonnifyService {
     }
   }
 
-  async fetchTransaction(reference) {
+  async fetchTransaction(reference: string) {
     try {
       const accessToken = await this.getAccessToken();
       const response = await axios.get(

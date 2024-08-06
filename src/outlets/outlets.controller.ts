@@ -22,14 +22,14 @@ import {
 } from "./entities/outlet.entity";
 import { CreateTableDto } from "./dto/create-table.dto";
 import { TableCreationResponse } from "./entities/table.entity";
-import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 import RoleGuard from "src/auth/role/role.guard";
 import { Role } from "src/auth/dto/auth.dto";
 @Controller("admin/outlets")
 @ApiTags("Outlets")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(HttpAuthGuard)
 @ApiHeader({
   name: "business_id",
   required: true,
