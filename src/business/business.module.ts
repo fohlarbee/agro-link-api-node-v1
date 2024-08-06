@@ -9,11 +9,7 @@ import { OrderModule } from "src/orders/order.module";
 import { PrismaModule } from "src/prisma/prisma.module";
 
 @Module({
-  imports: [
-    MenuModule,
-    OrderModule,
-    PrismaModule
-  ],
+  imports: [MenuModule, OrderModule, PrismaModule],
   controllers: [ClientBusinessController, AdminBusinessController],
   providers: [BusinessService],
 })

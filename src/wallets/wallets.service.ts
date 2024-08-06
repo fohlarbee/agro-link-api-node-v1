@@ -52,7 +52,11 @@ export class WalletsService {
     };
   }
 
-  async addFunds(userId: number, amount: number, provider: string): Promise<any> {
+  async addFunds(
+    userId: number,
+    amount: number,
+    provider: string,
+  ): Promise<any> {
     if (!["PSK", "MNF"].includes(provider))
       throw new BadRequestException(
         `Invalid payment provider code: "${provider}"`,

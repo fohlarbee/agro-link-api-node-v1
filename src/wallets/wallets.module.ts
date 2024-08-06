@@ -5,12 +5,9 @@ import { TransactionModule } from "src/transactions/transaction.module";
 import { PrismaModule } from "src/prisma/prisma.module";
 
 @Module({
-  imports: [
-    PrismaModule,
-    TransactionModule
-  ],
+  imports: [PrismaModule, TransactionModule],
   controllers: [WalletsController],
   providers: [WalletsService],
-  exports: [WalletsService]
+  exports: [WalletsService],
 })
 export class WalletsModule {}

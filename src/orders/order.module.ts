@@ -7,13 +7,9 @@ import { PrismaModule } from "src/prisma/prisma.module";
 import { WalletsModule } from "src/wallets/wallets.module";
 
 @Module({
-  imports: [
-    PrismaModule,
-    TransactionModule,
-    WalletsModule,
-  ],
+  imports: [PrismaModule, TransactionModule, WalletsModule],
   controllers: [OrderController, AdminOrderController],
   providers: [OrderService],
-  exports: [OrderService]
+  exports: [OrderService],
 })
 export class OrderModule {}

@@ -12,7 +12,7 @@ import { PrismaModule } from "src/prisma/prisma.module";
         signOptions: { expiresIn: process.env.JWT_DURATION },
       }),
     }),
-    PrismaModule
+    PrismaModule,
   ],
   providers: [WebsocketGateway, WebsocketService],
   exports: [WebsocketService],
