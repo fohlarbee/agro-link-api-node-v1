@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
 import { WalletsService } from "./wallets.service";
 import {
   ApiBearerAuth,
@@ -33,25 +41,22 @@ export class WalletsController {
   @Post("fund")
   @ApiOkResponse({ type: DepositInitiationResponse })
   async addFunds(
+    @Query("paymentProvider") provider: string,
     @Req() request: Record<string, any>,
     @Body() { amount }: FundWalletDto,
   ) {
     const { id: userId } = request.user;
-    return await this.walletService.addFunds(+userId, amount);
+    return await this.walletService.addFunds(
+      +userId,
+      amount,
+      provider.toUpperCase(),
+    );
   }
 
   @Get("transactions")
   async getTransactions(@Req() request) {
     const { id: userId } = request.user;
     return this.walletService.transactionHistory(+userId);
-  }
-  @Post("pay")
-  @ApiOkResponse({ type: BaseResponse })
-  async payOrder(@Req() request, @Body() body: Record<string, any>) {
-    const { id: customerId } = request.user;
-    const { orderId } = body;
-    const { business_id } = request.headers;
-    return this.walletService.payOrder(+customerId, +orderId, +business_id);
   }
 
   @Get("balance")

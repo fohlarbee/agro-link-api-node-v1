@@ -14,6 +14,7 @@ type TransactionPayload = {
   reference: string;
   providerId: string;
   customerId: number;
+  businessId?: number;
   type: PaymentType;
   amount: number;
   paidAt: Date;
@@ -34,13 +35,14 @@ export class TransactionService {
       paid_at,
       amount,
       status,
-      metadata: { customerId, type },
+      metadata: { customerId, type, businessId },
     } = verificationResult.data;
     if (status !== "success")
       throw new HttpException("Payment failed", HttpStatus.PAYMENT_REQUIRED);
     return this.processTransaction({
       reference,
       customerId: +customerId,
+      businessId: +businessId || businessId,
       type: type ?? PaymentType.ORDER_PAYMENT,
       amount: +amount / 100,
       paidAt: new Date(paid_at),
@@ -106,6 +108,7 @@ export class TransactionService {
   private async processOrderPayment({
     reference,
     customerId,
+    businessId,
     type,
     amount,
     paidAt,
@@ -113,7 +116,7 @@ export class TransactionService {
     providerId,
   }: TransactionPayload) {
     const orders = await this.prisma.order.findMany({
-      where: { customerId, status: "active" },
+      where: { customerId, businessId, status: "active" },
       select: {
         id: true,
         businessId: true,
@@ -182,7 +185,7 @@ export class TransactionService {
       paymentStatus,
       paymentReference,
       transactionReference,
-      metaData: { customerId, type },
+      metaData: { customerId, type, businessId },
     } = verificationResult.data;
     if (paymentStatus !== "PAID")
       throw new HttpException("Payment failed", HttpStatus.PAYMENT_REQUIRED);
@@ -190,6 +193,7 @@ export class TransactionService {
       reference: paymentReference,
       providerId: transactionReference,
       customerId: +customerId,
+      businessId: +businessId || businessId,
       type: type ?? PaymentType.ORDER_PAYMENT,
       amount: +amountPaid,
       paidAt: new Date(paidOn),
@@ -197,60 +201,16 @@ export class TransactionService {
     });
   }
 
-  // async processWalletTransaction(reference: string): Promise<any> {
-  //   console.log("reference", reference);
-  //   const verificationResult = await this.paystack.verifyPayment(reference);
-  //   console.log(verificationResult);
-
-  //   // Check that payment already exists
-  //   const payment = await this.prisma.payment.findUnique({
-  //     where: {
-  //       reference,
-  //       walletId: +verificationResult.data.metadata.walletId,
-  //       type: PaymentType.DEPOSIT,
-  //       userId: +verificationResult.data.metadata.ownerId,
-  //     },
-  //   });
-  //   if (payment) return { message: "Payment successful", status: "success" };
-
-  //   const amount = +verificationResult.data.amount / 100;
-  //   const paidAt = verificationResult.data.paid_at;
-
-  //   const walletId = +verificationResult.data.metadata.walletId;
-  //   console.log("walletId", walletId);
-
-  //   const wallet = await this.prisma.wallet.findUnique({
-  //     where: {
-  //       id: walletId,
-  //       OR: [
-  //         { userId: +verificationResult.data.metadata.ownerId },
-  //         { businessId: +verificationResult.data.metadata.ownerId },
-  //       ],
-  //     },
-  //   });
-
-  //   if (!wallet) throw new BadRequestException(`Wallet not found`);
-
-  //   if (verificationResult.data.status === "success") {
-  //     await this.prisma.wallet.update({
-  //       where: { id: walletId },
-  //       data: {
-  //         balance: wallet.balance + amount,
-  //         payments: {
-  //           create: {
-  //             amount,
-  //             paidAt,
-  //             reference,
-  //             userId: +verificationResult.data.metadata.ownerId,
-  //             type: "DEPOSIT",
-  //           },
-  //         },
-  //       },
-  //     });
-
-  //     return { message: "Deposit successful", status: "success" };
-  //   }
-
-  //   return { message: "Deposit Failed", status: "failed" };
-  // }
+  async createTransactionLink(
+    provider: string,
+    payload: {
+      email: string;
+      amount: number;
+      metadata: Record<string, any>;
+    },
+  ) {
+    if (provider === "PSK") return this.paystack.createPaymentLink(payload);
+    else if (provider === "MNF") return this.monnify.createPaymentLink(payload);
+    else return { paymentLink: "MONO_LINK", reference: "MONO_REF" };
+  }
 }

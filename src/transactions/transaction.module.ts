@@ -1,19 +1,18 @@
 import { Module } from "@nestjs/common";
 import { TransactionService } from "./transaction.service";
 import { TransactionController } from "./transaction.controller";
-import { PaystackService } from "src/paystack/paystack.service";
-import { PrismaService } from "src/prisma/prisma.service";
-import { MonnifyService } from "src/monnify/monnify.service";
-import { CacheService } from "src/utils/services/cache.service";
+import { MonnifyModule } from "src/monnify/monnify.module";
+import { PaystackModule } from "src/paystack/paystack.module";
+import { PrismaModule } from "src/prisma/prisma.module";
 
 @Module({
-  controllers: [TransactionController],
-  providers: [
-    CacheService,
-    MonnifyService,
-    PaystackService,
-    PrismaService,
-    TransactionService
+  imports: [
+    MonnifyModule,
+    PaystackModule,
+    PrismaModule
   ],
+  controllers: [TransactionController],
+  providers: [TransactionService],
+  exports: [TransactionService]
 })
 export class TransactionModule {}

@@ -25,12 +25,11 @@ export class TransactionController {
   @ApiBearerAuth()
   @UseGuards(HttpAuthGuard)
   async verifyPayment(@Param("reference") reference: string, @Req() request) {
-    const type = request.headers["provider"];
-    console.log("type", type);
+    const provider = request.headers["provider"];
 
-    if (!type) throw new BadRequestException("Type is required");
+    if (!provider) throw new BadRequestException("provider is required");
 
-    switch (type) {
+    switch (provider) {
       case "PSK":
         return this.transactionService.handleMonnifyTransaction(reference);
       case "MNF":

@@ -2,24 +2,24 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  NotFoundException
+  NotFoundException,
 } from "@nestjs/common";
-import { PaystackService } from "src/paystack/paystack.service";
 import { PrismaService } from "src/prisma/prisma.service";
-import { UsersService } from "src/users/users.service";
 import { DepositInitiationResponse } from "./entities/wallets.entity";
-import { OrderStatus, PaymentProvider, PaymentType } from "@prisma/client";
+import { PaymentProvider, PaymentType } from "@prisma/client";
+import { TransactionService } from "src/transactions/transaction.service";
 
 @Injectable()
 export class WalletsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly usersService: UsersService,
-    private paystack: PaystackService,
+    private transactionService: TransactionService,
   ) {}
 
   async create(userId: number): Promise<any> {
-    const user = await this.usersService.profile(userId);
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
 
     if (!user) throw new NotFoundException("No such user found");
 
@@ -52,7 +52,11 @@ export class WalletsService {
     };
   }
 
-  async addFunds(userId: number, amount: number): Promise<any> {
+  async addFunds(userId: number, amount: number, provider: string): Promise<any> {
+    if (!["PSK", "MNF"].includes(provider))
+      throw new BadRequestException(
+        `Invalid payment provider code: "${provider}"`,
+      );
     let wallet = await this.prisma.wallet.findUnique({
       where: { userId },
       select: {
@@ -60,6 +64,7 @@ export class WalletsService {
         user: { select: { email: true } },
       },
     });
+
     if (!wallet)
       wallet = await this.prisma.wallet.create({
         data: { balance: 0, userId },
@@ -79,7 +84,7 @@ export class WalletsService {
     };
 
     const { paymentLink, reference } =
-      await this.paystack.createPaymentLink(payload);
+      await this.transactionService.createTransactionLink(provider, payload);
 
     return {
       message: "Deposit initiation successful",
@@ -122,33 +127,11 @@ export class WalletsService {
     };
   }
 
-  async payOrder(userId: number, orderId: number, businessId): Promise<any> {
-    const currentOrder = await this.prisma.order.findUnique({
-      where: {
-        id: orderId,
-        customerId: userId,
-        businessId,
-        status: OrderStatus.active,
-      },
-      select: {
-        id: true,
-        tip: true,
-        businessId: true,
-        options: {
-          select: {
-            quantity: true,
-            option: { select: { price: true } },
-          },
-        },
-      },
-    });
-    if (!currentOrder)
-      throw new BadRequestException("No active order found for this customer");
-    const totalAmount =
-      currentOrder.options.reduce((total, option) => {
-        return total + option.quantity * option.option.price;
-      }, 0) + currentOrder.tip;
-
+  async chargeWallet(
+    userId: number,
+    amount: number,
+    type: PaymentType = PaymentType.ORDER_PAYMENT,
+  ) {
     const wallet = await this.prisma.wallet.findUnique({
       where: { userId },
       select: { id: true, balance: true },
@@ -158,37 +141,30 @@ export class WalletsService {
         data: { balance: 0, userId },
       });
 
-    if (wallet.balance < totalAmount)
+    if (wallet.balance < amount)
       throw new BadRequestException("Insufficient funds");
 
     await this.prisma.wallet.update({
       where: { id: wallet.id },
       data: {
-        balance: { decrement: totalAmount },
+        balance: { decrement: amount },
       },
     });
     const payment = await this.prisma.payment.create({
       data: {
-        amount: totalAmount,
+        amount,
         reference: `QQ_${Date.now}`,
-        type: PaymentType.ORDER_PAYMENT,
+        type,
         userId,
         provider: PaymentProvider.QQ_WALLET,
         providerId: `QQ|${wallet.id}|${userId}|${Date.now()}`,
       },
     });
 
-    await this.prisma.order.update({
-      where: { id: orderId },
-      data: {
-        status: OrderStatus.paid,
-        paymentId: payment.id,
-      },
-    });
-
     return {
-      message: "Order paid for successfully",
+      message: "Wallet charged successfully",
       status: "success",
+      data: { payment },
     };
   }
 
