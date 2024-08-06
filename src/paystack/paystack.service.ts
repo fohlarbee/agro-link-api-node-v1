@@ -25,7 +25,7 @@ export class PaystackService {
           currency: "NGN",
           metadata,
           email,
-          callback_url: process.env.PAYMENT_REDIRECT_URL,
+          callback_url: process.env.PAYMENT_REDIRECT_URL + "PSK",
         },
         { headers: { Authorization: `Bearer ${process.env.PSK_SECRET_KEY}` } },
       );
