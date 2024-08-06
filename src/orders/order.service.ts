@@ -263,7 +263,7 @@ export class OrderService {
     const payload = {
       email,
       amount: totalAmount,
-      metadata: { customerId, orderId: currentOrders[0].id },
+      metadata: { customerId },
     };
     const { paymentLink, reference } =
       provider == "FLW"

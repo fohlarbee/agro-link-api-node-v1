@@ -497,34 +497,34 @@ export class StaffsService {
     const salesGrowthRate =
       ((totalSales - previousPeriodSales) / previousPeriodSales) * 100;
 
-    return {
-      // orders,
-      timeFrame: sortBy,
-      date: endDate.toISOString(),
-      businessId: businessId,
-      currency: "NGN",
-      kitchenStaff_performance: {
-        kitchenStaffId,
-        orders_taken: ordersTaken,
-        total_payment_amount: totalPaymentAmount,
-        average_order_value: averageOrderValue,
-        tables_served: numTables,
-      },
-      kichenStaff_sales_performance: {
-        total_sales: totalSales,
-        sales_growth_rate: salesGrowthRate,
-      },
-      orders: {
-        count: ordersTaken,
-        total_revenue: totalRevenue,
-        average_order_value: averageOrderValue,
-        by_status: {
-          paidAt: paidOrders,
-          completed: completedOrders,
-          cancelled: cancelledOrders,
+      return {
+        // orders,
+        timeFrame: sortBy,
+        date: endDate.toISOString(),
+        businessId: businessId,
+        currency: "NGN",
+        kitchenStaff_performance: {
+          kitchenStaffId,
+          orders_taken: ordersTaken,
+          total_payment_amount: totalPaymentAmount,
+          average_order_value: averageOrderValue,
+          tables_served: numTables,
         },
-      },
-    };
+        kichenStaff_sales_performance: {
+          total_sales: totalSales,
+          sales_growth_rate: salesGrowthRate,
+        },
+        orders: {
+          count: ordersTaken,
+          total_revenue: totalRevenue,
+          average_order_value: averageOrderValue,
+          by_status: {
+            paidAt: paidOrders,
+            completed: completedOrders,
+            cancelled: cancelledOrders,
+          },
+        },
+      };
   }
 
   async getWaiter(userId: number, businessId: number): Promise<any> {
