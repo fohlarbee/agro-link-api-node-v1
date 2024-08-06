@@ -3,9 +3,17 @@ import { TransactionService } from "./transaction.service";
 import { TransactionController } from "./transaction.controller";
 import { PaystackService } from "src/paystack/paystack.service";
 import { PrismaService } from "src/prisma/prisma.service";
+import { MonnifyService } from "src/monnify/monnify.service";
+import { CacheService } from "src/utils/services/cache.service";
 
 @Module({
   controllers: [TransactionController],
-  providers: [TransactionService, PaystackService, PrismaService],
+  providers: [
+    CacheService,
+    MonnifyService,
+    PaystackService,
+    PrismaService,
+    TransactionService
+  ],
 })
 export class TransactionModule {}

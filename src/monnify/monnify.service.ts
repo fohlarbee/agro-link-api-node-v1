@@ -87,7 +87,7 @@ export class MonnifyService {
     try {
       const accessToken = await this.getAccessToken();
       const response = await axios.get(
-        `${MONNIFY_BASE_URL}/v2/transactions/${reference}`,
+        `${MONNIFY_BASE_URL}/v2/merchant/transactions/query?paymentReference=${reference}`,
         {
           headers: { Authorization: `Bearer ${accessToken}` },
         },

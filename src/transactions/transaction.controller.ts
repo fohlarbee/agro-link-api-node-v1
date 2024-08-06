@@ -25,18 +25,18 @@ export class TransactionController {
   @ApiBearerAuth()
   @UseGuards(HttpAuthGuard)
   async verifyPayment(@Param("reference") reference: string, @Req() request) {
-    const type = request.headers["type"];
+    const type = request.headers["provider"];
     console.log("type", type);
 
     if (!type) throw new BadRequestException("Type is required");
 
     switch (type) {
-      case "OTV":
-        return this.transactionService.processTransaction(reference);
-      case "WTV":
-        return this.transactionService.processWalletTransaction(reference);
+      case "PSK":
+        return this.transactionService.handleMonnifyTransaction(reference);
+      case "MNF":
+        return this.transactionService.handleMonnifyTransaction(reference);
       default:
-        throw new BadRequestException("Invalid type");
+        throw new BadRequestException("Unsupported Provider");
     }
   }
 
@@ -45,17 +45,14 @@ export class TransactionController {
   async webhookHandler(@Body() body) {
     const {
       event,
-      data: { status, reference, metadata },
+      data: { status, reference },
     } = body;
 
     if (event != "charge.success")
       return { message: "Unsupported event", status: "error" };
     if (status != "success")
       return { message: "Unsuccessful transaction", status: "error" };
-
-    if (metadata.type === PaymentType.DEPOSIT)
-      return this.transactionService.processWalletTransaction(reference);
-    return this.transactionService.processTransaction(reference);
+    return this.transactionService.handlePaystackTransaction(reference);
   }
 
   @Post("/webhook/monnify")
@@ -63,7 +60,7 @@ export class TransactionController {
   async monnifyWebhookHandler(@Body() body) {
     const {
       eventType,
-      eventData: { paymentStatus, paymentReference },
+      eventData: { paymentStatus, transactionReference },
     } = body;
     if (eventType != "SUCCESSFUL_TRANSACTION")
       throw new BadRequestException({
@@ -75,6 +72,8 @@ export class TransactionController {
         message: "Unsuccessful transaction",
         status: "error",
       });
-    return this.transactionService.processTransaction(paymentReference);
+    return this.transactionService.handleMonnifyTransaction(
+      transactionReference,
+    );
   }
 }

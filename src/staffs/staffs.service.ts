@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
-import {  CreateStaffDto } from "./dto/create-staff.dto";
+import { CreateStaffDto } from "./dto/create-staff.dto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { GuardRoles } from "@prisma/client";
 
