@@ -5,7 +5,6 @@ import {
   Injectable,
 } from "@nestjs/common";
 import { OrderStatus } from "@prisma/client";
-import { connect } from "http2";
 import { PaystackService } from "src/paystack/paystack.service";
 import { PrismaService } from "src/prisma/prisma.service";
 

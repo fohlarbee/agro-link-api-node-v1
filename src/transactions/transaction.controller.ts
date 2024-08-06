@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Param,
@@ -43,13 +44,19 @@ export class TransactionController {
   @UseInterceptors(MonnifyAuthInterceptor)
   async monnifyWebhookHandler(@Body() body) {
     const {
-      event,
-      data: { status, reference },
+      eventType,
+      eventData: { paymentStatus, paymentReference },
     } = body;
-    if (event != "charge.success")
-      return { message: "Unsupported event", status: "error" };
-    if (status != "success")
-      return { message: "Unsuccessful transaction", status: "error" };
-    return this.transactionService.processTransaction(reference);
+    if (eventType != "SUCCESSFUL_TRANSACTION")
+      throw new BadRequestException({
+        message: "Unsupported event",
+        status: "error",
+      });
+    if (paymentStatus != "PAID")
+      throw new BadRequestException({
+        message: "Unsuccessful transaction",
+        status: "error",
+      });
+    return this.transactionService.processTransaction(paymentReference);
   }
 }
