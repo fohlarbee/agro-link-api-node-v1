@@ -6,16 +6,18 @@ import {
 } from "@nestjs/common";
 import { OrderDto } from "./dto/order-option.dto";
 import { PrismaService } from "src/prisma/prisma.service";
-import { OrderStatus } from "@prisma/client";
+import { OrderStatus, PaymentType } from "@prisma/client";
 import { PaystackService } from "src/paystack/paystack.service";
 import { MonnifyService } from "src/monnify/monnify.service";
+import { WalletsService } from "src/wallets/wallets.service";
+import { TransactionService } from "src/transactions/transaction.service";
 
 @Injectable()
 export class OrderService {
   constructor(
     private prisma: PrismaService,
-    private paystack: PaystackService,
-    private monnify: MonnifyService,
+    private transactionService: TransactionService,
+    private wallet: WalletsService,
   ) {}
 
   async orderOption(
@@ -250,27 +252,34 @@ export class OrderService {
       throw new BadRequestException(
         "You do not currently have any open orders",
       );
-    if (!["FLW", "MNF", "MNO"].includes(provider.toUpperCase()))
+    if (!["PSK", "MNF", "WALLET"].includes(provider))
       throw new BadRequestException(
         `Invalid payment provider code: "${provider}"`,
       );
+
     const totalAmount = currentOrders.reduce((total, order) => {
       const totalPrice = order.options.reduce((acc, option) => {
         return acc + option.quantity * option.option.price;
       }, 0);
       return total + totalPrice + order.tip;
     }, 0);
+
+    if (provider == "WALLET")
+      return this.payWithWallet(
+        customerId,
+        totalAmount,
+        currentOrders.map((order) => order.id),
+      );
+
     const payload = {
       email,
       amount: totalAmount,
-      metadata: { customerId },
+      metadata: { customerId, businessId, type: PaymentType.ORDER_PAYMENT },
     };
+
     const { paymentLink, reference } =
-      provider == "FLW"
-        ? await this.paystack.createPaymentLink(payload)
-        : provider == "MNF"
-          ? await this.monnify.createPaymentLink(payload)
-          : { paymentLink: "MON)_LINK", reference: "MONO_REF" };
+      await this.transactionService.createTransactionLink(provider, payload);
+
     return {
       message: "Payment initiation successful",
       status: "success",
@@ -278,6 +287,28 @@ export class OrderService {
         paymentLink,
         reference,
       },
+    };
+  }
+
+  private async payWithWallet(
+    customerId: number,
+    total: number,
+    orderIds: number[],
+  ) {
+    const {
+      data: { payment },
+    } = await this.wallet.chargeWallet(customerId, total);
+    await this.prisma.order.updateMany({
+      where: { id: { in: orderIds } },
+      data: {
+        paidAt: new Date(),
+        paymentId: payment.id,
+        status: OrderStatus.paid,
+      },
+    });
+    return {
+      message: "Orders successfully paid",
+      status: "success",
     };
   }
 

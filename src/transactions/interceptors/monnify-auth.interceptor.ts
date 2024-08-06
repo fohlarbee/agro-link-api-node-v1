@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { catchError } from "rxjs/operators";
-import crypto from "crypto";
+import * as crypto from "crypto";
 
 @Injectable()
 export class MonnifyAuthInterceptor implements NestInterceptor {
@@ -22,7 +22,8 @@ export class MonnifyAuthInterceptor implements NestInterceptor {
       .createHmac("sha512", process.env.MONNIFY_SECRET_KEY)
       .update(transactionPayload)
       .digest("hex");
-    if (hash != request.body.transactionHash) throw new UnauthorizedException();
+    if (hash != request.headers["monnify-signature"])
+      throw new UnauthorizedException();
     return next.handle().pipe(
       catchError((error) => {
         throw error;

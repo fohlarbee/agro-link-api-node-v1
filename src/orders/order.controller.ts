@@ -35,7 +35,12 @@ export class OrderController {
   payOrder(@Query("paymentProvider") provider: string, @Req() request) {
     const { id: customerId, email } = request.user;
     const { business_id: businessId } = request.headers;
-    return this.orderService.payOrder(email, customerId, +businessId, provider);
+    return this.orderService.payOrder(
+      email,
+      customerId,
+      +businessId,
+      provider.toUpperCase(),
+    );
   }
 
   @Get("/history")

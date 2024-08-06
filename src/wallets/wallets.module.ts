@@ -1,15 +1,13 @@
 import { Module } from "@nestjs/common";
 import { WalletsController } from "./wallets.controller";
 import { WalletsService } from "./wallets.service";
-import { PrismaService } from "src/prisma/prisma.service";
-import { UsersModule } from "src/users/users.module";
-import { PaystackModule } from "src/paystack/paystack.module";
-import { UsersService } from "src/users/users.service";
-import { PaystackService } from "src/paystack/paystack.service";
+import { TransactionModule } from "src/transactions/transaction.module";
+import { PrismaModule } from "src/prisma/prisma.module";
 
 @Module({
-  imports: [],
+  imports: [PrismaModule, TransactionModule],
   controllers: [WalletsController],
-  providers: [WalletsService, PrismaService, UsersService, PaystackService],
+  providers: [WalletsService],
+  exports: [WalletsService],
 })
 export class WalletsModule {}

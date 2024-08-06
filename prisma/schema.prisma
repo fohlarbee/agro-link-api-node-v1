@@ -22,13 +22,13 @@ enum GuardRoles {
   owner
   guest
 }
+
 enum PaymentType {
   DEPOSIT
   ORDER_PAYMENT
   REFUND
   WALLET_TRANSFER
 }
-
 
 enum OwnerType {
   BUSINESS
@@ -227,7 +227,7 @@ model Order {
   status      OrderStatus @default(active)
   createdAt   DateTime    @default(now())
   tip         Float?      @default(0)
-  // paidAt      DateTime?
+  paidAt      DateTime?
   completedAt DateTime?
   cancelledAt DateTime?
 
@@ -237,7 +237,8 @@ model Order {
   customer    User     @relation(fields: [customerId], references: [id])
   businessId  Int
   business    Business @relation(fields: [businessId], references: [id])
-  payment     Payment?
+  paymentId   Int?
+  payment     Payment? @relation(fields: [paymentId], references: [id])
   tableId     Int
   table       Table    @relation(fields: [tableId], references: [id])
   shiftId     Int
@@ -282,20 +283,29 @@ model OrderOption {
 }
 
 model Payment {
-  id        Int         @id @default(autoincrement())
-  amount    Float
-  reference String   @unique
-  type      PaymentType
-  paidAt    DateTime    @default("1970-01-01T00:00:00.000Z")
+  id         Int             @id @default(autoincrement())
+  amount     Float
+  reference  String          @unique
+  type       PaymentType
+  paidAt     DateTime        @default(now())
+  provider   PaymentProvider @default(PAYSTACK)
+  providerId String          @unique
 
   // Relationships
-  orderId Int?   @unique
-  order   Order? @relation(fields: [orderId], references: [id])
-  userId  Int
-
+  orders   Order[]
+  userId   Int
   user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   walletId Int?
   wallet   Wallet? @relation(fields: [walletId], references: [id])
+}
+
+enum PaymentProvider {
+  PAYSTACK
+  FLUTTERWAVE
+  MONNIFY
+  MONO
+  MOMO_PSB
+  QQ_WALLET
 }
 
 model Otp {

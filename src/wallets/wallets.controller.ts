@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
 import { WalletsService } from "./wallets.service";
 import {
   ApiBearerAuth,
@@ -21,52 +29,40 @@ import { DepositInitiationResponse } from "./entities/wallets.entity";
   description: "This is the customer access token",
 })
 export class WalletsController {
-  constructor(private readonly walletServive: WalletsService) {}
+  constructor(private readonly walletService: WalletsService) {}
 
   @Post("create")
   @ApiOkResponse({ type: BaseResponse })
   async createWallet(@Req() request: Record<string, any>) {
     const { id: userId } = request.user;
-    return await this.walletServive.create(+userId);
+    return await this.walletService.create(+userId);
   }
 
   @Post("fund")
   @ApiOkResponse({ type: DepositInitiationResponse })
   async addFunds(
+    @Query("paymentProvider") provider: string,
     @Req() request: Record<string, any>,
     @Body() { amount }: FundWalletDto,
   ) {
-    const { wallet_id} = request.headers;
-    return await this.walletServive.addFunds(+wallet_id, amount);
+    const { id: userId } = request.user;
+    return await this.walletService.addFunds(
+      +userId,
+      amount,
+      provider.toUpperCase(),
+    );
   }
 
   @Get("transactions")
-  async getTransactions(@Req() request: Record<string, any>) {
-    const { wallet_id} = request.headers;
-    // const {id: userId} = request.user;
-    return this.walletServive.transactionHistory(+wallet_id);
-  }
-  @Post("pay")
-  @ApiOkResponse({ type: BaseResponse })
-  async payOrder(
-    @Req() request: Record<string, any>,
-    @Body() body: Record<string, any>,
-  ) {
-    const { id: customerId } = request.user;
-    const { walletId, orderId } = body;
-    const { business_id } = request.headers;
-    return this.walletServive.payOrder(
-      +customerId,
-      +walletId,
-      +orderId,
-      +business_id,
-    );
+  async getTransactions(@Req() request) {
+    const { id: userId } = request.user;
+    return this.walletService.transactionHistory(+userId);
   }
 
   @Get("balance")
   @ApiOkResponse({ example: { balance: 0.0 } })
-  async getBalance(@Req() request: Record<string, any>) {
-    const { wallet_id } = request.headers;
-    return this.walletServive.getBalance(+wallet_id);
+  async getBalance(@Req() request) {
+    const { id: userId } = request.user;
+    return this.walletService.getBalance(+userId);
   }
 }

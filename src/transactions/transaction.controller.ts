@@ -25,18 +25,17 @@ export class TransactionController {
   @ApiBearerAuth()
   @UseGuards(HttpAuthGuard)
   async verifyPayment(@Param("reference") reference: string, @Req() request) {
-    const type = request.headers["type"];
-    console.log("type", type);
+    const provider = request.headers["provider"];
 
-    if (!type) throw new BadRequestException("Type is required");
+    if (!provider) throw new BadRequestException("provider is required");
 
-    switch (type) {
-      case "OTV":
-        return this.transactionService.processTransaction(reference);
-      case "WTV":
-        return this.transactionService.processWalletTransaction(reference);
+    switch (provider) {
+      case "PSK":
+        return this.transactionService.handleMonnifyTransaction(reference);
+      case "MNF":
+        return this.transactionService.handleMonnifyTransaction(reference);
       default:
-        throw new BadRequestException("Invalid type");
+        throw new BadRequestException("Unsupported Provider");
     }
   }
 
@@ -45,30 +44,35 @@ export class TransactionController {
   async webhookHandler(@Body() body) {
     const {
       event,
-      data: { status, reference, metadata },
+      data: { status, reference },
     } = body;
 
     if (event != "charge.success")
       return { message: "Unsupported event", status: "error" };
     if (status != "success")
       return { message: "Unsuccessful transaction", status: "error" };
-
-    if (metadata.type === PaymentType.DEPOSIT)
-      return this.transactionService.processWalletTransaction(reference);
-    return this.transactionService.processTransaction(reference);
+    return this.transactionService.handlePaystackTransaction(reference);
   }
 
   @Post("/webhook/monnify")
   @UseInterceptors(MonnifyAuthInterceptor)
   async monnifyWebhookHandler(@Body() body) {
     const {
-      event,
-      data: { status, reference },
+      eventType,
+      eventData: { paymentStatus, transactionReference },
     } = body;
-    if (event != "charge.success")
-      return { message: "Unsupported event", status: "error" };
-    if (status != "success")
-      return { message: "Unsuccessful transaction", status: "error" };
-    return this.transactionService.processTransaction(reference);
+    if (eventType != "SUCCESSFUL_TRANSACTION")
+      throw new BadRequestException({
+        message: "Unsupported event",
+        status: "error",
+      });
+    if (paymentStatus != "PAID")
+      throw new BadRequestException({
+        message: "Unsuccessful transaction",
+        status: "error",
+      });
+    return this.transactionService.handleMonnifyTransaction(
+      transactionReference,
+    );
   }
 }

@@ -3,24 +3,23 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from "@nestjs/common";
-import { PaystackService } from "src/paystack/paystack.service";
 import { PrismaService } from "src/prisma/prisma.service";
-import { UsersService } from "src/users/users.service";
 import { DepositInitiationResponse } from "./entities/wallets.entity";
-import { OrderStatus, PaymentType } from "@prisma/client";
+import { PaymentProvider, PaymentType } from "@prisma/client";
+import { TransactionService } from "src/transactions/transaction.service";
 
 @Injectable()
 export class WalletsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly usersService: UsersService,
-    private paystack: PaystackService,
+    private transactionService: TransactionService,
   ) {}
 
   async create(userId: number): Promise<any> {
-    const user = await this.usersService.profile(userId);
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
 
     if (!user) throw new NotFoundException("No such user found");
 
@@ -53,31 +52,43 @@ export class WalletsService {
     };
   }
 
-  async addFunds(walletId: number, amount: number): Promise<any> {
-    const wallet = await this.prisma.wallet.findUnique({
-      where: { id: walletId },
+  async addFunds(
+    userId: number,
+    amount: number,
+    provider: string,
+  ): Promise<any> {
+    if (!["PSK", "MNF"].includes(provider))
+      throw new BadRequestException(
+        `Invalid payment provider code: "${provider}"`,
+      );
+    let wallet = await this.prisma.wallet.findUnique({
+      where: { userId },
       select: {
         id: true,
         user: { select: { email: true } },
-        userId: true,
-        businessId: true,
       },
     });
+
     if (!wallet)
-      throw new UnauthorizedException("No such wallet with id of  " + walletId);
+      wallet = await this.prisma.wallet.create({
+        data: { balance: 0, userId },
+        select: {
+          id: true,
+          user: { select: { email: true } },
+        },
+      });
 
     const payload = {
       email: wallet.user.email,
       amount,
       metadata: {
-        ownerId: wallet.userId ? wallet.userId : wallet.businessId,
-        walletId: wallet.id,
+        customerId: userId,
         type: PaymentType.DEPOSIT,
       },
     };
 
     const { paymentLink, reference } =
-      await this.paystack.createPaymentLink(payload);
+      await this.transactionService.createTransactionLink(provider, payload);
 
     return {
       message: "Deposit initiation successful",
@@ -89,117 +100,88 @@ export class WalletsService {
     } as DepositInitiationResponse;
   }
 
-  async transactionHistory(walletId: number): Promise<any> {
+  async transactionHistory(userId: number): Promise<any> {
+    let wallet = await this.prisma.wallet.findUnique({
+      where: { userId },
+      select: { id: true, balance: true },
+    });
 
-    if(!walletId) throw new BadRequestException("Wallet id is required");
+    if (!wallet)
+      wallet = await this.prisma.wallet.create({
+        data: { balance: 0, userId },
+        select: { id: true, balance: true },
+      });
 
-    const transactions = await this.prisma.wallet.findUnique({
-      where: { id: walletId },
+    const transactions = await this.prisma.payment.findMany({
+      where: { walletId: wallet.id },
       select: {
         id: true,
-        balance: true,
-        userId: true,
-        businessId: true,
-        createdAt: true,
-        payments: {
-          select: {
-            id: true,
-            amount: true,
-            reference: true,
-            type: true,
-            paidAt: true,
-            orderId: true,
-          },
-          orderBy: { paidAt: "desc" },
-        },
+        amount: true,
+        reference: true,
+        type: true,
+        paidAt: true,
       },
+      orderBy: { paidAt: "desc" },
     });
 
     return {
       message: "Transaction history fetched successfully",
       status: "success",
-      data: transactions,
+      data: { balance: wallet.balance, transactions },
     };
   }
 
-  async payOrder(
+  async chargeWallet(
     userId: number,
-    walletId: number,
-    orderId: number,
-    businessId,
-  ): Promise<any> {
-    const currentOrder = await this.prisma.order.findUnique({
-      where: {
-        id: orderId,
-        customerId: userId,
-        businessId,
-        status: OrderStatus.active,
-      },
-      select: {
-        id: true,
-        tip: true,
-        businessId: true,
-        options: {
-          select: {
-            quantity: true,
-            option: { select: { price: true } },
-          },
-        },
-      },
-    });
-    if (!currentOrder)
-      throw new BadRequestException("No active order found for this customer");
-    const totalAmount =
-      currentOrder.options.reduce((total, option) => {
-        return total + option.quantity * option.option.price;
-      }, 0) + currentOrder.tip;
-
+    amount: number,
+    type: PaymentType = PaymentType.ORDER_PAYMENT,
+  ) {
     const wallet = await this.prisma.wallet.findUnique({
-      where: { id: walletId },
+      where: { userId },
       select: { id: true, balance: true },
     });
-    if (!wallet) throw new UnauthorizedException("Wallet not found");
+    if (!wallet)
+      this.prisma.wallet.create({
+        data: { balance: 0, userId },
+      });
 
-    if (wallet.balance < totalAmount)
-      throw new ConflictException("Insufficient funds");
+    if (wallet.balance < amount)
+      throw new BadRequestException("Insufficient funds");
 
     await this.prisma.wallet.update({
-      where: { id: walletId },
+      where: { id: wallet.id },
       data: {
-        balance: wallet.balance - totalAmount,
-        payments: {
-          create: {
-            amount: totalAmount,
-            reference: `ORD-${currentOrder.id}${currentOrder.businessId}${userId}`,
-            type: PaymentType.ORDER_PAYMENT,
-            userId,
-            orderId: currentOrder.id,
-          },
-        },
+        balance: { decrement: amount },
       },
     });
-
-    await this.prisma.order.update({
-      where: { id: orderId },
+    const payment = await this.prisma.payment.create({
       data: {
-        status: OrderStatus.paid,
-        completedAt: new Date(),
-        cancelledAt: null,
+        amount,
+        reference: `QQ_${Date.now}`,
+        type,
+        userId,
+        provider: PaymentProvider.QQ_WALLET,
+        providerId: `QQ|${wallet.id}|${userId}|${Date.now()}`,
       },
     });
 
     return {
-      message: "Order paid for successfully",
+      message: "Wallet charged successfully",
       status: "success",
+      data: { payment },
     };
   }
 
-  async getBalance(walletId: number): Promise<any> {
-    const wallet = await this.prisma.wallet.findFirst({
-      where: { id: walletId },
+  async getBalance(userId: number): Promise<any> {
+    let wallet = await this.prisma.wallet.findUnique({
+      where: { userId },
       select: { balance: true },
     });
-    if (!wallet) throw new UnauthorizedException("Wallet not found");
+    if (!wallet)
+      wallet = await this.prisma.wallet.create({
+        data: { balance: 0, userId },
+        select: { balance: true },
+      });
 
     return {
       message: "Wallet balance fetched successfully",
