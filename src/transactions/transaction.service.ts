@@ -101,7 +101,7 @@ export class TransactionService {
         reference,
         walletId: +verificationResult.data.metadata.walletId,
         type: PaymentType.DEPOSIT,
-        userId: +verificationResult.data.metadata.customerId,
+        userId: +verificationResult.data.metadata.ownerId,
       },
     });
     if (payment) return { message: "Payment successful", status: "success" };
@@ -116,8 +116,8 @@ export class TransactionService {
       where: {
         id: walletId,
         OR: [
-          { userId: +verificationResult.data.metadata.customerId },
-          { businessId: +verificationResult.data.metadata.customerId },
+          { userId: +verificationResult.data.metadata.ownerId },
+          { businessId: +verificationResult.data.metadata.ownerId },
         ],
       },
     });
@@ -134,7 +134,7 @@ export class TransactionService {
               amount,
               paidAt,
               reference,
-              userId: +verificationResult.data.metadata.customerId,
+              userId: +verificationResult.data.metadata.ownerId,
               type: "DEPOSIT",
             },
           },

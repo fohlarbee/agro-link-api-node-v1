@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Put,
-  Req,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { WalletsService } from "./wallets.service";
 import {
   ApiBearerAuth,
@@ -35,7 +27,7 @@ export class WalletsController {
   @ApiOkResponse({ type: BaseResponse })
   async createWallet(@Req() request: Record<string, any>) {
     const { id: userId } = request.user;
-    return await this.walletServive.create(userId);
+    return await this.walletServive.create(+userId);
   }
 
   @Post("fund")
@@ -44,18 +36,15 @@ export class WalletsController {
     @Req() request: Record<string, any>,
     @Body() { amount }: FundWalletDto,
   ) {
-    const { id: customerId } = request.user;
-    return await this.walletServive.addFunds(+customerId, amount);
+    const { wallet_id} = request.headers;
+    return await this.walletServive.addFunds(+wallet_id, amount);
   }
 
   @Get("transactions")
-  async getTransactions(
-    @Body() body: Record<string, any>,
-    @Req() request: Record<string, any>,
-  ) {
-    const { walletId } = body;
-    const { id: customerId } = request.user;
-    return this.walletServive.transactionHistory(+customerId, +walletId);
+  async getTransactions(@Req() request: Record<string, any>) {
+    const { wallet_id} = request.headers;
+    // const {id: userId} = request.user;
+    return this.walletServive.transactionHistory(+wallet_id);
   }
   @Post("pay")
   @ApiOkResponse({ type: BaseResponse })
@@ -77,7 +66,7 @@ export class WalletsController {
   @Get("balance")
   @ApiOkResponse({ example: { balance: 0.0 } })
   async getBalance(@Req() request: Record<string, any>) {
-    const { id: customerId } = request.user;
-    return this.walletServive.getBalance(+customerId);
+    const { wallet_id } = request.headers;
+    return this.walletServive.getBalance(+wallet_id);
   }
 }
