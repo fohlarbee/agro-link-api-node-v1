@@ -53,6 +53,7 @@ export class BusinessService {
     const staffExists = await this.prisma.staff.findFirst({
       where: { userId: creatorId },
     });
+
     if (staffExists)
       throw new BadRequestException(
         "You cant create a business if staff already exist",
@@ -74,9 +75,12 @@ export class BusinessService {
         },
       },
     });
+    await this.prisma.wallet.create({
+      data: { businessId: business.id, balance: 0.0 },
+    });
 
     return {
-      message: "Business created successfully.",
+      message: "Business && Wallet created successfully.",
       status: "success",
       data: { business },
     };

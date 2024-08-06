@@ -22,11 +22,19 @@ enum GuardRoles {
   owner
   guest
 }
-
 enum PaymentType {
   DEPOSIT
   ORDER_PAYMENT
   REFUND
+  WALLET_TRANSFER
+}
+
+
+enum OwnerType {
+  BUSINESS
+  CUSTOMER
+  WAITER
+  KITCHEN_STAFF
 }
 
 model User {
@@ -36,7 +44,6 @@ model User {
   name      String
   avatar    String?
   role      GuardRoles @default(customer)
-  // isCustomer Boolean   @default(false)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
@@ -46,8 +53,7 @@ model User {
   businesses        Staff[]
   createdBusinesses Business[]
   shifts            Shift[]
-  walletId         Int?
-  Wallet            Wallet?
+  wallet            Wallet?
 }
 
 model Business {
@@ -70,6 +76,7 @@ model Business {
   staffs    Staff[]
   outlets   Outlet[]
   shifts    Shift[]
+  wallet    Wallet?
 }
 
 model Role {
@@ -277,16 +284,16 @@ model OrderOption {
 model Payment {
   id        Int         @id @default(autoincrement())
   amount    Float
-  reference String      @unique
-  paidAt    DateTime    @default("1970-01-01T00:00:00.000Z")
+  reference String   @unique
   type      PaymentType
+  paidAt    DateTime    @default("1970-01-01T00:00:00.000Z")
 
   // Relationships
-  orderId Int   @unique
-  order   Order @relation(fields: [orderId], references: [id])
+  orderId Int?   @unique
+  order   Order? @relation(fields: [orderId], references: [id])
   userId  Int
 
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   walletId Int?
   wallet   Wallet? @relation(fields: [walletId], references: [id])
 }
@@ -303,11 +310,18 @@ model Otp {
 }
 
 model Wallet {
-  id       Int       @id @default(autoincrement())
-  balance  Float
-  ownerId  Int       @unique
-  owner    User      @relation(fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  payments Payment[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id         Int       @id @default(autoincrement())
+  balance    Float
+  userId     Int?      @unique
+  businessId Int?      @unique
+  // ownerType  OwnerType
+  payments   Payment[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  //Relationships
+  user     User?     @relation(fields: [userId], references: [id])
+  business Business? @relation(fields: [businessId], references: [id])
+
+  @@unique([userId, businessId])
 }

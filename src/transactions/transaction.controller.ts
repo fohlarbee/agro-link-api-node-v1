@@ -4,6 +4,8 @@ import {
   Controller,
   Param,
   Post,
+  Put,
+  Req,
   UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
@@ -12,17 +14,30 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { PaystackAuthInterceptor } from "./interceptors/paystack-auth.interceptor";
 import { MonnifyAuthInterceptor } from "./interceptors/monnify-auth.interceptor";
+import { PaymentType } from "@prisma/client";
 
 @Controller("transactions")
 @ApiTags("Transactions")
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
-  @Post("/verify/:reference")
+  @Put("/verify/:reference")
   @ApiBearerAuth()
   @UseGuards(HttpAuthGuard)
-  async verifyPayment(@Param("reference") reference: string) {
-    return this.transactionService.processTransaction(reference);
+  async verifyPayment(@Param("reference") reference: string, @Req() request) {
+    const type = request.headers["type"];
+    console.log("type", type);
+
+    if (!type) throw new BadRequestException("Type is required");
+
+    switch (type) {
+      case "OTV":
+        return this.transactionService.processTransaction(reference);
+      case "WTV":
+        return this.transactionService.processWalletTransaction(reference);
+      default:
+        throw new BadRequestException("Invalid type");
+    }
   }
 
   @Post("/webhook")
@@ -30,13 +45,16 @@ export class TransactionController {
   async webhookHandler(@Body() body) {
     const {
       event,
-      data: { status, reference },
+      data: { status, reference, metadata },
     } = body;
 
     if (event != "charge.success")
       return { message: "Unsupported event", status: "error" };
     if (status != "success")
       return { message: "Unsuccessful transaction", status: "error" };
+
+    if (metadata.type === PaymentType.DEPOSIT)
+      return this.transactionService.processWalletTransaction(reference);
     return this.transactionService.processTransaction(reference);
   }
 

@@ -118,6 +118,14 @@ export class StaffsController {
     return this.staffsService.kitchenStaffAnalytics(+id, +business_id, sortBy);
   }
 
+  @Get("waiter/:id")
+  getWaiter(@Param("id") id: string, @Req() request) {
+    const { business_id } = request.headers;
+    const { id: userId } = request.user;
+
+    return this.staffsService.getWaiter(+userId, +business_id);
+  }
+
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateStaffDto: UpdateStaffDto) {
   //   return this.staffsService.update(+id, updateStaffDto);
