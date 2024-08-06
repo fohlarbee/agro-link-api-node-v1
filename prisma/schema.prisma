@@ -29,12 +29,6 @@ enum PaymentType {
   WALLET_TRANSFER
 }
 
-enum PaymentType {
-  DEPOSIT
-  ORDER_PAYMENT
-  REFUND
-  WALLET_TRANSFER
-}
 
 enum OwnerType {
   BUSINESS
