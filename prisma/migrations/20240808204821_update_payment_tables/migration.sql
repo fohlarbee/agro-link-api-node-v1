@@ -9,6 +9,9 @@
 -- CreateEnum
 CREATE TYPE "PaymentProvider" AS ENUM ('PAYSTACK', 'FLUTTERWAVE', 'MONNIFY', 'MONO', 'MOMO_PSB', 'QQ_WALLET');
 
+-- AlterEnum
+ALTER TYPE "OrderStatus" ADD VALUE 'delivered';
+
 -- DropForeignKey
 ALTER TABLE "Payment" DROP CONSTRAINT "Payment_orderId_fkey";
 
@@ -17,7 +20,8 @@ DROP INDEX "Payment_orderId_key";
 
 -- AlterTable
 ALTER TABLE "Order" ADD COLUMN     "paidAt" TIMESTAMP(3),
-ADD COLUMN     "paymentId" INTEGER;
+ADD COLUMN     "paymentId" INTEGER,
+ALTER COLUMN "kitchenStaffId" DROP NOT NULL;
 
 -- AlterTable
 ALTER TABLE "Payment" DROP COLUMN "orderId",

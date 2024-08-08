@@ -2,7 +2,6 @@
 /* eslint-disable prettier/prettier */
 import { GuardRoles, MenuType, PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { Role } from 'src/auth/dto/auth.dto';
 
 const prisma = new PrismaClient();
 
@@ -653,7 +652,7 @@ async function main() {
 
   await prisma.user.update({
     where:{id:1},
-    data:{role:Role.waiter}
+    data:{role:GuardRoles.waiter}
   })
   
   const shift = await prisma.shift.create({
