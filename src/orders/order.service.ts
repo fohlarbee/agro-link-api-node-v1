@@ -2,15 +2,15 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
   UnprocessableEntityException,
 } from "@nestjs/common";
 import { OrderDto } from "./dto/order-option.dto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { OrderStatus, PaymentType } from "@prisma/client";
-import { PaystackService } from "src/paystack/paystack.service";
-import { MonnifyService } from "src/monnify/monnify.service";
 import { WalletsService } from "src/wallets/wallets.service";
 import { TransactionService } from "src/transactions/transaction.service";
+import { WebsocketService } from "src/websocket/websocket.service";
 
 @Injectable()
 export class OrderService {
@@ -18,6 +18,7 @@ export class OrderService {
     private prisma: PrismaService,
     private transactionService: TransactionService,
     private wallet: WalletsService,
+    private event: WebsocketService,
   ) {}
 
   async orderOption(
@@ -117,11 +118,11 @@ export class OrderService {
           },
         },
         ////how do i get the kitchenStaffId assined to take the order??
-        kitchenStaff: {
-          connect: {
-            userId_businessId: { userId: staffId, businessId },
-          },
-        },
+        // kitchenStaff: {
+        //   connect: {
+        //     userId_businessId: { userId: staffId, businessId },
+        //   },
+        // },
         cancelledBy: 0,
       },
       select: { id: true },
@@ -312,22 +313,22 @@ export class OrderService {
     };
   }
 
-  async fetchPaidOrders(ownerId: number, businessId: number) {
-    return this.prisma.order.findMany({
-      where: { business: { id: businessId }, status: OrderStatus.paid },
-      select: {
-        id: true,
-        status: true,
-        options: {
-          select: {
-            option: { select: { image: true, price: true, id: true } },
-            quantity: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "asc" },
-    });
-  }
+  // async fetchPaidOrders(ownerId: number, businessId: number) {
+  //   return this.prisma.order.findMany({
+  //     where: { business: { id: businessId }, status: OrderStatus.paid },
+  //     select: {
+  //       id: true,
+  //       status: true,
+  //       options: {
+  //         select: {
+  //           option: { select: { image: true, price: true, id: true } },
+  //           quantity: true,
+  //         },
+  //       },
+  //     },
+  //     orderBy: { createdAt: "asc" },
+  //   });
+  // }
 
   async changeOrdertoActive(
     customerId: number,
@@ -353,6 +354,112 @@ export class OrderService {
 
     return {
       message: "Order is now active",
+      status: "success",
+    };
+  }
+
+  async fetchPaidOrders(businessId: number) {
+    return this.prisma.order.findMany({
+      where: { status: OrderStatus.paid, businessId },
+      select: {
+        id: true,
+        status: true,
+        waiter: true,
+        options: {
+          select: {
+            option: { select: { image: true, price: true, id: true } },
+            quantity: true,
+          },
+        },
+        customer: { select: { name: true, email: true } },
+        business: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+  async acceptOrder(
+    orderId: number,
+    kitchenStaffId: number,
+    businessId: number,
+  ): Promise<any> {
+    const staff = await this.prisma.staff.findUnique({
+      where: {
+        userId_businessId: { businessId, userId: kitchenStaffId },
+        role: { name: { equals: "kitchen" } },
+      },
+    });
+    if (!staff) throw new UnauthorizedException("staff not found");
+    const order = await this.prisma.order.update({
+      where: { id: orderId, businessId },
+      data: { status: OrderStatus.preparing, kitchenStaffId },
+      select: { customerId: true, waiterId: true },
+    });
+    const payload = {
+      businessId,
+      orderId,
+      status: OrderStatus.preparing,
+      type: "ORDER_ACCEPTED",
+    };
+    this.event.notifyKitchen(kitchenStaffId, "acceptedOrder", payload);
+    this.event.notifyUser(order.customerId, "acceptedOrder", payload);
+    return {
+      message: "Order is accepted",
+      status: "success",
+    };
+  }
+
+  async markOrderAsReady(
+    orderId: number,
+    kitchenStaffId: number,
+    businessId: number,
+  ): Promise<any> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId, kitchenStaffId, businessId },
+      select: {
+        businessId: true,
+        kitchenStaffId: true,
+        customerId: true,
+        waiterId: true,
+      },
+    });
+    if (!order) throw new BadRequestException(`Order ${orderId} not found`);
+    if (order.kitchenStaffId !== kitchenStaffId)
+      throw new UnauthorizedException("Unauthorized to mark order as ready");
+
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: { status: OrderStatus.ready },
+    });
+    const payload = {
+      businessId: order.businessId,
+      orderId,
+      status: OrderStatus.ready,
+      type: "ORDER_READY",
+    };
+    this.event.notifyUser(order.customerId, "orderIsReady", payload);
+    this.event.notifyWaiter(order.waiterId, "orderIsReady", payload);
+    return {
+      message: "Order is marked as ready",
+      status: "success",
+    };
+  }
+  async markOrderAsDelivered(
+    orderId: number,
+    businessId: number,
+  ): Promise<any> {
+    const order = await this.prisma.order.update({
+      where: { id: orderId, businessId },
+      data: { status: OrderStatus.delivered },
+      select: { customerId: true, waiterId: true },
+    });
+    const payload = {
+      orderId,
+      status: OrderStatus.delivered,
+      type: "ORDER_DELIVERED",
+    };
+    this.event.notifyUser(order.customerId, "orderDelivered", payload);
+    return {
+      message: "Order is marked as delivered",
       status: "success",
     };
   }

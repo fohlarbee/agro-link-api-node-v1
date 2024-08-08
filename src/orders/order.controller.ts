@@ -82,13 +82,55 @@ export class OrderController {
     );
   }
   @Post(":id/active")
-  async changeOrderToActive(@Param("id") id: number, @Req() request: any) {
+  @UseGuards(RoleGuard([Role.customer, Role.admin]))
+  @UseInterceptors(new ValidPathParamInterceptor())
+  async changeOrderToActive(@Param("id") orderId: number, @Req() request: any) {
     const { id: customerId } = request.user;
     const { business_id: businessId } = request.headers;
     return await this.orderService.changeOrdertoActive(
       +customerId,
-      +id,
+      +orderId,
       +businessId,
     );
+  }
+  @Post(":id/accept")
+  @UseGuards(RoleGuard([Role.kitchen]))
+  @UseInterceptors(new ValidPathParamInterceptor())
+  @ApiAcceptedResponse({ type: BaseResponse })
+  async acceptOrder(@Param("id") orderId: number, @Req() request: any) {
+    const { id: kitchenStaffId } = request.user;
+    const { business_id: businessId } = request.headers;
+    return await this.orderService.acceptOrder(
+      +orderId,
+      +kitchenStaffId,
+      +businessId,
+    );
+  }
+
+  @Post(":id/ready")
+  @UseGuards(RoleGuard([Role.kitchen]))
+  @UseInterceptors(new ValidPathParamInterceptor())
+  @ApiAcceptedResponse({ type: BaseResponse })
+  async markOrderAsReady(@Param("id") orderId: number, @Req() request: any) {
+    const { id: kitchenStaffId } = request.user;
+    const { business_id: businessId } = request.headers;
+    return await this.orderService.markOrderAsReady(
+      +orderId,
+      +kitchenStaffId,
+      +businessId,
+    );
+  }
+
+  @Post(":id/delivered")
+  @UseGuards(RoleGuard([Role.waiter]))
+  @UseInterceptors(new ValidPathParamInterceptor())
+  @ApiAcceptedResponse({ type: BaseResponse })
+  async markOrderAsDelivered(
+    @Param("id") orderId: number,
+    @Req() request: any,
+  ) {
+    const { business_id: businessId } = request.headers;
+
+    return await this.orderService.markOrderAsDelivered(+orderId, +businessId);
   }
 }

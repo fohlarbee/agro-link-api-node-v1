@@ -14,7 +14,6 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { PaystackAuthInterceptor } from "./interceptors/paystack-auth.interceptor";
 import { MonnifyAuthInterceptor } from "./interceptors/monnify-auth.interceptor";
-import { PaymentType } from "@prisma/client";
 
 @Controller("transactions")
 @ApiTags("Transactions")
@@ -31,7 +30,7 @@ export class TransactionController {
 
     switch (provider) {
       case "PSK":
-        return this.transactionService.handleMonnifyTransaction(reference);
+        return this.transactionService.handlePaystackTransaction(reference);
       case "MNF":
         return this.transactionService.handleMonnifyTransaction(reference);
       default:

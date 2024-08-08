@@ -7,11 +7,12 @@ import {
 } from "@nestjs/websockets";
 import { JwtService } from "@nestjs/jwt";
 import { Socket, Server } from "socket.io";
-import { User } from "@prisma/client";
+import { Business, User } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 
 class CustomSocket extends Socket {
   user: User;
+  business?: Business;
 }
 
 @WebSocketGateway({ cors: true })
@@ -27,8 +28,10 @@ export class WebsocketGateway
   ) {}
 
   afterInit(server: Server) {
+    // console.log(server);
     server.use(async (socket: CustomSocket, next) => {
       const { token } = socket.handshake.auth as any;
+      console.log(token);
       if (!token) return next(new Error("Missing token"));
       try {
         const payload = this.jwtService.verify(token, {
@@ -39,6 +42,12 @@ export class WebsocketGateway
         });
         if (!user) next(new Error("Unauthorised"));
         socket.user = user;
+        const staff = await this.prisma.staff.findFirst({
+          where: { userId: user.id },
+          select: { business: true },
+        });
+        if (!staff) next();
+        socket.business = staff.business;
         next();
       } catch (error) {
         console.log(error);
@@ -46,9 +55,26 @@ export class WebsocketGateway
       }
     });
   }
-
   handleConnection(client: CustomSocket) {
-    client.join([`${client.user.id}:notifications`]);
+    let rooms = [`${client.user.id}:notifications`];
+    if (client.business) {
+      rooms = [`${client.business.id}:business`];
+      switch (client.user.role) {
+        case "waiter":
+          rooms.push(`${client.user.id}:waiter`);
+          break;
+        case "kitchen":
+          rooms.push(`${client.business.id}:kitchen`);
+          break;
+        case "owner":
+          rooms.push(`${client.business.id}:owner`);
+        case "admin":
+          rooms.push(`${client.business.id}:admin`);
+        default:
+          rooms.push();
+      }
+    }
+    client.join(rooms);
     console.log(`${client.user.name} connected and joined rooms`);
   }
 
@@ -57,7 +83,32 @@ export class WebsocketGateway
     console.log(`${client.user.name} left rooms and disconnected`);
   }
 
-  sendEvent(userId: number, event: string, payload: any) {
-    return this.server.to(`${userId}:notifications`).emit(event, payload);
+  sendEvent(rooms: string[], event: string, payload: any) {
+    return this.server.to(rooms).emit(event, payload);
   }
 }
+
+// @WebSocketGateway({})
+
+// export class SocketGateway  implements OnModuleInit{
+
+//   @WebSocketServer()
+//   server: Server;
+
+//   onModuleInit() {
+//     this.server.on('connection', (socket) =>{
+//       console.log(socket.id);
+//     })
+//   }
+
+//   @SubscribeMessage('newMessage')
+//   onMessage(@MessageBody() body: any){
+//     console.log(body);
+//     this.server.emit('newMessage', {
+//       "msg":"new message",
+//       "body":body
+//     });
+
+//   }
+
+// }

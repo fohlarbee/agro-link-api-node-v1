@@ -248,8 +248,8 @@ model Order {
 
   waiterId       Int
   waiter         Staff         @relation("OrderWaiter", fields: [waiterId, businessId], references: [userId, businessId])
-  kitchenStaffId Int
-  kitchenStaff   Staff         @relation("OrderKitchenStaff", fields: [kitchenStaffId, businessId], references: [userId, businessId])
+  kitchenStaffId Int?
+  kitchenStaff   Staff?         @relation("OrderKitchenStaff", fields: [kitchenStaffId, businessId], references: [userId, businessId])
   options        OrderOption[]
 }
 
@@ -261,6 +261,7 @@ enum OrderStatus {
   rejected //The business has declined the order, possibly due to being too busy, out of stock items, or other reasons.
   cancelled //The order has been canceled by either the customer or the business.
   ready //The food is prepared and ready for pickup or delivery.
+  delivered //The order has been delivered to the customer or picked up by the customer.
   completed //The order has been delivered to the customer or picked up by the customer.
 }
 

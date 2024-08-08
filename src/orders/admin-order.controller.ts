@@ -24,8 +24,7 @@ export class AdminOrderController {
 
   @Get()
   async create(@Req() request) {
-    const { id: ownerId } = request.user;
-    const { business_id: businessId } = request.headers;
+    // const { id: ownerId } = request.user;
     // const baseUrl = request.protocol + "://" + request.headers.host;
     // const orders = (await this.orderService.fetchPaidOrders(ownerId, businessId)).map(order => {
     //   order.options.map(orderOPtions => {
@@ -33,11 +32,8 @@ export class AdminOrderController {
     //   });
     //   return order;
     // });
-    const orders = await this.orderService.fetchPaidOrders(
-      ownerId,
-      +businessId,
-    );
-
+    const { business_id: businessId } = request.headers;
+    const orders = await this.orderService.fetchPaidOrders(+businessId);
     return {
       message: "Orders fetch successful",
       status: "success",

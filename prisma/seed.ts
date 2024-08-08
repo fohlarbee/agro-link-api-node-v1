@@ -2,7 +2,7 @@
 /* eslint-disable prettier/prettier */
 import { GuardRoles, MenuType, PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { count } from 'console';
+import { Role } from 'src/auth/dto/auth.dto';
 
 const prisma = new PrismaClient();
 
@@ -582,7 +582,7 @@ async function main() {
     data:{
       "name": "Fohlarbee",
       "email": 'sammyola246@gmail.com',
-      "password":"Sammyola246@1",
+      "password": bcrypt.hashSync("Sammyola246@1", bcrypt.genSaltSync()),
       "role":GuardRoles.admin,
 
     }
@@ -592,7 +592,6 @@ async function main() {
     "cacNumber": "RC999999",
     "phoneNumber": "+2348161174630",
     "email": "sammyola246@gmail.com",
-    // "creatorId": user.id,
     "type":"restaurant",
     creator:{connect:{id:user.id}}
   }});
@@ -648,7 +647,15 @@ async function main() {
   const staff = await prisma.staff.create({
     data:{businessId:business.id, roleId:waiterRole.id, userId:1}
   });
+  const adminRole = await prisma.role.create({data:{name:'admin', businessId:business.id}});
+  const adminStaff = await prisma.staff.create({data:{businessId:business.id, roleId:adminRole.id, userId:user.id}})
 
+
+  await prisma.user.update({
+    where:{id:1},
+    data:{role:Role.waiter}
+  })
+  
   const shift = await prisma.shift.create({
     data:{
         startTime:new Date(),
