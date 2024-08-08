@@ -181,7 +181,7 @@ export class StaffsService {
       throw new NotFoundException(`User is not a staff 
         in the business of of id ${businessId}`);
     return {
-      message: "waiter fetched successfully",
+      message: "Staff fetched successfully",
       success: "true",
       data: {
         id: staffId,

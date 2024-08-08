@@ -15,7 +15,6 @@ import { PrismaModule } from "src/prisma/prisma.module";
     PrismaModule,
   ],
   providers: [WebsocketGateway, WebsocketService],
-  exports: [WebsocketService],
-  // providers: [SocketGateway],
+  exports: [WebsocketService, WebsocketGateway],
 })
 export class WebsocketModule {}

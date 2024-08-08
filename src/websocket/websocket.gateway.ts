@@ -4,6 +4,7 @@ import {
   OnGatewayDisconnect,
   WebSocketGateway,
   WebSocketServer,
+  SubscribeMessage,
 } from "@nestjs/websockets";
 import { JwtService } from "@nestjs/jwt";
 import { Socket, Server } from "socket.io";
@@ -86,29 +87,8 @@ export class WebsocketGateway
   sendEvent(rooms: string[], event: string, payload: any) {
     return this.server.to(rooms).emit(event, payload);
   }
+  @SubscribeMessage('mewMessage')
+  newMessage(client: CustomSocket, message: string){
+    console.log(message);
+  }
 }
-
-// @WebSocketGateway({})
-
-// export class SocketGateway  implements OnModuleInit{
-
-//   @WebSocketServer()
-//   server: Server;
-
-//   onModuleInit() {
-//     this.server.on('connection', (socket) =>{
-//       console.log(socket.id);
-//     })
-//   }
-
-//   @SubscribeMessage('newMessage')
-//   onMessage(@MessageBody() body: any){
-//     console.log(body);
-//     this.server.emit('newMessage', {
-//       "msg":"new message",
-//       "body":body
-//     });
-
-//   }
-
-// }

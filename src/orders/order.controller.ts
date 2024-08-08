@@ -95,7 +95,7 @@ export class OrderController {
   }
   @Post(":id/accept")
   @UseGuards(RoleGuard([Role.kitchen]))
-  @UseInterceptors(new ValidPathParamInterceptor())
+  // @UseInterceptors(new ValidPathParamInterceptor())
   @ApiAcceptedResponse({ type: BaseResponse })
   async acceptOrder(@Param("id") orderId: number, @Req() request: any) {
     const { id: kitchenStaffId } = request.user;
@@ -133,4 +133,4 @@ export class OrderController {
 
     return await this.orderService.markOrderAsDelivered(+orderId, +businessId);
   }
-}
+  }
