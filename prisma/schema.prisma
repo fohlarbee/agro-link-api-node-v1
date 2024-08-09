@@ -249,7 +249,7 @@ model Order {
   waiterId       Int
   waiter         Staff         @relation("OrderWaiter", fields: [waiterId, businessId], references: [userId, businessId])
   kitchenStaffId Int?
-  kitchenStaff   Staff?         @relation("OrderKitchenStaff", fields: [kitchenStaffId, businessId], references: [userId, businessId])
+  kitchenStaff   Staff?        @relation("OrderKitchenStaff", fields: [kitchenStaffId, businessId], references: [userId, businessId])
   options        OrderOption[]
 }
 

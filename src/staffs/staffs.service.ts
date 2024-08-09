@@ -152,7 +152,8 @@ export class StaffsService {
             tableId: true,
             status: true,
             tip: true,
-            payment:{select:{amount:true}}
+            payment: { select: { amount: true } },
+            createdAt: true,
           },
         },
         ordersAsKitchenStaff: {
@@ -161,8 +162,8 @@ export class StaffsService {
             tableId: true,
             status: true,
             // tip: true,
-            payment:{select:{amount:true}}
-
+            payment: { select: { amount: true } },
+            createdAt: true,
           },
         },
         business: {

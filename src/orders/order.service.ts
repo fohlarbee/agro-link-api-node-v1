@@ -197,10 +197,11 @@ export class OrderService {
     return this.prisma.order.findMany({
       where: { customerId, status: { not: OrderStatus.active } },
       select: {
+        id: true,
         status: true,
         createdAt: true,
         completedAt: true,
-        id: true,
+        tip: true,
         options: {
           select: {
             option: {
@@ -427,9 +428,13 @@ export class OrderService {
         kitchenStaffId: true,
         customerId: true,
         waiterId: true,
+        status: true,
       },
     });
     if (!order) throw new BadRequestException(`Order ${orderId} not found`);
+    if (order.status === OrderStatus.ready)
+      throw new BadRequestException("Order has already been marked ready");
+
     if (order.kitchenStaffId !== kitchenStaffId)
       throw new UnauthorizedException("Unauthorized to mark order as ready");
 
@@ -437,7 +442,6 @@ export class OrderService {
       where: { id: orderId },
       data: { status: OrderStatus.ready },
     });
-    console.log(order.customerId);
     const payload = {
       businessId: order.businessId,
       orderId,
@@ -460,10 +464,15 @@ export class OrderService {
       where: { id: orderId, businessId },
       data: { status: OrderStatus.delivered },
     });
-    if (order.waiterId !== waiterId)
+    if (!order || order.waiterId !== waiterId)
       throw new UnauthorizedException(
         "Unauthorized to mark order as delivered",
       );
+    if (order.status === OrderStatus.delivered)
+      throw new BadRequestException(
+        `Order ${orderId} has already been delivered`,
+      );
+
     const payload = {
       orderId,
       status: OrderStatus.delivered,
@@ -497,23 +506,28 @@ export class OrderService {
     customerId: number,
   ): Promise<any> {
     const order = await this.prisma.order.update({
-      where: { id: orderId, businessId },
+      where: { id: orderId, businessId, customerId },
       data: { status: OrderStatus.delivered },
     });
+    if (!order) throw new BadRequestException("Order not found");
+
     if (order.customerId !== customerId)
-      throw new UnauthorizedException(
-        "Unauthorized to mark order as complete",
-      );
+      throw new UnauthorizedException("Unauthorized to mark order as complete");
+    if (order.status === OrderStatus.completed)
+      throw new BadRequestException("Order already marked completed");
 
-      const payload = {
-        orderId,
-        status: OrderStatus.completed,
-        type: "ORDER_COMPLETEd",
-        customerId: order.customerId
-
-      };
-
-
-    
+    const payload = {
+      orderId,
+      status: OrderStatus.completed,
+      type: "ORDER_COMPLETED",
+      customerId: order.customerId,
+    };
+    await this.prisma.order.update({
+      where: { id: orderId, businessId, customerId },
+      data: { status: OrderStatus.completed },
+    });
+    this.event.notifyUser(order.customerId, "orderCompleted", payload);
+    this.event.notifyWaiter(order.waiterId, "orderCompleted", payload);
+    this.event.notifyKitchen(order.kitchenStaffId, "orderCompleted", payload);
   }
 }
