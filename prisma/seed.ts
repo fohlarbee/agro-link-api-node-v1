@@ -842,6 +842,7 @@ async function main() {
         connect:{id:user.id}
       },
       providerId: `QQ|${user.id}|${user.id}|${Date.now()}`,
+      orders:{connect:{id: order.id}}
 
       
     }
