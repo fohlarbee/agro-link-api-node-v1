@@ -76,7 +76,7 @@ export class WebsocketGateway
       }
     }
     client.join(rooms);
-    console.log(`${client.user.name} connected and joined rooms` , rooms);
+    console.log(`${client.user.name} connected and joined rooms`, rooms);
   }
 
   handleDisconnect(client: CustomSocket) {

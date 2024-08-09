@@ -494,8 +494,26 @@ export class OrderService {
   async markOrderAsComplete(
     orderId: number,
     businessId: number,
-    userId: number,
-  ):Promise<any>{
+    customerId: number,
+  ): Promise<any> {
+    const order = await this.prisma.order.update({
+      where: { id: orderId, businessId },
+      data: { status: OrderStatus.delivered },
+    });
+    if (order.customerId !== customerId)
+      throw new UnauthorizedException(
+        "Unauthorized to mark order as complete",
+      );
+
+      const payload = {
+        orderId,
+        status: OrderStatus.completed,
+        type: "ORDER_COMPLETEd",
+        customerId: order.customerId
+
+      };
+
+
     
   }
 }
