@@ -11,7 +11,13 @@ import { JwtModule } from "@nestjs/jwt";
 import { WebsocketService } from "src/websocket/websocket.service";
 
 @Module({
-  imports: [PrismaModule, TransactionModule, WalletsModule, WebsocketModule, JwtModule],
+  imports: [
+    PrismaModule,
+    TransactionModule,
+    WalletsModule,
+    WebsocketModule,
+    JwtModule,
+  ],
   controllers: [OrderController, AdminOrderController],
   providers: [OrderService, WebsocketGateway, WebsocketService],
   exports: [OrderService],

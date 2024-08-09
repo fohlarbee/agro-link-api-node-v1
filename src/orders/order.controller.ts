@@ -130,7 +130,12 @@ export class OrderController {
     @Req() request: any,
   ) {
     const { business_id: businessId } = request.headers;
+    const { id: waiterId } = request.user;
 
-    return await this.orderService.markOrderAsDelivered(+orderId, +businessId);
+    return await this.orderService.markOrderAsDelivered(
+      +orderId,
+      +waiterId,
+      +businessId,
+    );
   }
-  }
+}

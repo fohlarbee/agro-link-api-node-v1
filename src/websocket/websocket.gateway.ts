@@ -87,8 +87,8 @@ export class WebsocketGateway
   sendEvent(rooms: string[], event: string, payload: any) {
     return this.server.to(rooms).emit(event, payload);
   }
-  @SubscribeMessage('mewMessage')
-  newMessage(client: CustomSocket, message: string){
+  @SubscribeMessage("mewMessage")
+  newMessage(client: CustomSocket, message: string) {
     console.log(message);
   }
 }

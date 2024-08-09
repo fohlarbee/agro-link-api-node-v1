@@ -391,7 +391,14 @@ export class OrderService {
     if (!staff) throw new UnauthorizedException("staff not found");
     const order = await this.prisma.order.update({
       where: { id: orderId, businessId },
-      data: { status: OrderStatus.preparing, kitchenStaffId },
+      data: {
+        status: OrderStatus.preparing,
+        kitchenStaff: {
+          connect: {
+            userId_businessId: { userId: kitchenStaffId, businessId },
+          },
+        },
+      },
       select: { customerId: true, waiterId: true },
     });
     const payload = {
@@ -445,18 +452,38 @@ export class OrderService {
   }
   async markOrderAsDelivered(
     orderId: number,
+    waiterId: number,
     businessId: number,
   ): Promise<any> {
     const order = await this.prisma.order.update({
       where: { id: orderId, businessId },
       data: { status: OrderStatus.delivered },
-      select: { customerId: true, waiterId: true },
     });
+    if (order.waiterId !== waiterId)
+      throw new UnauthorizedException(
+        "Unauthorized to mark order as delivered",
+      );
     const payload = {
       orderId,
       status: OrderStatus.delivered,
       type: "ORDER_DELIVERED",
+      tip: order.tip,
     };
+    if (order.tip && order.tip > 0) {
+      const waiterWallet = await this.prisma.wallet.findFirst({
+        where: { AND: [{ userId: waiterId }, { businessId: null }] },
+      });
+      if (!waiterWallet)
+        await this.prisma.wallet.create({
+          data: { userId: waiterId, balance: order.tip, businessId: null },
+        });
+
+      await this.prisma.wallet.update({
+        where: { id: waiterWallet.id },
+        data: { balance: { increment: order.tip } },
+      });
+      this.event.notifyWaiter(order.waiterId, "tips", payload);
+    }
     this.event.notifyUser(order.customerId, "orderDelivered", payload);
     return {
       message: "Order is marked as delivered",
