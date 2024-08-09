@@ -437,6 +437,7 @@ export class OrderService {
       where: { id: orderId },
       data: { status: OrderStatus.ready },
     });
+    console.log(order.customerId);
     const payload = {
       businessId: order.businessId,
       orderId,
@@ -489,5 +490,12 @@ export class OrderService {
       message: "Order is marked as delivered",
       status: "success",
     };
+  }
+  async markOrderAsComplete(
+    orderId: number,
+    businessId: number,
+    userId: number,
+  ):Promise<any>{
+    
   }
 }

@@ -109,7 +109,6 @@ export class OrderController {
 
   @Post(":id/ready")
   @UseGuards(RoleGuard([Role.kitchen]))
-  @UseInterceptors(new ValidPathParamInterceptor())
   @ApiAcceptedResponse({ type: BaseResponse })
   async markOrderAsReady(@Param("id") orderId: number, @Req() request: any) {
     const { id: kitchenStaffId } = request.user;
@@ -123,7 +122,6 @@ export class OrderController {
 
   @Post(":id/delivered")
   @UseGuards(RoleGuard([Role.waiter]))
-  @UseInterceptors(new ValidPathParamInterceptor())
   @ApiAcceptedResponse({ type: BaseResponse })
   async markOrderAsDelivered(
     @Param("id") orderId: number,

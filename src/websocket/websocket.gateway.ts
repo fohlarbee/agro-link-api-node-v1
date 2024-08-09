@@ -57,9 +57,9 @@ export class WebsocketGateway
     });
   }
   handleConnection(client: CustomSocket) {
-    let rooms = [`${client.user.id}:notifications`];
+    const rooms = [`${client.user.id}:notifications`];
     if (client.business) {
-      rooms = [`${client.business.id}:business`];
+      // rooms = [`${client.business.id}:business`];
       switch (client.user.role) {
         case "waiter":
           rooms.push(`${client.user.id}:waiter`);
@@ -76,7 +76,7 @@ export class WebsocketGateway
       }
     }
     client.join(rooms);
-    console.log(`${client.user.name} connected and joined rooms`);
+    console.log(`${client.user.name} connected and joined rooms` , rooms);
   }
 
   handleDisconnect(client: CustomSocket) {
