@@ -115,10 +115,15 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException("User not found");
     }
+    const staff = await this.prisma.staff.findFirst({
+      where: { userId },
+      select: { businessId: true },
+    });
+
     return {
       message: "User profile fetch successful",
       status: "success",
-      data: user,
+      data: { ...user, businessId: staff ? staff.businessId : null },
     };
   }
 }

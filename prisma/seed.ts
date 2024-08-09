@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
-import { GuardRoles, MenuType, PrismaClient } from '@prisma/client';
+import { GuardRoles, MenuType, OrderStatus, PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -94,7 +94,8 @@ const users = [
     {
     "name": "Laura Harris",
     "email": 'lauraharris@example.com',
-    "password": "LH123456!"
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
     },
     {
     "name": "Thomas Hall",
@@ -151,8 +152,56 @@ const users = [
 
       }
     
-    
 ];
+
+const kitchenUsers = [
+  {
+    "name": "Kunle Edward",
+    "email": 'kunleedward@example.com',
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
+
+  },
+  {
+    "name": "Kunle Frank",
+    "email": 'kunlefrank@example.com',
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
+
+  },
+  {
+    "name": "Angelica Tony",
+    "email": 'angelicatony@example.com',
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
+
+  },
+]
+
+
+const waiterUsers = [
+  {
+    "name": "Dotun Tony",
+    "email": 'dotuntony@example.com',
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
+
+  },
+  {
+    "name": "Gabriel Frank",
+    "email": 'gabrielfrank@example.com',
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
+
+  },
+  {
+    "name": "Juliet Isreal",
+    "email": 'julietIsreal@example.com',
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
+
+  },
+]
 
 const businesses =  [
   {
@@ -638,6 +687,7 @@ async function main() {
   const optionMenu3 = await prisma.menuOptions.create({data:{menuId:menu3.id, optionId: option3.id}}) 
 
   const waiterRole = await prisma.role.create({data:{name:'waiter', businessId: business.id}})
+  const kitchenStaffRole = await prisma.role.create({data:{name:'kitchen', businessId: business.id}})
 
   const table1 = await prisma.table.create({data:{identifier:"Tablen", outletId: outlet.id}})
   const table2 = await prisma.table.create({data:{identifier:"Tableb", outletId: outlet.id}});
@@ -678,10 +728,131 @@ async function main() {
       shiftId: shift.id,
       tableId: table2.id
     }
+  });
+
+  ////////////////////////////////////////////////////////
+  // kitchensUsers
+  const user1 = await prisma.user.create({
+    data:{name: kitchenUsers[0].name, email: kitchenUsers[0].email, password:  bcrypt.hashSync(kitchenUsers[0].password, bcrypt.genSaltSync())}
+  });
+  const user2  = await prisma.user.create({
+    data:{name: kitchenUsers[1].name, email: kitchenUsers[1].email, password: bcrypt.hashSync(kitchenUsers[1].password, bcrypt.genSaltSync())}
+  });
+  const user3 = await prisma.user.create({
+    data:{name: kitchenUsers[2].name, email: kitchenUsers[2].email, password:bcrypt.hashSync(kitchenUsers[2].password, bcrypt.genSaltSync())}
   })
 
+  // waiterUsers
+  const user4 = await prisma.user.create({
+    data:{name: waiterUsers[0].name, email: waiterUsers[0].email, password: bcrypt.hashSync(waiterUsers[0].password, bcrypt.genSaltSync())}
+  });
+  const user5 = await prisma.user.create({
+    data:{name: waiterUsers[1].name, email: waiterUsers[1].email, password: bcrypt.hashSync(waiterUsers[1].password, bcrypt.genSaltSync())}
+  });
+  const user6 = await prisma.user.create({
+    data:{name: waiterUsers[2].name, email: waiterUsers[2].email, password:  bcrypt.hashSync(waiterUsers[2].password, bcrypt.genSaltSync())}
+  });
+  
+
+
+  const kitchenStaff1 = await prisma.staff.create({
+    data:{businessId:business.id, userId: user1.id, roleId: kitchenStaffRole.id}
+  });
+  const kitchenStaff2 = await prisma.staff.create({
+    data:{businessId:business.id, userId: user2.id, roleId: kitchenStaffRole.id}
+  });
+  const kitchenStaff3 = await prisma.staff.create({
+    data:{businessId:business.id, userId: user3.id, roleId: kitchenStaffRole.id}
+  });
+
+  const waiterStaff1 = await prisma.staff.create({
+    data:{businessId:business.id, userId: user4.id, roleId: waiterRole.id}
+  });
+  const waiterStaff2 = await prisma.staff.create({
+    data:{businessId:business.id, userId: user5.id, roleId: waiterRole.id}
+  });
+  const waiterStaff3 = await prisma.staff.create({
+    data:{businessId:business.id, userId: user6.id, roleId: waiterRole.id}
+  });
+
+  await prisma.user.update({
+    where:{id:user1.id},
+    data:{role:GuardRoles.kitchen}
+  });
+  await prisma.user.update({
+    where:{id:user2.id},
+    data:{role:GuardRoles.kitchen}
+  });
+  await prisma.user.update({
+    where:{id:user3.id},
+    data:{role:GuardRoles.kitchen}
+  });
+
+
+  await prisma.user.update({
+    where:{id:user4.id},
+    data:{role:GuardRoles.waiter}
+  });
+  await prisma.user.update({
+    where:{id:user5.id},
+    data:{role:GuardRoles.waiter}
+  });
+  await prisma.user.update({
+    where:{id:user6.id},
+    data:{role:GuardRoles.waiter}
+  });
+
+  /////////////////////////////////
+
+
+   
+    const order = await prisma.order.create({
+      data: {
+        customer: { connect: { id: user.id } },
+        business: { connect: { id: business.id } },
+        table: { connect: { id: table1.id } },
+        shift: { connect: { id: shift.id } },
+        tip:1000,
+        waiter: {
+          connect: {
+            userId_businessId: { userId: 1, businessId: business.id },
+          },
+        },
+        cancelledBy: 0,
+      },
+      select: { id: true, options:true, tip: true },
+    });
+
+
+
+ await prisma.orderOption.create({
+  data:{quantity:3, optionId:option1.id, orderId:order.id}
+ });
+ 
+  const totalPrice = order.options.reduce((acc, option) => {
+    return acc + option.quantity * option1.price + order.tip;
+  }, 0);
+  const newPayment = await prisma.payment.create({
+    data:{
+      amount: totalPrice,
+      provider:"PAYSTACK",
+      reference:"CHP_43646452",
+      type:"ORDER_PAYMENT",
+      user:{
+        connect:{id:user.id}
+      },
+      providerId: `QQ|${user.id}|${user.id}|${Date.now()}`,
+
+      
+    }
+  })
+
+  await prisma.order.update({
+    where:{id: order.id, businessId: business.id},
+    data:{status:OrderStatus.paid, paidAt:new Date(), completedAt:new Date(),paymentId: newPayment.id }
+  })
 }
-// yep
+
 
 
 main()
