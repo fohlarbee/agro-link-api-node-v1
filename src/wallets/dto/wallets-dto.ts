@@ -14,3 +14,17 @@ export class FundWalletDto {
   @IsNumber()
   amount: number;
 }
+
+export class TransferDto extends FundWalletDto {
+  @ApiProperty({ required: true, type: Number })
+  @IsNumber()
+  toWalletId: number;
+
+  @ApiProperty({ required: true, type: Number })
+  @IsNumber()
+  fromWalletId: number;
+
+  @ApiProperty({ required: true, type: Number })
+  @IsNumber()
+  pin: number;
+}

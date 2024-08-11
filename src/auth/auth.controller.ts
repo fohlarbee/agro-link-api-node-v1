@@ -10,6 +10,7 @@ import { ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { AuthEntity } from "./entities/auth.entity";
 import {
+  AuthDto,
   LoginDto,
   ResetPasswordDto,
   SendRegistrationEmailDto,
@@ -28,16 +29,15 @@ export class AuthController {
   @Post("login")
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: AuthEntity, status: HttpStatus.OK })
-  login(@Body() { email, password }: LoginDto) {
-    return this.authService.login(email, password);
+  login(@Body() { email, password, deviceUUID }: LoginDto) {
+    return this.authService.login(email, password, deviceUUID);
   }
 
   @Post("register")
   @UseInterceptors(parseFileInterceptor, FileUploadInterceptor)
   @ApiCreatedResponse()
-  register(@Body() body: Record<string, any>) {
-    const { email, name, password, role, imageURL: avatar } = body;
-    return this.authService.register(email, name, password, role, avatar);
+  register(@Body() body: AuthDto) {
+    return this.authService.register(body);
   }
 
   @Post("otp/generate")

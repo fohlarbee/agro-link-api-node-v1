@@ -27,6 +27,11 @@ export class LoginDto {
   @MinLength(8)
   @ApiProperty()
   password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  deviceUUID: string;
 }
 
 export class AuthDto extends LoginDto {
@@ -37,12 +42,20 @@ export class AuthDto extends LoginDto {
   name: string;
 
   @ApiProperty()
-  avatar: string;
+  imageURL: string;
+
+  @ApiProperty()
+  avatar?: string;
 
   @IsEnum(Role)
   @IsString()
   @ApiProperty({ required: true })
   role?: Role;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ required: true })
+  deviceUUID: string;
 
   // @ApiProperty()
   // isCustomer?: boolean;

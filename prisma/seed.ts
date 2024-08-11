@@ -11,6 +11,7 @@ const users = [
     "email": 'johndoe@example.com',
     "password":"Sammyola246@1",
     "role":GuardRoles.customer,
+    "deviceUUID":'SSB234NAC3'
 
     
   },
@@ -19,6 +20,8 @@ const users = [
     "email": 'janedoe@example.com',
     "password":"Sammyola246@1",
     "role":GuardRoles.customer,
+    "deviceUUID":'BNM234NAC20'
+
 
 
   },
@@ -27,6 +30,8 @@ const users = [
     "email": 'janesmith@example.com',
     "password": "Password123!",
     "role":GuardRoles.customer,
+    "deviceUUID":'XCF234NAC4'
+
 
     },
     {
@@ -34,6 +39,8 @@ const users = [
     "email": 'michaelbrown@example.com',
     "password": "MB123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'RTY234NAC5'
+
 
     },
     {
@@ -41,6 +48,8 @@ const users = [
     "email": 'emilydavis@example.com',
     "password": "ED123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'FVG234NAC6'
+
 
     },
     {
@@ -48,6 +57,8 @@ const users = [
     "email": 'christopherlee@example.com',
     "password": "CL123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'BNM234NAC7'
+
 
     },
     {
@@ -55,6 +66,8 @@ const users = [
     "email": 'jessicawhite@example.com',
     "password": "JW123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'VBN234NAC8'
+
 
     },
     {
@@ -62,6 +75,8 @@ const users = [
     "email": 'matthewmartin@example.com',
     "password": "MM123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'MKN234NAC9'
+
 
     },
     {
@@ -69,12 +84,16 @@ const users = [
     "email": 'amandajohnson@example.com',
     "password": "AJ123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'POI234NAC10'
+
     },
     {
     "name": "Daniel Williams",
     "email": 'danielwilliams@example.com',
     "password": "DW123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'LKJ234NAC11',
+
 
     },
     {
@@ -82,6 +101,8 @@ const users = [
     "email": 'elizabeththompson@example.com',
     "password": "ET123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'ZXCV234NAC12'
+
 
     },
     {
@@ -89,6 +110,8 @@ const users = [
     "email": 'josephlewis@example.com',
     "password": "JL123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'QWERT234NAC13'
+
 
     },
     {
@@ -96,24 +119,33 @@ const users = [
     "email": 'lauraharris@example.com',
     "password": "LH123456!",
     "role": GuardRoles.customer,
+    "deviceUUID":'YUIO234NAC14'
+
     },
     {
     "name": "Thomas Hall",
     "email": 'thomashall@example.com',
     "password": "TH123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'TYUI234NAC15'
+
 
     },
     {
     "name": "Sophia Jackson",
     "email": 'sophiajackson@example.com',
-    "password": "SJ123456!"
+    "password": "SJ123456!",
+    "role":GuardRoles.customer,
+    "deviceUUID":'RFGN234NAC16'
+
     },
     {
       "name": "Emily Chen",
       "email": 'emilychen@example.com',
       "password": "EC123456!",
       "role":GuardRoles.customer,
+      "deviceUUID":'MNBV234NAC17'
+
 
       },
       {
@@ -121,6 +153,8 @@ const users = [
       "email": 'michaelkim@example.com',
       "password": "MK123456!",
       "role":GuardRoles.customer,
+      "deviceUUID":'CVBN234NAC18'
+
 
       },
       {
@@ -128,6 +162,8 @@ const users = [
       "email": 'sarahtaylor@example.com',
       "password": "ST123456!",
       "role":GuardRoles.customer,
+      "deviceUUID":'XZCV234NAC19'
+
 
       },
       {
@@ -135,6 +171,8 @@ const users = [
       "email": 'davidlee@example.com',
       "password": "DL123456!",
       "role":GuardRoles.customer,
+      "deviceUUID":'BNM234NAC20'
+
 
       },
       {
@@ -142,6 +180,8 @@ const users = [
       "email": 'oliviabrown@example.com',
       "password": "OB123456!",
       "role":GuardRoles.customer,
+      "deviceUUID":'BNM234NAC21'
+
 
       },
       {
@@ -149,6 +189,8 @@ const users = [
       "email": 'kevinwhite@example.com',
       "password": "KW123456",
       "role":GuardRoles.customer,
+      "deviceUUID":'BNM234NAC22'
+
 
       }
     
@@ -160,6 +202,8 @@ const kitchenUsers = [
     "email": 'kunleedward@example.com',
     "password": "LH123456!",
     "role": GuardRoles.customer,
+    "deviceUUID":'BNM234NAC23'
+
 
   },
   {
@@ -167,6 +211,8 @@ const kitchenUsers = [
     "email": 'kunlefrank@example.com',
     "password": "LH123456!",
     "role": GuardRoles.customer,
+    "deviceUUID":'BNM234NAC24'
+
 
   },
   {
@@ -174,6 +220,8 @@ const kitchenUsers = [
     "email": 'angelicatony@example.com',
     "password": "LH123456!",
     "role": GuardRoles.customer,
+    "deviceUUID":'BNM234NAC25'
+
 
   },
 ]
@@ -185,6 +233,8 @@ const waiterUsers = [
     "email": 'dotuntony@example.com',
     "password": "LH123456!",
     "role": GuardRoles.customer,
+    "deviceUUID":'BNM234NAC26'
+
 
   },
   {
@@ -192,6 +242,8 @@ const waiterUsers = [
     "email": 'gabrielfrank@example.com',
     "password": "LH123456!",
     "role": GuardRoles.customer,
+    "deviceUUID":'BNM234NAC27'
+
 
   },
   {
@@ -199,6 +251,8 @@ const waiterUsers = [
     "email": 'julietIsreal@example.com',
     "password": "LH123456!",
     "role": GuardRoles.customer,
+    "deviceUUID":'BNM234NAC28'
+
 
   },
 ]

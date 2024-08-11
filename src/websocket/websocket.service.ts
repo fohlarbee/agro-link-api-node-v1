@@ -23,4 +23,7 @@ export class WebsocketService {
       payload,
     );
   }
+  notifyBusiness(businessId: number, event: string, payload: any) {
+    return this.gateway.sendEvent([`${businessId}:business`], event, payload);
+  }
 }

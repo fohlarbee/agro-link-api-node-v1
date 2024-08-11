@@ -43,6 +43,7 @@ model User {
   password  String
   name      String
   avatar    String?
+  deviceUUID String?
   role      GuardRoles @default(customer)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -325,6 +326,9 @@ model Wallet {
   balance    Float
   userId     Int?      @unique
   businessId Int?      @unique
+  authToken  String @unique
+  pin        Int? @unique
+  locked     Boolean   @default(false)
   // ownerType  OwnerType
   payments   Payment[]
   createdAt  DateTime  @default(now())

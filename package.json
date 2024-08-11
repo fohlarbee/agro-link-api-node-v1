@@ -11,7 +11,7 @@
   "scripts": {
     "db:seed": "prisma db seed",
     "db:migrate": "prisma migrate deploy",
-    "build": "nest build",
+    "build": "nest build",  
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "prestart:prod": "yarn db:migrate",
     "prestart": "yarn db:migrate",
