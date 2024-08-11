@@ -27,10 +27,11 @@ export class AuthService {
     deviceUUID: string,
   ): Promise<AuthEntity> {
     const user = await this.prisma.user.findUnique({ where: { email } });
+    // console.log(await bcrypt.hashSync('FBB234NAC3', bcrypt.genSaltSync()));
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException("Invalid email or password");
     }
-    if (user.deviceUUID !== deviceUUID) {
+    if (!(await bcrypt.compare(deviceUUID, user.deviceUUID))) {
       throw new UnauthorizedException(
         "Invalid device, Kindly, authorize with this device",
       );
@@ -75,6 +76,7 @@ export class AuthService {
     if (!userVerified)
       throw new UnauthorizedException("Please verify your email first");
     const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync());
+    const hashedDeviceUUID = bcrypt.hashSync(deviceUUID, bcrypt.genSaltSync());
     await this.prisma.user.create({
       data: {
         email,
@@ -82,7 +84,7 @@ export class AuthService {
         name,
         avatar: imageURL,
         role,
-        deviceUUID,
+        deviceUUID: hashedDeviceUUID,
       },
     });
     await this.prisma.otp.delete({ where: { email } });
