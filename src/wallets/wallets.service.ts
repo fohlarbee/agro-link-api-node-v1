@@ -11,6 +11,7 @@ import { PaymentProvider, PaymentType } from "@prisma/client";
 import { TransactionService } from "src/transactions/transaction.service";
 import { v4 as uuidv4 } from "uuid";
 import { WebsocketService } from "src/websocket/websocket.service";
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class WalletsService {
@@ -336,11 +337,29 @@ export class WalletsService {
       data: wallet,
     };
   }
+
+  async createPin(walletId: number, pin: number) {
+    const wallet = await this.prisma.wallet.findUnique({
+      where: { id: walletId },
+    });
+    if (!wallet) throw new NotFoundException("wallet not found");
+    const hashedPin = bcrypt.hashSync(pin.toString(), bcrypt.genSaltSync());
+
+    await this,
+      this.prisma.wallet.update({
+        where: { id: walletId },
+        data: { pin: Number(hashedPin) },
+      });
+    return {
+      message: "Wallet pin created",
+      status: "success",
+    };
+  }
   async validatePin(walletId: number, pin: number) {
     const wallet = await this.prisma.wallet.findUnique({
       where: { id: walletId },
     });
-    if (!walletId) throw new NotFoundException("wallet not found");
+    if (!wallet) throw new NotFoundException("wallet not found");
 
     if (wallet.pin !== pin) throw new UnauthorizedException("Invalid pin");
 

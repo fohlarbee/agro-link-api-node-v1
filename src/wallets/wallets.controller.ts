@@ -81,4 +81,14 @@ export class WalletsController {
       pin,
     );
   }
+
+  @Put("pin")
+  @ApiOkResponse({ type: BaseResponse })
+  async createPin(
+    @Req() request: Record<string, any>,
+    @Body() { pin }: { pin: number },
+  ) {
+    const { id: userId } = request.user;
+    return await this.walletService.createPin(+userId, pin);
+  }
 }
