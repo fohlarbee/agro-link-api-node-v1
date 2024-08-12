@@ -2,6 +2,8 @@
 /* eslint-disable prettier/prettier */
 import { GuardRoles, MenuType, OrderStatus, PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from "uuid";
+
 
 const prisma = new PrismaClient();
 
@@ -697,6 +699,10 @@ async function main() {
     "type":"restaurant",
     creator:{connect:{id:user.id}}
   }});
+
+  await prisma.wallet.create({
+    data:{businessId: business.id, authToken: uuidv4(), balance: 0.0 }
+  })
 
   const outlet = await prisma.outlet.create({data:{address:'Fohlar', businessId:business.id}});
 

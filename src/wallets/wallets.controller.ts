@@ -17,7 +17,11 @@ import {
 } from "@nestjs/swagger";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
-import { FundWalletDto, TransferDto } from "./dto/wallets-dto";
+import {
+  createWalletPinDto,
+  FundWalletDto,
+  TransferDto,
+} from "./dto/wallets-dto";
 import { DepositInitiationResponse } from "./entities/wallets.entity";
 
 @Controller("wallets")
@@ -86,9 +90,9 @@ export class WalletsController {
   @ApiOkResponse({ type: BaseResponse })
   async createPin(
     @Req() request: Record<string, any>,
-    @Body() { pin }: { pin: number },
+    @Body() { pin }: createWalletPinDto,
   ) {
-    const { id: userId } = request.user;
-    return await this.walletService.createPin(+userId, pin);
+    const { wallet_id: walletId } = request.headers;
+    return await this.walletService.createPin(+walletId, pin);
   }
 }

@@ -33,10 +33,10 @@ export class OrderController {
   }
 
   @Get("/pay")
-  @UseInterceptors(BusinessAccessInterceptor)
   payOrder(@Query("paymentProvider") provider: string, @Req() request) {
     const { id: customerId, email } = request.user;
     const { business_id: businessId } = request.headers;
+    console.log(businessId);
     return this.orderService.payOrder(
       email,
       customerId,

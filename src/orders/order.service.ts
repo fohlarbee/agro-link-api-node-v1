@@ -394,6 +394,7 @@ export class OrderService {
     };
     this.event.notifyKitchen(kitchenStaffId, "acceptedOrder", payload);
     this.event.notifyUser(order.customerId, "acceptedOrder", payload);
+    this.event.notifyWaiter(order.waiterId, "acceptedOrder", payload);
     return {
       message: "Order is accepted",
       status: "success",
@@ -434,6 +435,8 @@ export class OrderService {
     };
     this.event.notifyUser(order.customerId, "orderIsReady", payload);
     this.event.notifyWaiter(order.waiterId, "orderIsReady", payload);
+    this.event.notifyKitchen(kitchenStaffId, "orderIsReady", payload);
+
     return {
       message: "Order is marked as ready",
       status: "success",
@@ -484,6 +487,11 @@ export class OrderService {
       this.event.notifyWaiter(order.waiterId, "tips", payload);
     }
     this.event.notifyUser(order.customerId, "orderDelivered", payload);
+    this.event.notifyWaiter(order.waiterId, "orderDelivered", payload);
+    this.event.notifyKitchen(order.kitchenStaffId, "orderDelivered", payload);
+
+
+
     return {
       message: "Order is marked as delivered",
       status: "success",

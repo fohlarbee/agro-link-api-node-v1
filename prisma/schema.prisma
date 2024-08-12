@@ -327,7 +327,7 @@ model Wallet {
   userId     Int?      @unique
   businessId Int?      @unique
   authToken  String @unique
-  pin        Int? @unique
+  pin        String? @unique
   locked     Boolean   @default(false)
   // ownerType  OwnerType
   payments   Payment[]
