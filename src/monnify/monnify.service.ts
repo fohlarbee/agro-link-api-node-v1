@@ -10,6 +10,7 @@ const {
   MONNIFY_DEFAULT_CONTRACT,
   MONNIFY_SECRET_KEY,
   MONNIFY_BASE_URL,
+  PAYMENT_REDIRECT_URL,
 } = process.env;
 
 @Injectable()
@@ -61,7 +62,7 @@ export class MonnifyService {
           metaData: metadata,
           customerEmail: email,
           contractCode: MONNIFY_DEFAULT_CONTRACT,
-          redirectUrl: process.env.PAYMENT_REDIRECT_URL + "MNF",
+          redirectUrl: `${PAYMENT_REDIRECT_URL}?provider=MNF&type=${metadata.type}`,
         },
         { headers: { Authorization: `Bearer ${accessToken}` } },
       );

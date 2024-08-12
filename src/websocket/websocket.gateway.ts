@@ -69,8 +69,10 @@ export class WebsocketGateway
           break;
         case "owner":
           rooms.push(`${client.business.id}:owner`);
+          break;
         case "admin":
           rooms.push(`${client.business.id}:admin`);
+          break;
         default:
           rooms.push();
       }
