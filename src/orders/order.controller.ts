@@ -102,6 +102,7 @@ export class OrderController {
   @ApiAcceptedResponse({ type: BaseResponse })
   async acceptOrder(@Param("id") orderId: number, @Req() request: any) {
     const { id: kitchenStaffId } = request.user;
+    console.log("controller", kitchenStaffId);
     const { business_id: businessId } = request.headers;
     return await this.orderService.acceptOrder(
       +orderId,

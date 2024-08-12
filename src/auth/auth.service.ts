@@ -27,6 +27,8 @@ export class AuthService {
     deviceUUID: string,
   ): Promise<AuthEntity> {
     const user = await this.prisma.user.findUnique({ where: { email } });
+    console.log(bcrypt.hashSync("FB234NAC5", bcrypt.genSaltSync()));
+
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException("Invalid email or password");
     }

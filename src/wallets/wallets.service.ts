@@ -207,25 +207,24 @@ export class WalletsService {
     pin: string,
   ): Promise<any> {
     try {
-        // const authorizeFromWallet = await this.authorize(fromWalletId);
-        // const authorizeToWallet = await this.authorize(toWalletId);
-    
-        // if (
-        //   authorizeToWallet.status !== "success" ||
-        //   authorizeToWallet.status !== "success"
-        // )
-        //   throw new BadRequestException("Wallet not authorized");
-        // const validatePin = await this.validatePin(fromWalletId, pin);
-    
-        // if (fromWalletId === toWalletId)
-        //   throw new BadRequestException("Cannot transfer to same wallet");
-    
-        // if (authorizeFromWallet.data.balance < amount)
-        //   throw new BadRequestException("Insufficient funds");
+      // const authorizeFromWallet = await this.authorize(fromWalletId);
+      // const authorizeToWallet = await this.authorize(toWalletId);
+
+      // if (
+      //   authorizeToWallet.status !== "success" ||
+      //   authorizeToWallet.status !== "success"
+      // )
+      //   throw new BadRequestException("Wallet not authorized");
+      // const validatePin = await this.validatePin(fromWalletId, pin);
+
+      // if (fromWalletId === toWalletId)
+      //   throw new BadRequestException("Cannot transfer to same wallet");
+
+      // if (authorizeFromWallet.data.balance < amount)
+      //   throw new BadRequestException("Insufficient funds");
       await this.prisma.$transaction(async (tx) => {
         const authorizeFromWallet = await this.authorize(fromWalletId);
         const authorizeToWallet = await this.authorize(toWalletId);
-
 
         if (
           authorizeToWallet.status !== "success" ||
@@ -233,17 +232,17 @@ export class WalletsService {
         )
           throw new BadRequestException("Wallet not authorized");
         const validatePin = await this.validatePin(fromWalletId, pin);
-    
+
         if (fromWalletId === toWalletId)
           throw new BadRequestException("Cannot transfer to same wallet");
-    
+
         if (authorizeFromWallet.data.balance < amount)
           throw new BadRequestException("Insufficient funds");
         await tx.wallet.update({
           where: { id: fromWalletId },
           data: { locked: true },
         });
-    
+
         await tx.wallet.update({
           where: { id: fromWalletId },
           data: { balance: { decrement: amount } },
@@ -252,7 +251,7 @@ export class WalletsService {
           where: { id: toWalletId },
           data: { balance: { increment: amount } },
         });
-    
+
         await tx.payment.create({
           data: {
             reference: `QQ_${Date.now()}`,
@@ -276,13 +275,14 @@ export class WalletsService {
         };
         const creditPayload = {
           from:
-            authorizeFromWallet.data.businessId ?? authorizeFromWallet.data.userId,
+            authorizeFromWallet.data.businessId ??
+            authorizeFromWallet.data.userId,
           type: "WALLET_CREDIT",
         };
 
         const fromType = authorizeFromWallet.data.userId ? "user" : "business";
         const toType = authorizeToWallet.data.userId ? "user" : "business";
-    
+
         switch (`${fromType}->${toType}`) {
           case "user->user":
             this.event.notifyUser(
@@ -335,16 +335,13 @@ export class WalletsService {
           default:
             throw new BadRequestException("Invalid transfer type");
         }
-        
+      });
 
-
-      })
-  
       // await this.prisma.wallet.update({
       //   where: { id: fromWalletId },
       //   data: { locked: true },
       // });
-  
+
       // await this.prisma.wallet.update({
       //   where: { id: fromWalletId },
       //   data: { balance: { decrement: amount } },
@@ -353,7 +350,7 @@ export class WalletsService {
       //   where: { id: toWalletId },
       //   data: { balance: { increment: amount } },
       // });
-  
+
       // await this.prisma.payment.create({
       //   data: {
       //     reference: `QQ_${Date.now()}`,
@@ -380,10 +377,10 @@ export class WalletsService {
       //     authorizeFromWallet.data.businessId ?? authorizeFromWallet.data.userId,
       //   type: "WALLET_CREDIT",
       // };
-  
+
       // const fromType = authorizeFromWallet.data.userId ? "user" : "business";
       // const toType = authorizeToWallet.data.userId ? "user" : "business";
-  
+
       // switch (`${fromType}->${toType}`) {
       //   case "user->user":
       //     this.event.notifyUser(
@@ -436,17 +433,14 @@ export class WalletsService {
       //   default:
       //     throw new BadRequestException("Invalid transfer type");
       // }
-  
+
       return {
         message: "Wallet transfer successful",
         status: "success",
       };
-      
     } catch (error) {
       console.log(error);
-      
     }
-   
   }
 
   async authorize(walletId: number) {

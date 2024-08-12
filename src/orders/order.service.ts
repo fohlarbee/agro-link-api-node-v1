@@ -392,6 +392,7 @@ export class OrderService {
       status: OrderStatus.preparing,
       type: "ORDER_ACCEPTED",
     };
+    console.log("service", kitchenStaffId);
     this.event.notifyKitchen(kitchenStaffId, "acceptedOrder", payload);
     this.event.notifyUser(order.customerId, "acceptedOrder", payload);
     this.event.notifyWaiter(order.waiterId, "acceptedOrder", payload);
@@ -489,8 +490,6 @@ export class OrderService {
     this.event.notifyUser(order.customerId, "orderDelivered", payload);
     this.event.notifyWaiter(order.waiterId, "orderDelivered", payload);
     this.event.notifyKitchen(order.kitchenStaffId, "orderDelivered", payload);
-
-
 
     return {
       message: "Order is marked as delivered",
