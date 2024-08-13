@@ -5,10 +5,7 @@ import {
 } from "@nestjs/common";
 import axios from "axios";
 
-const {
-  PAYMENT_REDIRECT_URL,
-  PSK_SECRET_KEY,
-} = process.env;
+const { PAYMENT_REDIRECT_URL, PSK_SECRET_KEY } = process.env;
 
 @Injectable()
 export class PaystackService {

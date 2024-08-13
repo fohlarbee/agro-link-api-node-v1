@@ -22,6 +22,13 @@ export class WebsocketService {
       payload,
     );
   }
+  notifyAdmin(userId: number, event: string, payload: any) {
+    return this.gateway.sendEvent(
+      [`${userId}:admin`, `${payload.businessId}:business`],
+      event,
+      payload,
+    );
+  }
   notifyBusiness(businessId: number, event: string, payload: any) {
     return this.gateway.sendEvent([`${businessId}:business`], event, payload);
   }

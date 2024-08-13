@@ -6,7 +6,6 @@ import {
   Post,
   Put,
   Query,
-  Req,
   UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
@@ -28,7 +27,6 @@ export class TransactionController {
     @Param("reference") reference: string,
     @Query("paymentProvider") provider: string,
   ) {
-    // const provider = request.headers["provider"];
 
     if (!provider) throw new BadRequestException("provider is required");
 

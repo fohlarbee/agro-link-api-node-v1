@@ -185,18 +185,18 @@ export class WalletsService {
   async getBalance(userId: number): Promise<any> {
     let wallet = await this.prisma.wallet.findUnique({
       where: { userId },
-      select: { balance: true },
+      select: { id: true, balance: true },
     });
     if (!wallet)
       wallet = await this.prisma.wallet.create({
         data: { balance: 0, userId, authToken: uuidv4() },
-        select: { balance: true },
+        select: { id: true, balance: true },
       });
 
     return {
       message: "Wallet balance fetched successfully",
       status: "success",
-      data: wallet,
+      data: { id: wallet.id, balance: wallet.balance },
     };
   }
   async transfer(
@@ -206,130 +206,130 @@ export class WalletsService {
     userId: number,
     pin: string,
   ): Promise<any> {
-    try {
-      await this.prisma.$transaction(async (tx) => {
-        const authorizeFromWallet = await this.authorize(fromWalletId);
-        const authorizeToWallet = await this.authorize(toWalletId);
+    // try {
+    await this.prisma.$transaction(async (tx) => {
+      const authorizeFromWallet = await this.authorize(fromWalletId);
+      const authorizeToWallet = await this.authorize(toWalletId);
 
-        if (
-          authorizeToWallet.status !== "success" ||
-          authorizeToWallet.status !== "success"
-        )
-          throw new BadRequestException("Wallet not authorized");
-        // const validatePin = 
-        await this.validatePin(fromWalletId, pin);
+      if (
+        authorizeToWallet.status !== "success" ||
+        authorizeToWallet.status !== "success"
+      )
+        throw new BadRequestException("Wallet not authorized");
+      // const validatePin =
+      await this.validatePin(fromWalletId, pin);
 
-        if (fromWalletId === toWalletId)
-          throw new BadRequestException("Cannot transfer to same wallet");
+      if (fromWalletId === toWalletId)
+        throw new BadRequestException("Cannot transfer to same wallet");
 
-        if (authorizeFromWallet.data.balance < amount)
-          throw new BadRequestException("Insufficient funds");
-        await tx.wallet.update({
-          where: { id: fromWalletId },
-          data: { locked: true },
-        });
-
-        await tx.wallet.update({
-          where: { id: fromWalletId },
-          data: { balance: { decrement: amount } },
-        });
-        await tx.wallet.update({
-          where: { id: toWalletId },
-          data: { balance: { increment: amount } },
-        });
-
-        await tx.payment.create({
-          data: {
-            reference: `QQ_${Date.now()}`,
-            type: PaymentType.WALLET_TRANSFER,
-            amount,
-            paidAt: new Date(),
-            provider: PaymentProvider.QQ_WALLET,
-            userId,
-            providerId: `QQ|${fromWalletId}|${userId}|${Date.now()}`,
-          },
-        });
-        await tx.wallet.update({
-          where: { id: fromWalletId },
-          data: { locked: false },
-        });
-        const debitPayload = {
-          userId: authorizeFromWallet.data.userId ?? null,
-          businessId: authorizeFromWallet.data.businessId ?? null,
-          status: "success",
-          type: "WALLET_DEBIT",
-        };
-        const creditPayload = {
-          from:
-            authorizeFromWallet.data.businessId ??
-            authorizeFromWallet.data.userId,
-          type: "WALLET_CREDIT",
-        };
-
-        const fromType = authorizeFromWallet.data.userId ? "user" : "business";
-        const toType = authorizeToWallet.data.userId ? "user" : "business";
-
-        switch (`${fromType}->${toType}`) {
-          case "user->user":
-            this.event.notifyUser(
-              authorizeFromWallet.data.userId,
-              "walletDebit",
-              debitPayload,
-            );
-            this.event.notifyUser(
-              authorizeToWallet.data.userId,
-              "walletCredit",
-              creditPayload,
-            );
-            break;
-          case "user->business":
-            this.event.notifyUser(
-              authorizeFromWallet.data.userId,
-              "walletDebit",
-              debitPayload,
-            );
-            this.event.notifyBusiness(
-              authorizeToWallet.data.businessId,
-              "walletCredit",
-              creditPayload,
-            );
-            break;
-          case "business->user":
-            this.event.notifyBusiness(
-              authorizeFromWallet.data.businessId,
-              "walletDebit",
-              debitPayload,
-            );
-            this.event.notifyUser(
-              authorizeToWallet.data.userId,
-              "walletCredit",
-              creditPayload,
-            );
-            break;
-          case "business->business":
-            this.event.notifyBusiness(
-              authorizeFromWallet.data.businessId,
-              "walletDebit",
-              debitPayload,
-            );
-            this.event.notifyBusiness(
-              authorizeToWallet.data.businessId,
-              "walletCredit",
-              creditPayload,
-            );
-            break;
-          default:
-            throw new BadRequestException("Invalid transfer type");
-        }
+      if (authorizeFromWallet.data.balance < amount)
+        throw new BadRequestException("Insufficient funds");
+      await tx.wallet.update({
+        where: { id: fromWalletId },
+        data: { locked: true },
       });
 
-      return {
-        message: "Wallet transfer successful",
+      await tx.wallet.update({
+        where: { id: fromWalletId },
+        data: { balance: { decrement: amount } },
+      });
+      await tx.wallet.update({
+        where: { id: toWalletId },
+        data: { balance: { increment: amount } },
+      });
+
+      await tx.payment.create({
+        data: {
+          reference: `QQ_${Date.now()}`,
+          type: PaymentType.WALLET_TRANSFER,
+          amount,
+          paidAt: new Date(),
+          provider: PaymentProvider.QQ_WALLET,
+          userId,
+          providerId: `QQ|${fromWalletId}|${userId}|${Date.now()}`,
+        },
+      });
+      await tx.wallet.update({
+        where: { id: fromWalletId },
+        data: { locked: false },
+      });
+      const debitPayload = {
+        userId: authorizeFromWallet.data.userId ?? null,
+        businessId: authorizeFromWallet.data.businessId ?? null,
         status: "success",
+        type: "WALLET_DEBIT",
       };
-    } catch (error) {
-      console.log(error);
-    }
+      const creditPayload = {
+        from:
+          authorizeFromWallet.data.businessId ??
+          authorizeFromWallet.data.userId,
+        type: "WALLET_CREDIT",
+      };
+
+      const fromType = authorizeFromWallet.data.userId ? "user" : "business";
+      const toType = authorizeToWallet.data.userId ? "user" : "business";
+
+      switch (`${fromType}->${toType}`) {
+        case "user->user":
+          this.event.notifyUser(
+            authorizeFromWallet.data.userId,
+            "walletDebit",
+            debitPayload,
+          );
+          this.event.notifyUser(
+            authorizeToWallet.data.userId,
+            "walletCredit",
+            creditPayload,
+          );
+          break;
+        case "user->business":
+          this.event.notifyUser(
+            authorizeFromWallet.data.userId,
+            "walletDebit",
+            debitPayload,
+          );
+          this.event.notifyBusiness(
+            authorizeToWallet.data.businessId,
+            "walletCredit",
+            creditPayload,
+          );
+          break;
+        case "business->user":
+          this.event.notifyBusiness(
+            authorizeFromWallet.data.businessId,
+            "walletDebit",
+            debitPayload,
+          );
+          this.event.notifyUser(
+            authorizeToWallet.data.userId,
+            "walletCredit",
+            creditPayload,
+          );
+          break;
+        case "business->business":
+          this.event.notifyBusiness(
+            authorizeFromWallet.data.businessId,
+            "walletDebit",
+            debitPayload,
+          );
+          this.event.notifyBusiness(
+            authorizeToWallet.data.businessId,
+            "walletCredit",
+            creditPayload,
+          );
+          break;
+        default:
+          throw new BadRequestException("Invalid transfer type");
+      }
+    });
+
+    return {
+      message: "Wallet transfer successful",
+      status: "success",
+    };
+    // } catch (error) {
+    //   console.log(error);
+    // }
   }
 
   async authorize(walletId: number) {
@@ -350,7 +350,7 @@ export class WalletsService {
     };
   }
 
-  async createPin(walletId: number, pin: number) {
+  async createPin(walletId: number, pin: string) {
     const wallet = await this.prisma.wallet.findUnique({
       where: { id: walletId },
     });

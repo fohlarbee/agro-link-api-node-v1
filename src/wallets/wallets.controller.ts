@@ -22,7 +22,11 @@ import {
   FundWalletDto,
   TransferDto,
 } from "./dto/wallets-dto";
-import { DepositInitiationResponse } from "./entities/wallets.entity";
+import {
+  DepositInitiationResponse,
+  TransactionHistoryResponse,
+  WalletBalanceResponse,
+} from "./entities/wallets.entity";
 
 @Controller("wallets")
 @ApiTags("Wallet (Customer)")
@@ -59,12 +63,14 @@ export class WalletsController {
   }
 
   @Get("transactions")
+  @ApiOkResponse({ type: TransactionHistoryResponse })
   async getTransactions(@Req() request) {
     const { id: userId } = request.user;
     return this.walletService.transactionHistory(+userId);
   }
 
   @Get("balance")
+  @ApiOkResponse({ type: WalletBalanceResponse })
   @ApiOkResponse({ example: { balance: 0.0 } })
   async getBalance(@Req() request) {
     const { id: userId } = request.user;

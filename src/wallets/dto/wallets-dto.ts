@@ -30,7 +30,7 @@ export class TransferDto extends FundWalletDto {
 }
 
 export class createWalletPinDto {
-  @ApiProperty({ required: true, type: Number })
-  @IsNumber()
-  pin: number;
+  @ApiProperty({ required: true, type: String })
+  @IsString()
+  pin: string;
 }
