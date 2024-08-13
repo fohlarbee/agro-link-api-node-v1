@@ -3,17 +3,22 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { DepositInitiationResponse } from "./entities/wallets.entity";
 import { PaymentProvider, PaymentType } from "@prisma/client";
 import { TransactionService } from "src/transactions/transaction.service";
+import { v4 as uuidv4 } from "uuid";
+import { WebsocketService } from "src/websocket/websocket.service";
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class WalletsService {
   constructor(
     private readonly prisma: PrismaService,
     private transactionService: TransactionService,
+    private event: WebsocketService,
   ) {}
 
   async create(userId: number): Promise<any> {
@@ -33,7 +38,12 @@ export class WalletsService {
       });
       if (!businessHasWallet)
         await this.prisma.wallet.create({
-          data: { businessId: business?.id, balance: 0.0 },
+          data: {
+            businessId: business?.id,
+            balance: 0.0,
+            userId: null,
+            authToken: uuidv4(),
+          },
         });
     }
 
@@ -43,7 +53,7 @@ export class WalletsService {
     if (userHasWallet) throw new ConflictException("User already has a wallet");
 
     await this.prisma.wallet.create({
-      data: { userId, balance: 0.0 },
+      data: { userId, balance: 0.0, businessId: null, authToken: uuidv4() },
     });
 
     return {
@@ -71,7 +81,7 @@ export class WalletsService {
 
     if (!wallet)
       wallet = await this.prisma.wallet.create({
-        data: { balance: 0, userId },
+        data: { balance: 0, userId, authToken: uuidv4() },
         select: {
           id: true,
           user: { select: { email: true } },
@@ -108,7 +118,7 @@ export class WalletsService {
 
     if (!wallet)
       wallet = await this.prisma.wallet.create({
-        data: { balance: 0, userId },
+        data: { balance: 0, userId, authToken: uuidv4() },
         select: { id: true, balance: true },
       });
 
@@ -142,7 +152,7 @@ export class WalletsService {
     });
     if (!wallet)
       this.prisma.wallet.create({
-        data: { balance: 0, userId },
+        data: { balance: 0, userId, authToken: uuidv4() },
       });
 
     if (wallet.balance < amount)
@@ -179,7 +189,7 @@ export class WalletsService {
     });
     if (!wallet)
       wallet = await this.prisma.wallet.create({
-        data: { balance: 0, userId },
+        data: { balance: 0, userId, authToken: uuidv4() },
         select: { balance: true },
       });
 
@@ -187,6 +197,187 @@ export class WalletsService {
       message: "Wallet balance fetched successfully",
       status: "success",
       data: wallet,
+    };
+  }
+  async transfer(
+    amount: number,
+    fromWalletId: number,
+    toWalletId: number,
+    userId: number,
+    pin: string,
+  ): Promise<any> {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        const authorizeFromWallet = await this.authorize(fromWalletId);
+        const authorizeToWallet = await this.authorize(toWalletId);
+
+        if (
+          authorizeToWallet.status !== "success" ||
+          authorizeToWallet.status !== "success"
+        )
+          throw new BadRequestException("Wallet not authorized");
+        // const validatePin = 
+        await this.validatePin(fromWalletId, pin);
+
+        if (fromWalletId === toWalletId)
+          throw new BadRequestException("Cannot transfer to same wallet");
+
+        if (authorizeFromWallet.data.balance < amount)
+          throw new BadRequestException("Insufficient funds");
+        await tx.wallet.update({
+          where: { id: fromWalletId },
+          data: { locked: true },
+        });
+
+        await tx.wallet.update({
+          where: { id: fromWalletId },
+          data: { balance: { decrement: amount } },
+        });
+        await tx.wallet.update({
+          where: { id: toWalletId },
+          data: { balance: { increment: amount } },
+        });
+
+        await tx.payment.create({
+          data: {
+            reference: `QQ_${Date.now()}`,
+            type: PaymentType.WALLET_TRANSFER,
+            amount,
+            paidAt: new Date(),
+            provider: PaymentProvider.QQ_WALLET,
+            userId,
+            providerId: `QQ|${fromWalletId}|${userId}|${Date.now()}`,
+          },
+        });
+        await tx.wallet.update({
+          where: { id: fromWalletId },
+          data: { locked: false },
+        });
+        const debitPayload = {
+          userId: authorizeFromWallet.data.userId ?? null,
+          businessId: authorizeFromWallet.data.businessId ?? null,
+          status: "success",
+          type: "WALLET_DEBIT",
+        };
+        const creditPayload = {
+          from:
+            authorizeFromWallet.data.businessId ??
+            authorizeFromWallet.data.userId,
+          type: "WALLET_CREDIT",
+        };
+
+        const fromType = authorizeFromWallet.data.userId ? "user" : "business";
+        const toType = authorizeToWallet.data.userId ? "user" : "business";
+
+        switch (`${fromType}->${toType}`) {
+          case "user->user":
+            this.event.notifyUser(
+              authorizeFromWallet.data.userId,
+              "walletDebit",
+              debitPayload,
+            );
+            this.event.notifyUser(
+              authorizeToWallet.data.userId,
+              "walletCredit",
+              creditPayload,
+            );
+            break;
+          case "user->business":
+            this.event.notifyUser(
+              authorizeFromWallet.data.userId,
+              "walletDebit",
+              debitPayload,
+            );
+            this.event.notifyBusiness(
+              authorizeToWallet.data.businessId,
+              "walletCredit",
+              creditPayload,
+            );
+            break;
+          case "business->user":
+            this.event.notifyBusiness(
+              authorizeFromWallet.data.businessId,
+              "walletDebit",
+              debitPayload,
+            );
+            this.event.notifyUser(
+              authorizeToWallet.data.userId,
+              "walletCredit",
+              creditPayload,
+            );
+            break;
+          case "business->business":
+            this.event.notifyBusiness(
+              authorizeFromWallet.data.businessId,
+              "walletDebit",
+              debitPayload,
+            );
+            this.event.notifyBusiness(
+              authorizeToWallet.data.businessId,
+              "walletCredit",
+              creditPayload,
+            );
+            break;
+          default:
+            throw new BadRequestException("Invalid transfer type");
+        }
+      });
+
+      return {
+        message: "Wallet transfer successful",
+        status: "success",
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async authorize(walletId: number) {
+    const wallet = await this.prisma.wallet.findFirst({
+      where: { id: walletId },
+    });
+
+    if (!wallet)
+      throw new BadRequestException("wallet not found or unauthorized");
+    if (wallet.locked) throw new BadRequestException("wallet is locked");
+    if (!wallet.authToken)
+      throw new BadRequestException("wallet not authorized");
+
+    return {
+      message: "Wallet authorized successfully",
+      status: "success",
+      data: wallet,
+    };
+  }
+
+  async createPin(walletId: number, pin: number) {
+    const wallet = await this.prisma.wallet.findUnique({
+      where: { id: walletId },
+    });
+    if (!wallet) throw new NotFoundException("wallet not found");
+    const hashedPin = bcrypt.hashSync(pin.toString(), bcrypt.genSaltSync());
+
+    const walletPin = await this.prisma.wallet.update({
+      where: { id: walletId },
+      data: { pin: hashedPin },
+    });
+    console.log(walletPin);
+    return {
+      message: "Wallet pin created",
+      status: "success",
+    };
+  }
+  async validatePin(walletId: number, pin: string) {
+    const wallet = await this.prisma.wallet.findUnique({
+      where: { id: walletId },
+    });
+    if (!wallet) throw new NotFoundException("wallet not found");
+    if (!bcrypt.compareSync(pin, wallet.pin))
+      throw new UnauthorizedException("Invalid pin");
+
+    return {
+      message: "Pin validated",
+      status: "success",
     };
   }
 }

@@ -29,7 +29,6 @@ export class WebsocketGateway
   ) {}
 
   afterInit(server: Server) {
-    // console.log(server);
     server.use(async (socket: CustomSocket, next) => {
       const { token } = socket.handshake.auth as any;
       console.log(token);
@@ -48,8 +47,10 @@ export class WebsocketGateway
           select: { business: true },
         });
         if (!staff) next();
-        socket.business = staff.business;
-        next();
+        else {
+          socket.business = staff.business;
+          next();
+        }
       } catch (error) {
         console.log(error);
         next(error);
@@ -57,22 +58,36 @@ export class WebsocketGateway
     });
   }
   handleConnection(client: CustomSocket) {
-    const rooms = [`${client.user.id}:notifications`];
+    let rooms = [`${client.user.id}:notifications`];
     if (client.business) {
       // rooms = [`${client.business.id}:business`];
       switch (client.user.role) {
         case "waiter":
-          rooms.push(`${client.user.id}:waiter`);
+          rooms = [];
+          rooms.push(
+            `${client.user.id}:waiter`,
+            `${client.business.id}:business`,
+          );
           break;
         case "kitchen":
-          rooms.push(`${client.business.id}:kitchen`);
+          rooms = [];
+          rooms.push(
+            `${client.user.id}:kitchen`,
+            `${client.business.id}:business`,
+          );
           break;
         case "owner":
-          rooms.push(`${client.business.id}:owner`);
-          break;
+          rooms = [];
+          rooms.push(
+            `${client.user.id}:owner`,
+            `${client.business.id}:business`,
+          );
         case "admin":
-          rooms.push(`${client.business.id}:admin`);
-          break;
+          rooms = [];
+          rooms.push(
+            `${client.user.id}:admin`,
+            `${client.business.id}:business`,
+          );
         default:
           rooms.push();
       }

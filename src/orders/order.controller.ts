@@ -17,6 +17,7 @@ import { ValidPathParamInterceptor } from "src/utils/interceptors/valid-path-par
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { Role } from "src/auth/dto/auth.dto";
 import RoleGuard from "src/auth/role/role.guard";
+import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 
 @Controller("orders")
 @ApiTags("Orders")
@@ -35,6 +36,7 @@ export class OrderController {
   payOrder(@Query("paymentProvider") provider: string, @Req() request) {
     const { id: customerId, email } = request.user;
     const { business_id: businessId } = request.headers;
+    console.log(businessId);
     return this.orderService.payOrder(
       email,
       customerId,
@@ -55,7 +57,7 @@ export class OrderController {
   }
 
   @Get("/:id")
-  @UseInterceptors(new ValidPathParamInterceptor())
+  // @UseInterceptors(new ValidPathParamInterceptor())
   async findOrder(@Param("id") orderId: number, @Req() request) {
     const { id: customerId } = request.user;
     return this.orderService.findOrder(customerId, +orderId);
@@ -82,6 +84,7 @@ export class OrderController {
     );
   }
   @Post(":id/active")
+  @UseInterceptors(BusinessAccessInterceptor)
   @UseGuards(RoleGuard([Role.customer, Role.admin]))
   @UseInterceptors(new ValidPathParamInterceptor())
   async changeOrderToActive(@Param("id") orderId: number, @Req() request: any) {
@@ -95,10 +98,11 @@ export class OrderController {
   }
   @Post(":id/accept")
   @UseGuards(RoleGuard([Role.kitchen]))
-  // @UseInterceptors(new ValidPathParamInterceptor())
+  @UseInterceptors(BusinessAccessInterceptor)
   @ApiAcceptedResponse({ type: BaseResponse })
   async acceptOrder(@Param("id") orderId: number, @Req() request: any) {
     const { id: kitchenStaffId } = request.user;
+    console.log("controller", kitchenStaffId);
     const { business_id: businessId } = request.headers;
     return await this.orderService.acceptOrder(
       +orderId,
@@ -108,6 +112,7 @@ export class OrderController {
   }
 
   @Post(":id/ready")
+  @UseInterceptors(BusinessAccessInterceptor)
   @UseGuards(RoleGuard([Role.kitchen]))
   @ApiAcceptedResponse({ type: BaseResponse })
   async markOrderAsReady(@Param("id") orderId: number, @Req() request: any) {
@@ -121,6 +126,7 @@ export class OrderController {
   }
 
   @Post(":id/delivered")
+  @UseInterceptors(BusinessAccessInterceptor)
   @UseGuards(RoleGuard([Role.waiter]))
   @ApiAcceptedResponse({ type: BaseResponse })
   async markOrderAsDelivered(

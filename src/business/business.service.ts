@@ -7,6 +7,7 @@ import {
 import { UpdateBusinessDto } from "./dto/updateBusinessDto";
 import { CreateBusinessDto } from "./dto/create-business.dto";
 import { PrismaService } from "src/prisma/prisma.service";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class BusinessService {
@@ -76,7 +77,12 @@ export class BusinessService {
       },
     });
     await this.prisma.wallet.create({
-      data: { businessId: business.id, balance: 0.0 },
+      data: {
+        businessId: business.id,
+        userId: null,
+        balance: 0.0,
+        authToken: uuidv4(),
+      },
     });
 
     return {

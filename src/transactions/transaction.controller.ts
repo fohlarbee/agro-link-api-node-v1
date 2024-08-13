@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
   UseInterceptors,
@@ -23,8 +24,11 @@ export class TransactionController {
   @Put("/verify/:reference")
   @ApiBearerAuth()
   @UseGuards(HttpAuthGuard)
-  async verifyPayment(@Param("reference") reference: string, @Req() request) {
-    const provider = request.headers["provider"];
+  async verifyPayment(
+    @Param("reference") reference: string,
+    @Query("paymentProvider") provider: string,
+  ) {
+    // const provider = request.headers["provider"];
 
     if (!provider) throw new BadRequestException("provider is required");
 

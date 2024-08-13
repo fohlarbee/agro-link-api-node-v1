@@ -11,6 +11,7 @@ import { OrderStatus, PaymentType } from "@prisma/client";
 import { WalletsService } from "src/wallets/wallets.service";
 import { TransactionService } from "src/transactions/transaction.service";
 import { WebsocketService } from "src/websocket/websocket.service";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class OrderService {
@@ -266,7 +267,7 @@ export class OrderService {
       return total + totalPrice + order.tip;
     }, 0);
 
-    if (provider == "WALLET")
+    if (provider === "WALLET")
       return this.payWithWallet(
         customerId,
         totalAmount,
@@ -313,23 +314,6 @@ export class OrderService {
       status: "success",
     };
   }
-
-  // async fetchPaidOrders(ownerId: number, businessId: number) {
-  //   return this.prisma.order.findMany({
-  //     where: { business: { id: businessId }, status: OrderStatus.paid },
-  //     select: {
-  //       id: true,
-  //       status: true,
-  //       options: {
-  //         select: {
-  //           option: { select: { image: true, price: true, id: true } },
-  //           quantity: true,
-  //         },
-  //       },
-  //     },
-  //     orderBy: { createdAt: "asc" },
-  //   });
-  // }
 
   async changeOrdertoActive(
     customerId: number,
@@ -408,8 +392,10 @@ export class OrderService {
       status: OrderStatus.preparing,
       type: "ORDER_ACCEPTED",
     };
+    console.log("service", kitchenStaffId);
     this.event.notifyKitchen(kitchenStaffId, "acceptedOrder", payload);
     this.event.notifyUser(order.customerId, "acceptedOrder", payload);
+    this.event.notifyWaiter(order.waiterId, "acceptedOrder", payload);
     return {
       message: "Order is accepted",
       status: "success",
@@ -450,6 +436,8 @@ export class OrderService {
     };
     this.event.notifyUser(order.customerId, "orderIsReady", payload);
     this.event.notifyWaiter(order.waiterId, "orderIsReady", payload);
+    this.event.notifyKitchen(kitchenStaffId, "orderIsReady", payload);
+
     return {
       message: "Order is marked as ready",
       status: "success",
@@ -485,7 +473,12 @@ export class OrderService {
       });
       if (!waiterWallet)
         await this.prisma.wallet.create({
-          data: { userId: waiterId, balance: order.tip, businessId: null },
+          data: {
+            userId: waiterId,
+            balance: order.tip,
+            businessId: null,
+            authToken: uuidv4(),
+          },
         });
 
       await this.prisma.wallet.update({
@@ -495,6 +488,9 @@ export class OrderService {
       this.event.notifyWaiter(order.waiterId, "tips", payload);
     }
     this.event.notifyUser(order.customerId, "orderDelivered", payload);
+    this.event.notifyWaiter(order.waiterId, "orderDelivered", payload);
+    this.event.notifyKitchen(order.kitchenStaffId, "orderDelivered", payload);
+
     return {
       message: "Order is marked as delivered",
       status: "success",

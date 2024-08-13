@@ -9,6 +9,7 @@ import { OrderStatus, PaymentProvider, PaymentType } from "@prisma/client";
 import { MonnifyService } from "src/monnify/monnify.service";
 import { PaystackService } from "src/paystack/paystack.service";
 import { PrismaService } from "src/prisma/prisma.service";
+import { v4 as uuidv4 } from "uuid";
 
 type TransactionPayload = {
   reference: string;
@@ -81,6 +82,8 @@ export class TransactionService {
         data: {
           balance: 0,
           userId: customerId,
+          authToken: uuidv4(),
+          businessId: null,
         },
       });
 

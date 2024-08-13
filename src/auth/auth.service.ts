@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import {
   ConflictException,
   HttpException,
@@ -12,7 +11,7 @@ import * as bcrypt from "bcrypt";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { OtpService } from "src/otp/otp.service";
 import { v1 as uuidv1 } from "uuid";
-import { Role } from "./dto/auth.dto";
+import { AuthDto, Role } from "./dto/auth.dto";
 
 @Injectable()
 export class AuthService {
@@ -22,10 +21,21 @@ export class AuthService {
     private otpService: OtpService,
   ) {}
 
-  async login(email: string, password: string): Promise<AuthEntity> {
+  async login(
+    email: string,
+    password: string,
+    deviceUUID: string,
+  ): Promise<AuthEntity> {
     const user = await this.prisma.user.findUnique({ where: { email } });
+    console.log(bcrypt.hashSync("FB234NAC5", bcrypt.genSaltSync()));
+
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException("Invalid email or password");
+    }
+    if (!(await bcrypt.compare(deviceUUID, user.deviceUUID))) {
+      throw new UnauthorizedException(
+        "Invalid device, Kindly, authorize with this device",
+      );
     }
     let staff;
     if (!user.role) {
@@ -54,7 +64,8 @@ export class AuthService {
     };
   }
 
-  async register(email, name, password, role, avatar): Promise<BaseResponse> {
+  async register(authDto: AuthDto): Promise<BaseResponse> {
+    const { name, email, password, role, imageURL, deviceUUID } = authDto;
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -66,8 +77,16 @@ export class AuthService {
     if (!userVerified)
       throw new UnauthorizedException("Please verify your email first");
     const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync());
+    const hashedDeviceUUID = bcrypt.hashSync(deviceUUID, bcrypt.genSaltSync());
     await this.prisma.user.create({
-      data: { email, password: hashedPassword, name, avatar, role },
+      data: {
+        email,
+        password: hashedPassword,
+        name,
+        avatar: imageURL,
+        role,
+        deviceUUID: hashedDeviceUUID,
+      },
     });
     await this.prisma.otp.delete({ where: { email } });
 
