@@ -207,21 +207,6 @@ export class WalletsService {
     pin: string,
   ): Promise<any> {
     try {
-      // const authorizeFromWallet = await this.authorize(fromWalletId);
-      // const authorizeToWallet = await this.authorize(toWalletId);
-
-      // if (
-      //   authorizeToWallet.status !== "success" ||
-      //   authorizeToWallet.status !== "success"
-      // )
-      //   throw new BadRequestException("Wallet not authorized");
-      // const validatePin = await this.validatePin(fromWalletId, pin);
-
-      // if (fromWalletId === toWalletId)
-      //   throw new BadRequestException("Cannot transfer to same wallet");
-
-      // if (authorizeFromWallet.data.balance < amount)
-      //   throw new BadRequestException("Insufficient funds");
       await this.prisma.$transaction(async (tx) => {
         const authorizeFromWallet = await this.authorize(fromWalletId);
         const authorizeToWallet = await this.authorize(toWalletId);
@@ -231,7 +216,8 @@ export class WalletsService {
           authorizeToWallet.status !== "success"
         )
           throw new BadRequestException("Wallet not authorized");
-        const validatePin = await this.validatePin(fromWalletId, pin);
+        // const validatePin = 
+        await this.validatePin(fromWalletId, pin);
 
         if (fromWalletId === toWalletId)
           throw new BadRequestException("Cannot transfer to same wallet");
@@ -336,103 +322,6 @@ export class WalletsService {
             throw new BadRequestException("Invalid transfer type");
         }
       });
-
-      // await this.prisma.wallet.update({
-      //   where: { id: fromWalletId },
-      //   data: { locked: true },
-      // });
-
-      // await this.prisma.wallet.update({
-      //   where: { id: fromWalletId },
-      //   data: { balance: { decrement: amount } },
-      // });
-      // await this.prisma.wallet.update({
-      //   where: { id: toWalletId },
-      //   data: { balance: { increment: amount } },
-      // });
-
-      // await this.prisma.payment.create({
-      //   data: {
-      //     reference: `QQ_${Date.now()}`,
-      //     type: PaymentType.WALLET_TRANSFER,
-      //     amount,
-      //     paidAt: new Date(),
-      //     provider: PaymentProvider.QQ_WALLET,
-      //     userId,
-      //     providerId: `QQ|${fromWalletId}|${userId}|${Date.now()}`,
-      //   },
-      // });
-      // await this.prisma.wallet.update({
-      //   where: { id: fromWalletId },
-      //   data: { locked: false },
-      // });
-      // const debitPayload = {
-      //   userId: authorizeFromWallet.data.userId ?? null,
-      //   businessId: authorizeFromWallet.data.businessId ?? null,
-      //   status: "success",
-      //   type: "WALLET_DEBIT",
-      // };
-      // const creditPayload = {
-      //   from:
-      //     authorizeFromWallet.data.businessId ?? authorizeFromWallet.data.userId,
-      //   type: "WALLET_CREDIT",
-      // };
-
-      // const fromType = authorizeFromWallet.data.userId ? "user" : "business";
-      // const toType = authorizeToWallet.data.userId ? "user" : "business";
-
-      // switch (`${fromType}->${toType}`) {
-      //   case "user->user":
-      //     this.event.notifyUser(
-      //       authorizeFromWallet.data.userId,
-      //       "walletDebit",
-      //       debitPayload,
-      //     );
-      //     this.event.notifyUser(
-      //       authorizeToWallet.data.userId,
-      //       "walletCredit",
-      //       creditPayload,
-      //     );
-      //     break;
-      //   case "user->business":
-      //     this.event.notifyUser(
-      //       authorizeFromWallet.data.userId,
-      //       "walletDebit",
-      //       debitPayload,
-      //     );
-      //     this.event.notifyBusiness(
-      //       authorizeToWallet.data.businessId,
-      //       "walletCredit",
-      //       creditPayload,
-      //     );
-      //     break;
-      //   case "business->user":
-      //     this.event.notifyBusiness(
-      //       authorizeFromWallet.data.businessId,
-      //       "walletDebit",
-      //       debitPayload,
-      //     );
-      //     this.event.notifyUser(
-      //       authorizeToWallet.data.userId,
-      //       "walletCredit",
-      //       creditPayload,
-      //     );
-      //     break;
-      //   case "business->business":
-      //     this.event.notifyBusiness(
-      //       authorizeFromWallet.data.businessId,
-      //       "walletDebit",
-      //       debitPayload,
-      //     );
-      //     this.event.notifyBusiness(
-      //       authorizeToWallet.data.businessId,
-      //       "walletCredit",
-      //       creditPayload,
-      //     );
-      //     break;
-      //   default:
-      //     throw new BadRequestException("Invalid transfer type");
-      // }
 
       return {
         message: "Wallet transfer successful",

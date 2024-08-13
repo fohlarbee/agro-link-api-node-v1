@@ -635,6 +635,7 @@ const businesses =  [
         return {
           ...user,
           password: bcrypt.hashSync(user.password,  bcrypt.genSaltSync()),
+          deviceUUID: bcrypt.hashSync(user.deviceUUID, bcrypt.genSaltSync()),
 
         };
       });
@@ -690,6 +691,9 @@ async function main() {
       "role":GuardRoles.admin,
 
     }
+  });
+  await prisma.wallet.create({
+    data:{userId:user.id, balance: 0.0, authToken: uuidv4(),pin:bcrypt.hashSync('2020', bcrypt.genSaltSync())}
   })
  const business = await prisma.business.create({data:{
     "name": "Fohlarbee one",
@@ -701,7 +705,7 @@ async function main() {
   }});
 
   await prisma.wallet.create({
-    data:{businessId: business.id, authToken: uuidv4(), balance: 0.0 }
+    data:{businessId: business.id, authToken: uuidv4(), balance: 0.0 ,pin:bcrypt.hashSync('2020', bcrypt.genSaltSync()) }
   })
 
   const outlet = await prisma.outlet.create({data:{address:'Fohlar', businessId:business.id}});
@@ -793,24 +797,36 @@ async function main() {
   ////////////////////////////////////////////////////////
   // kitchensUsers
   const user1 = await prisma.user.create({
-    data:{name: kitchenUsers[0].name, email: kitchenUsers[0].email, password:  bcrypt.hashSync(kitchenUsers[0].password, bcrypt.genSaltSync())}
+    data:{name: kitchenUsers[0].name, email: kitchenUsers[0].email, password:  bcrypt.hashSync(kitchenUsers[0].password, bcrypt.genSaltSync()),
+      deviceUUID:bcrypt.hashSync(kitchenUsers[0].deviceUUID, bcrypt.genSaltSync())
+    }
   });
   const user2  = await prisma.user.create({
-    data:{name: kitchenUsers[1].name, email: kitchenUsers[1].email, password: bcrypt.hashSync(kitchenUsers[1].password, bcrypt.genSaltSync())}
+    data:{name: kitchenUsers[1].name, email: kitchenUsers[1].email, password: bcrypt.hashSync(kitchenUsers[1].password, bcrypt.genSaltSync()),
+      deviceUUID:bcrypt.hashSync(kitchenUsers[1].deviceUUID, bcrypt.genSaltSync())
+    }
   });
   const user3 = await prisma.user.create({
-    data:{name: kitchenUsers[2].name, email: kitchenUsers[2].email, password:bcrypt.hashSync(kitchenUsers[2].password, bcrypt.genSaltSync())}
+    data:{name: kitchenUsers[2].name, email: kitchenUsers[2].email, password:bcrypt.hashSync(kitchenUsers[2].password, bcrypt.genSaltSync()),
+      deviceUUID:bcrypt.hashSync(kitchenUsers[2].deviceUUID, bcrypt.genSaltSync())
+    }
   })
 
   // waiterUsers
   const user4 = await prisma.user.create({
-    data:{name: waiterUsers[0].name, email: waiterUsers[0].email, password: bcrypt.hashSync(waiterUsers[0].password, bcrypt.genSaltSync())}
+    data:{name: waiterUsers[0].name, email: waiterUsers[0].email, password: bcrypt.hashSync(waiterUsers[0].password, bcrypt.genSaltSync()),
+      deviceUUID:bcrypt.hashSync(waiterUsers[0].deviceUUID, bcrypt.genSaltSync())
+    }
   });
   const user5 = await prisma.user.create({
-    data:{name: waiterUsers[1].name, email: waiterUsers[1].email, password: bcrypt.hashSync(waiterUsers[1].password, bcrypt.genSaltSync())}
+    data:{name: waiterUsers[1].name, email: waiterUsers[1].email, password: bcrypt.hashSync(waiterUsers[1].password, bcrypt.genSaltSync()),
+      deviceUUID:bcrypt.hashSync(waiterUsers[1].deviceUUID, bcrypt.genSaltSync())
+    }
   });
   const user6 = await prisma.user.create({
-    data:{name: waiterUsers[2].name, email: waiterUsers[2].email, password:  bcrypt.hashSync(waiterUsers[2].password, bcrypt.genSaltSync())}
+    data:{name: waiterUsers[2].name, email: waiterUsers[2].email, password:  bcrypt.hashSync(waiterUsers[2].password, bcrypt.genSaltSync()),
+      deviceUUID:bcrypt.hashSync(waiterUsers[2].deviceUUID, bcrypt.genSaltSync())
+    }
   });
   
 
@@ -862,13 +878,22 @@ async function main() {
     data:{role:GuardRoles.waiter}
   });
 
-  /////////////////////////////////
 
+ const customerUser = await prisma.user.create({data:
+    {
+      name: 'Jubril Hussain',
+      email: 'jubril@example.com',
+      password: bcrypt.hashSync('Sammyola246@1', bcrypt.genSaltSync()),
+      role: GuardRoles.customer,
+      deviceUUID:"FBRYHD34D"
+    }
+    
+  })
 
-   
+  ///////////////////////////////// ORDER 1
     const order = await prisma.order.create({
       data: {
-        customer: { connect: { id: user.id } },
+        customer: { connect: { id: customerUser.id } },
         business: { connect: { id: business.id } },
         table: { connect: { id: table1.id } },
         shift: { connect: { id: shift.id } },
@@ -883,35 +908,258 @@ async function main() {
       select: { id: true, options:true, tip: true },
     });
 
-
-
  await prisma.orderOption.create({
   data:{quantity:3, optionId:option1.id, orderId:order.id}
  });
  
-  const totalPrice = order.options.reduce((acc, option) => {
-    return acc + option.quantity * option1.price + order.tip;
-  }, 0);
-  const newPayment = await prisma.payment.create({
-    data:{
-      amount: totalPrice,
-      provider:"PAYSTACK",
-      reference:"CHP_43646452",
-      type:"ORDER_PAYMENT",
-      user:{
-        connect:{id:user.id}
+  ///////////////////////////////// ORDER 2
+
+
+   
+  const order2 = await prisma.order.create({
+    data: {
+      customer: { connect: { id: customerUser.id } },
+      business: { connect: { id: business.id } },
+      table: { connect: { id: table2.id } },
+      shift: { connect: { id: shift.id } },
+      tip:2000,
+      waiter: {
+        connect: {
+          userId_businessId: { userId: waiterStaff1.userId, businessId: business.id },
+        },
       },
-      providerId: `QQ|${user.id}|${user.id}|${Date.now()}`,
-      orders:{connect:{id: order.id}}
+      cancelledBy: 0,
+    },
+    select: { id: true, options:true, tip: true },
+  });
 
-      
-    }
-  })
 
-  await prisma.order.update({
-    where:{id: order.id, businessId: business.id},
-    data:{status:OrderStatus.paid, paidAt:new Date(), completedAt:new Date(),paymentId: newPayment.id }
-  })
+
+await prisma.orderOption.create({
+data:{quantity:4, optionId:option2.id, orderId:order2.id}
+});
+
+const totalPrice = order.options.reduce((acc, option) => {
+  return acc + option.quantity * option1.price + order.tip;
+}, 0);
+const newPayment = await prisma.payment.create({
+  data:{
+    amount: 10200,
+    provider:"PAYSTACK",
+    reference:`CHP_${ Date.now()}`,
+   type:"ORDER_PAYMENT",
+    user:{
+      connect:{id:customerUser.id}
+    },
+    providerId: `QQ|${user.id}|${user.id}|${Date.now()}`,
+    orders:{connect:{id: order2.id}}
+
+    
+  }
+})
+
+await prisma.order.update({
+  where:{id: order2.id, businessId: business.id},
+  data:{status:OrderStatus.paid, paidAt:new Date(), completedAt:new Date(),paymentId: newPayment.id }
+});
+
+ ///////////////////////////////// ORDER 3
+
+
+   
+ const order3 = await prisma.order.create({
+  data: {
+    customer: { connect: { id: customerUser.id } },
+    business: { connect: { id: business.id } },
+    table: { connect: { id: table1.id } },
+    shift: { connect: { id: shift.id } },
+    tip:3000,
+    waiter: {
+      connect: {
+        userId_businessId: { userId: waiterStaff2.userId, businessId: business.id },
+      },
+    },
+    cancelledBy: 0,
+  },
+  select: { id: true, options:true, tip: true },
+});
+
+
+
+await prisma.orderOption.create({
+data:{quantity:5, optionId:option3.id, orderId:order3.id}
+});
+
+const newPayment2 = await prisma.payment.create({
+data:{
+  amount: 12200,
+  provider:"PAYSTACK",
+  reference:`CHP_${ Date.now()}`,
+ type:"ORDER_PAYMENT",
+  user:{
+    connect:{id:customerUser.id}
+  },
+  providerId: `QQ|${user.id}|${user.id}|${Date.now()}`,
+  orders:{connect:{id: order3.id}}
+
+  
+}
+})
+
+await prisma.order.update({
+where:{id: order3.id, businessId: business.id},
+data:{status:OrderStatus.preparing, paidAt:new Date(), completedAt:new Date(),paymentId: newPayment2.id }
+});
+
+
+
+ ///////////////////////////////// ORDER 4
+
+
+   
+ const order4 = await prisma.order.create({
+  data: {
+    customer: { connect: { id: customerUser.id } },
+    business: { connect: { id: business.id } },
+    table: { connect: { id: table2.id } },
+    shift: { connect: { id: shift.id } },
+    tip:4000,
+    waiter: {
+      connect: {
+        userId_businessId: { userId: waiterStaff3.userId, businessId: business.id },
+      },
+    },
+    cancelledBy: 0,
+  },
+  select: { id: true, options:true, tip: true },
+});
+
+
+
+await prisma.orderOption.create({
+data:{quantity:6, optionId:option1.id, orderId:order4.id}
+});
+
+const newPayment3 = await prisma.payment.create({
+data:{
+  amount: 101200,
+  provider:"PAYSTACK",
+  reference:`CHP_${ Date.now()}`,
+ type:"ORDER_PAYMENT",
+  user:{
+    connect:{id:customerUser.id}
+  },
+  providerId: `QQ|${user.id}|${user.id}|${Date.now()}`,
+  orders:{connect:{id: order4.id}}
+
+  
+}
+})
+
+await prisma.order.update({
+where:{id: order4.id, businessId: business.id},
+data:{status:OrderStatus.ready, paidAt:new Date(), completedAt:new Date(),paymentId: newPayment3.id }
+});
+
+
+ ///////////////////////////////// ORDER 5
+
+
+   
+ const order5 = await prisma.order.create({
+  data: {
+    customer: { connect: { id: customerUser.id } },
+    business: { connect: { id: business.id } },
+    table: { connect: { id: table1.id } },
+    shift: { connect: { id: shift.id } },
+    tip:5000,
+    waiter: {
+      connect: {
+        userId_businessId: { userId: waiterStaff1.userId, businessId: business.id },
+      },
+    },
+    cancelledBy: 0,
+  },
+  select: { id: true, options:true, tip: true },
+});
+
+
+
+await prisma.orderOption.create({
+data:{quantity:7, optionId:option2.id, orderId:order5.id}
+});
+
+const newPayment4 = await prisma.payment.create({
+data:{
+  amount: 6500,
+  provider:"PAYSTACK",
+  reference:`CHP_${ Date.now()}`,
+ type:"ORDER_PAYMENT",
+  user:{
+    connect:{id:customerUser.id}
+  },
+  providerId: `QQ|${user.id}|${user.id}|${Date.now()}`,
+  orders:{connect:{id: order5.id}}
+
+  
+}
+})
+
+await prisma.order.update({
+where:{id: order5.id, businessId: business.id},
+data:{status:OrderStatus.delivered, paidAt:new Date(), completedAt:new Date(),paymentId: newPayment4.id }
+});
+
+ ///////////////////////////////// ORDER 6
+
+
+   
+ const order6 = await prisma.order.create({
+  data: {
+    customer: { connect: { id: customerUser.id } },
+    business: { connect: { id: business.id } },
+    table: { connect: { id: table2.id } },
+    shift: { connect: { id: shift.id } },
+    tip:6000,
+    waiter: {
+      connect: {
+        userId_businessId: { userId: waiterStaff2.userId, businessId: business.id },
+      },
+    },
+    cancelledBy: 0,
+  },
+  select: { id: true, options:true, tip: true },
+});
+
+
+
+await prisma.orderOption.create({
+data:{quantity:7, optionId:option3.id, orderId:order6.id}
+});
+
+const newPayment5 = await prisma.payment.create({
+data:{
+  amount: 7200,
+  provider:"PAYSTACK",
+  reference:`CHP_${ Date.now()}`,
+ type:"ORDER_PAYMENT",
+  user:{
+    connect:{id:customerUser.id}
+  },
+  providerId: `QQ|${user.id}|${user.id}|${Date.now()}`,
+  orders:{connect:{id: order6.id}}
+
+  
+}
+})
+
+await prisma.order.update({
+where:{id: order6.id, businessId: business.id},
+data:{status:OrderStatus.completed, paidAt:new Date(), completedAt:new Date(),paymentId: newPayment5.id }
+});
+
+
+
 }
 
 
