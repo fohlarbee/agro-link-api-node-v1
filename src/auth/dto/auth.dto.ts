@@ -91,3 +91,14 @@ export class ResetPasswordDto {
   @ApiProperty({ required: true })
   newPassword: string;
 }
+export class ResetDeviceUUIDDto {
+  @IsEmail()
+  @IsNotEmpty()
+  @ApiProperty({ required: true })
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ required: true })
+  deviceUUID: string;
+}

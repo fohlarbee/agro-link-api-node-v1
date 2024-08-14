@@ -27,6 +27,22 @@ export class OtpService {
       subject,
     );
   }
+  async sendVerifyEmailForDeviceUUID({
+    email,
+    generatedOTP,
+    subject,
+    purpose,
+  }: CreateOTPDto): Promise<any> {
+    subject = "Email(device) Verification";
+    purpose = "Enter the Code below to Proceed to verify your device";
+
+    return await this.mailService.sendEmail(
+      email,
+      generatedOTP,
+      purpose,
+      subject,
+    );
+  }
 
   async sendResetPasswordEmail({
     email,

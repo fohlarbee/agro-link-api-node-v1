@@ -62,53 +62,53 @@ export class WalletsService {
     };
   }
 
-  async addFunds(
-    userId: number,
-    amount: number,
-    provider: string,
-  ): Promise<any> {
-    if (!["PSK", "MNF"].includes(provider))
-      throw new BadRequestException(
-        `Invalid payment provider code: "${provider}"`,
-      );
-    let wallet = await this.prisma.wallet.findUnique({
-      where: { userId },
-      select: {
-        id: true,
-        user: { select: { email: true } },
-      },
-    });
+  // async addFunds(
+  //   userId: number,
+  //   amount: number,
+  //   provider: string,
+  // ): Promise<any> {
+  //   if (!["PSK", "MNF"].includes(provider))
+  //     throw new BadRequestException(
+  //       `Invalid payment provider code: "${provider}"`,
+  //     );
+  //   let wallet = await this.prisma.wallet.findUnique({
+  //     where: { userId },
+  //     select: {
+  //       id: true,
+  //       user: { select: { email: true } },
+  //     },
+  //   });
 
-    if (!wallet)
-      wallet = await this.prisma.wallet.create({
-        data: { balance: 0, userId, authToken: uuidv4() },
-        select: {
-          id: true,
-          user: { select: { email: true } },
-        },
-      });
+  //   if (!wallet)
+  //     wallet = await this.prisma.wallet.create({
+  //       data: { balance: 0, userId, authToken: uuidv4() },
+  //       select: {
+  //         id: true,
+  //         user: { select: { email: true } },
+  //       },
+  //     });
 
-    const payload = {
-      email: wallet.user.email,
-      amount,
-      metadata: {
-        customerId: userId,
-        type: PaymentType.DEPOSIT,
-      },
-    };
+  //   const payload = {
+  //     email: wallet.user.email,
+  //     amount,
+  //     metadata: {
+  //       customerId: userId,
+  //       type: PaymentType.DEPOSIT,
+  //     },
+  //   };
 
-    const { paymentLink, reference } =
-      await this.transactionService.createTransactionLink(provider, payload);
+  //   const { paymentLink, reference } =
+  //     await this.transactionService.createTransactionLink(provider, payload);
 
-    return {
-      message: "Deposit initiation successful",
-      status: "success",
-      data: {
-        paymentLink,
-        reference,
-      },
-    } as DepositInitiationResponse;
-  }
+  //   return {
+  //     message: "Deposit initiation successful",
+  //     status: "success",
+  //     data: {
+  //       paymentLink,
+  //       reference,
+  //     },
+  //   } as DepositInitiationResponse;
+  // }
 
   async transactionHistory(userId: number): Promise<any> {
     let wallet = await this.prisma.wallet.findUnique({
@@ -185,18 +185,18 @@ export class WalletsService {
   async getBalance(userId: number): Promise<any> {
     let wallet = await this.prisma.wallet.findUnique({
       where: { userId },
-      select: { id: true, balance: true },
+      select: { id: true, balance: true, pin: true },
     });
     if (!wallet)
       wallet = await this.prisma.wallet.create({
         data: { balance: 0, userId, authToken: uuidv4() },
-        select: { id: true, balance: true },
+        select: { id: true, balance: true, pin: true },
       });
 
     return {
       message: "Wallet balance fetched successfully",
       status: "success",
-      data: { id: wallet.id, balance: wallet.balance },
+      data: { id: wallet.id, balance: wallet.balance, pin: wallet.pin },
     };
   }
   async transfer(
@@ -378,6 +378,123 @@ export class WalletsService {
     return {
       message: "Pin validated",
       status: "success",
+    };
+  }
+  async resetPin(userId: number, walletId: number, pin: string) {
+    const wallet = await this.prisma.wallet.findUnique({
+      where: { id: walletId },
+      select: { business: true, userId: true },
+    });
+    if (!wallet) throw new NotFoundException("Wallet not found");
+
+    if (wallet.userId !== userId && wallet.business.creatorId !== userId)
+      throw new UnauthorizedException("Unauthorized to reset pin");
+
+    await this.prisma.wallet.update({
+      where: { id: walletId },
+      data: { pin: bcrypt.hashSync(pin, bcrypt.genSaltSync()) },
+    });
+
+    return {
+      message: "Pin reset successfully",
+      status: "success",
+    };
+  }
+
+  async checkWalletExistence(walletId: number): Promise<"user" | "business"> {
+    const wallet = await this.prisma.wallet.findUnique({
+      where: { id: walletId },
+    });
+    if (!wallet) throw new NotFoundException(`Wallet not found`);
+
+    if (wallet.userId) return "user";
+    if (wallet.businessId) return "business";
+  }
+
+  async addFunds(
+    walletId: number,
+    amount: number,
+    provider: string,
+  ): Promise<any> {
+    if (!["PSK", "MNF"].includes(provider))
+      throw new BadRequestException(
+        `Invalid payment provider code: "${provider}"`,
+      );
+
+    let wallet;
+    let walletType: "user" | "business";
+
+    // Check wallet existence and determine wallet type
+    switch (await this.checkWalletExistence(walletId)) {
+      case "user":
+        wallet = await this.prisma.wallet.findUnique({
+          where: { id: walletId },
+          select: {
+            id: true,
+            user: { select: { email: true } },
+          },
+        });
+        walletType = "user";
+        break;
+      case "business":
+        wallet = await this.prisma.wallet.findUnique({
+          where: { id: walletId },
+          select: {
+            id: true,
+            business: { select: { email: true } },
+          },
+        });
+        walletType = "business";
+        break;
+      default:
+        throw new NotFoundException(`Wallet not found for ID: ${walletId}`);
+    }
+
+    const payload = {
+      email: walletType === "user" ? wallet.user.email : wallet.business.email,
+      amount,
+      metadata: {
+        customerId: walletType === "user" ? wallet.user.id : wallet.business.id,
+        type: PaymentType.DEPOSIT,
+      },
+    };
+
+    const { paymentLink, reference } =
+      await this.transactionService.createTransactionLink(provider, payload);
+
+    return {
+      message: "Deposit initiation successful",
+      status: "success",
+      data: {
+        paymentLink,
+        reference,
+      },
+    } as DepositInitiationResponse;
+  }
+
+  async getWalletAuthToken(walletId: number) {
+    let wallet = await this.prisma.wallet.findUnique({
+      where: { id: walletId },
+    });
+    if (!wallet) throw new NotFoundException("Wallet not found");
+
+    if (!wallet.authToken)
+      wallet = await this.prisma.wallet.update({
+        where: { id: walletId },
+        data: { authToken: uuidv4() },
+      });
+
+    wallet = await this.prisma.wallet.update({
+      where: { id: walletId },
+      data: { authToken: uuidv4() },
+    });
+
+    return {
+      message: "Wallet token generated successfully",
+      status: "success",
+      data: {
+        authToken: wallet.authToken,
+      },
     };
   }
 }

@@ -27,7 +27,6 @@ export class TransactionController {
     @Param("reference") reference: string,
     @Query("paymentProvider") provider: string,
   ) {
-
     if (!provider) throw new BadRequestException("provider is required");
 
     switch (provider) {

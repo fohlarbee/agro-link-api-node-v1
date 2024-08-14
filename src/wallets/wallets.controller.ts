@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Put,
   Query,
@@ -13,6 +14,7 @@ import {
   ApiBearerAuth,
   ApiHeader,
   ApiOkResponse,
+  ApiParam,
   ApiTags,
 } from "@nestjs/swagger";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
@@ -49,14 +51,19 @@ export class WalletsController {
 
   @Post("fund")
   @ApiOkResponse({ type: DepositInitiationResponse })
+  @ApiHeader({
+    name: "wallet_id",
+    required: true,
+    description: "This is the user walletId",
+  })
   async addFunds(
     @Query("paymentProvider") provider: string,
     @Req() request: Record<string, any>,
     @Body() { amount }: FundWalletDto,
   ) {
-    const { id: userId } = request.user;
+    const { wallet_id: walletId } = request.headers;
     return await this.walletService.addFunds(
-      +userId,
+      +walletId,
       amount,
       provider.toUpperCase(),
     );
@@ -100,5 +107,23 @@ export class WalletsController {
   ) {
     const { wallet_id: walletId } = request.headers;
     return await this.walletService.createPin(+walletId, pin);
+  }
+
+  @Put("pin/reset")
+  @ApiOkResponse({ type: BaseResponse })
+  async resetPin(
+    @Req() request: Record<string, any>,
+    @Body() { pin }: createWalletPinDto,
+  ) {
+    const { wallet_id: walletId } = request.headers;
+    const { id: userId } = request.user;
+
+    return this.walletService.resetPin(userId, +walletId, pin);
+  }
+  @Get("token")
+  @ApiOkResponse({ type: BaseResponse })
+  @ApiParam({ name: "id", required: true, description: "User wallet id" })
+  async getWalletAuthToken(@Param("id") walletId: string) {
+    return this.walletService.getWalletAuthToken(+walletId);
   }
 }
