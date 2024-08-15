@@ -120,7 +120,7 @@ export class WalletsController {
 
     return this.walletService.resetPin(userId, +walletId, pin);
   }
-  @Get("token")
+  @Get(":id/token")
   @ApiOkResponse({ type: BaseResponse })
   @ApiParam({ name: "id", required: true, description: "User wallet id" })
   async getWalletAuthToken(@Param("id") walletId: string) {
