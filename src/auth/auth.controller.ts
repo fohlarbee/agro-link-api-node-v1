@@ -74,16 +74,6 @@ export class AuthController {
   }
 
   @Post("otp/verifydevice")
-  @UseGuards(
-    RoleGuard([
-      Role.admin,
-      Role.customer,
-      Role.kitchen,
-      Role.waiter,
-      Role.owner,
-      Role.manager,
-    ]),
-  )
   @ApiCreatedResponse()
   sendVerifyDeviceUUIDEmail(@Body() { email }: SendRegistrationEmailDto) {
     return this.authService.sendVerifyDeviceUUIDEmail(email);
