@@ -126,4 +126,5 @@ export class WalletsController {
   async getWalletAuthToken(@Param("id") walletId: string) {
     return this.walletService.getWalletAuthToken(+walletId);
   }
+
 }

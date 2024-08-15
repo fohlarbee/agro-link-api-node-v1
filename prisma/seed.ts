@@ -689,6 +689,7 @@ async function main() {
       "email": 'sammyola246@gmail.com',
       "password": bcrypt.hashSync("Sammyola246@1", bcrypt.genSaltSync()),
       "role":GuardRoles.admin,
+      deviceUUID: bcrypt.hashSync('FB234678SW', bcrypt.genSaltSync())
 
     }
   });

@@ -454,7 +454,7 @@ export class WalletsService {
       email: walletType === "user" ? wallet.user.email : wallet.business.email,
       amount,
       metadata: {
-        customerId: walletType === "user" ? wallet.user.id : wallet.business.id,
+        customerId: wallet.user.id, businessId: wallet.business.id,
         type: PaymentType.DEPOSIT,
       },
     };
