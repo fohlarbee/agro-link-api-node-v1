@@ -83,7 +83,6 @@ export class AdminBusinessController {
   @ApiCreatedResponse({ type: BusinessCreationResponse })
   createBusiness(@Body() createBusinessDto: CreateBusinessDto, @Req() request) {
     const { id: creatorId } = request.user;
-    console.log(request.user.role);
     return this.businessService.createBusiness(createBusinessDto, +creatorId);
   }
 

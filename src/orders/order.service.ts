@@ -392,7 +392,6 @@ export class OrderService {
       status: OrderStatus.preparing,
       type: "ORDER_ACCEPTED",
     };
-    console.log("service", kitchenStaffId);
     this.event.notifyKitchen(kitchenStaffId, "acceptedOrder", payload);
     this.event.notifyUser(order.customerId, "acceptedOrder", payload);
     this.event.notifyWaiter(order.waiterId, "acceptedOrder", payload);

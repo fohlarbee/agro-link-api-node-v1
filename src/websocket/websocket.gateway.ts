@@ -31,7 +31,6 @@ export class WebsocketGateway
   afterInit(server: Server) {
     server.use(async (socket: CustomSocket, next) => {
       const { token } = socket.handshake.auth as any;
-      console.log(token);
       if (!token) return next(new Error("Missing token"));
       try {
         const payload = this.jwtService.verify(token, {

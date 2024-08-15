@@ -361,7 +361,6 @@ export class WalletsService {
       where: { id: walletId },
       data: { pin: hashedPin },
     });
-    console.log(walletPin);
     return {
       message: "Wallet pin created",
       status: "success",
@@ -431,7 +430,9 @@ export class WalletsService {
           where: { id: walletId },
           select: {
             id: true,
-            user: { select: { email: true } },
+            user: { select: { email: true , id: true} },
+            business: { select: { email: true, id: true } },
+
           },
         });
         walletType = "user";
@@ -441,7 +442,8 @@ export class WalletsService {
           where: { id: walletId },
           select: {
             id: true,
-            business: { select: { email: true } },
+            business: { select: { id: true, email: true } },
+            user: { select: {id: true, email: true } },
           },
         });
         walletType = "business";
@@ -454,7 +456,8 @@ export class WalletsService {
       email: walletType === "user" ? wallet.user.email : wallet.business.email,
       amount,
       metadata: {
-        customerId: wallet.user.id, businessId: wallet.business.id,
+        customerId: walletType === "user" ? +wallet.user.id : null, 
+         businessId: walletType === "business" ? +wallet.business.id : null,
         type: PaymentType.DEPOSIT,
       },
     };

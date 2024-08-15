@@ -78,6 +78,7 @@ model Business {
   outlets   Outlet[]
   shifts    Shift[]
   wallet    Wallet?
+  payments  Payment[]
 }
 
 model Role {
@@ -295,8 +296,10 @@ model Payment {
 
   // Relationships
   orders   Order[]
-  userId   Int
-  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int?
+  businessId Int?
+  business Business?  @relation(fields: [businessId], references: [id])
+  user     User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   walletId Int?
   wallet   Wallet? @relation(fields: [walletId], references: [id])
 }

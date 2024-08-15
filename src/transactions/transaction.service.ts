@@ -43,7 +43,7 @@ export class TransactionService {
     return this.processTransaction({
       reference,
       customerId: +customerId,
-      businessId: +businessId || businessId,
+      businessId: +businessId,
       type: type ?? PaymentType.ORDER_PAYMENT,
       amount: +amount / 100,
       paidAt: new Date(paid_at),
@@ -73,9 +73,10 @@ export class TransactionService {
     paidAt,
     provider,
     providerId,
+    businessId,
   }: TransactionPayload) {
     let wallet = await this.prisma.wallet.findFirst({
-      where: { AND: [{ userId: customerId }, { businessId: null }] },
+      where: { OR: [{ userId: customerId }, { businessId }] },
     });
     if (!wallet)
       wallet = await this.prisma.wallet.create({
@@ -93,10 +94,11 @@ export class TransactionService {
         type,
         amount,
         paidAt,
-        userId: customerId,
+        userId: wallet.userId,
         walletId: wallet.id,
         provider,
         providerId,
+        businessId: wallet.businessId,
       },
     });
     await this.prisma.wallet.update({
