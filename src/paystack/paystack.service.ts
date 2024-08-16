@@ -12,7 +12,7 @@ export class PaystackService {
   async createPaymentLink({
     email,
     amount,
-    payload,
+    metadata,
   }: {
     email: string;
     amount: number;
@@ -27,7 +27,7 @@ export class PaystackService {
           currency: "NGN",
           metadata,
           email,
-          callback_url: `${PAYMENT_REDIRECT_URL}?provider=PSK&type=${payload.metadata.type}`,
+          callback_url: `${PAYMENT_REDIRECT_URL}?provider=PSK&type=${metadata.type}`,
         },
         { headers: { Authorization: `Bearer ${PSK_SECRET_KEY}` } },
       );
