@@ -71,9 +71,14 @@ export class WalletsController {
 
   @Get("transactions")
   @ApiOkResponse({ type: TransactionHistoryResponse })
+  @ApiHeader({
+    name: "wallet_id",
+    required: true,
+    description: "This is the user or business walletId",
+  })
   async getTransactions(@Req() request) {
-    const { id: userId } = request.user;
-    return this.walletService.transactionHistory(+userId);
+    const { wallet_id } = request.headers;
+    return this.walletService.transactionHistory(+wallet_id);
   }
 
   @Get("balance")
@@ -126,5 +131,4 @@ export class WalletsController {
   async getWalletAuthToken(@Param("id") walletId: string) {
     return this.walletService.getWalletAuthToken(+walletId);
   }
-
 }

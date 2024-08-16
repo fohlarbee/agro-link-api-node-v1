@@ -110,17 +110,13 @@ export class WalletsService {
   //   } as DepositInitiationResponse;
   // }
 
-  async transactionHistory(userId: number): Promise<any> {
-    let wallet = await this.prisma.wallet.findUnique({
-      where: { userId },
+  async transactionHistory(walletId: number): Promise<any> {
+    const wallet = await this.prisma.wallet.findUnique({
+      where: { id: walletId },
       select: { id: true, balance: true },
     });
 
-    if (!wallet)
-      wallet = await this.prisma.wallet.create({
-        data: { balance: 0, userId, authToken: uuidv4() },
-        select: { id: true, balance: true },
-      });
+    if (!wallet) throw new NotFoundException("Wallet not found");
 
     const transactions = await this.prisma.payment.findMany({
       where: { walletId: wallet.id },
@@ -146,14 +142,19 @@ export class WalletsService {
     amount: number,
     type: PaymentType = PaymentType.ORDER_PAYMENT,
   ) {
+    if (!(await this.prisma.user.findUnique({ where: { id: userId } })))
+      throw new UnauthorizedException("No such user");
+
     const wallet = await this.prisma.wallet.findUnique({
       where: { userId },
-      select: { id: true, balance: true },
+      select: { id: true, balance: true, businessId: true },
     });
     if (!wallet)
       this.prisma.wallet.create({
         data: { balance: 0, userId, authToken: uuidv4() },
       });
+    if (wallet.businessId)
+      throw new UnauthorizedException("Wallet cannot pay for an order");
 
     if (wallet.balance < amount)
       throw new BadRequestException("Insufficient funds");
@@ -167,11 +168,13 @@ export class WalletsService {
     const payment = await this.prisma.payment.create({
       data: {
         amount,
-        reference: `QQ_${Date.now}`,
+        reference: `QQ_${Date.now()}`,
         type,
         userId,
         provider: PaymentProvider.QQ_WALLET,
         providerId: `QQ|${wallet.id}|${userId}|${Date.now()}`,
+        walletId: wallet.id,
+        paidAt: new Date(),
       },
     });
 
@@ -430,9 +433,8 @@ export class WalletsService {
           where: { id: walletId },
           select: {
             id: true,
-            user: { select: { email: true , id: true} },
+            user: { select: { email: true, id: true } },
             business: { select: { email: true, id: true } },
-
           },
         });
         walletType = "user";
@@ -443,7 +445,7 @@ export class WalletsService {
           select: {
             id: true,
             business: { select: { id: true, email: true } },
-            user: { select: {id: true, email: true } },
+            user: { select: { id: true, email: true } },
           },
         });
         walletType = "business";
@@ -456,8 +458,8 @@ export class WalletsService {
       email: walletType === "user" ? wallet.user.email : wallet.business.email,
       amount,
       metadata: {
-        customerId: walletType === "user" ? +wallet.user.id : null, 
-         businessId: walletType === "business" ? +wallet.business.id : null,
+        customerId: walletType === "user" ? +wallet.user.id : null,
+        businessId: walletType === "business" ? +wallet.business.id : null,
         type: PaymentType.DEPOSIT,
       },
     };
