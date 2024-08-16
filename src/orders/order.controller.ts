@@ -158,7 +158,7 @@ export class OrderController {
   }
 
   @Post(":id/complete")
-  @UseGuards(RoleGuard([Role.customer]))
+  @UseGuards(RoleGuard([Role.admin, Role.kitchen, Role.waiter]))
   @ApiAcceptedResponse({ type: BaseResponse })
   @ApiHeader({
     name: "business_id",

@@ -449,26 +449,29 @@ export class OrderService {
     waiterId: number,
     businessId: number,
   ): Promise<any> {
-    const order = await this.prisma.order.update({
+    const getOrder = await this.prisma.order.findUnique({
       where: { id: orderId, businessId },
-      data: { status: OrderStatus.delivered },
     });
-    if (!order || order.waiterId !== waiterId)
-      throw new UnauthorizedException(
-        "Unauthorized to mark order as delivered",
-      );
-    if (order.status === OrderStatus.delivered)
+    if (getOrder.status === OrderStatus.delivered)
       throw new BadRequestException(
         `Order ${orderId} has already been delivered`,
       );
+    if (!getOrder || getOrder.waiterId !== waiterId)
+      throw new UnauthorizedException(
+        "Unauthorized to mark order as delivered",
+      );
+    await this.prisma.order.update({
+      where: { id: orderId, businessId },
+      data: { status: OrderStatus.delivered },
+    });
 
     const payload = {
       orderId,
       status: OrderStatus.delivered,
       type: "ORDER_DELIVERED",
-      tip: order.tip,
+      tip: getOrder.tip,
     };
-    if (order.tip && order.tip > 0) {
+    if (getOrder.tip && getOrder.tip > 0) {
       const waiterWallet = await this.prisma.wallet.findFirst({
         where: { AND: [{ userId: waiterId }, { businessId: null }] },
       });
@@ -476,7 +479,7 @@ export class OrderService {
         await this.prisma.wallet.create({
           data: {
             userId: waiterId,
-            balance: order.tip,
+            balance: getOrder.tip,
             businessId: null,
             authToken: uuidv4(),
           },
@@ -484,13 +487,17 @@ export class OrderService {
 
       await this.prisma.wallet.update({
         where: { id: waiterWallet.id },
-        data: { balance: { increment: order.tip } },
+        data: { balance: { increment: getOrder.tip } },
       });
-      this.event.notifyWaiter(order.waiterId, "tips", payload);
+      this.event.notifyWaiter(getOrder.waiterId, "tips", payload);
     }
-    this.event.notifyUser(order.customerId, "orderDelivered", payload);
-    this.event.notifyWaiter(order.waiterId, "orderDelivered", payload);
-    this.event.notifyKitchen(order.kitchenStaffId, "orderDelivered", payload);
+    this.event.notifyUser(getOrder.customerId, "orderDelivered", payload);
+    this.event.notifyWaiter(getOrder.waiterId, "orderDelivered", payload);
+    this.event.notifyKitchen(
+      getOrder.kitchenStaffId,
+      "orderDelivered",
+      payload,
+    );
 
     return {
       message: "Order is marked as delivered",
