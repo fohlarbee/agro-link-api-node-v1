@@ -271,6 +271,7 @@ export class OrderService {
       return this.payWithWallet(
         customerId,
         totalAmount,
+        businessId,
         currentOrders.map((order) => order.id),
       );
 
@@ -296,11 +297,12 @@ export class OrderService {
   private async payWithWallet(
     customerId: number,
     total: number,
+    businessId: number,
     orderIds: number[],
   ) {
     const {
       data: { payment },
-    } = await this.wallet.chargeWallet(customerId, total);
+    } = await this.wallet.chargeWallet(customerId, total, businessId);
     await this.prisma.order.updateMany({
       where: { id: { in: orderIds } },
       data: {

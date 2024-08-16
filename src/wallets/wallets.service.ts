@@ -111,6 +111,7 @@ export class WalletsService {
   // }
 
   async transactionHistory(walletId: number): Promise<any> {
+    if (!walletId) throw new BadRequestException("walletId is needed");
     const wallet = await this.prisma.wallet.findUnique({
       where: { id: walletId },
       select: { id: true, balance: true },
@@ -140,6 +141,7 @@ export class WalletsService {
   async chargeWallet(
     userId: number,
     amount: number,
+    businessId: number
     type: PaymentType = PaymentType.ORDER_PAYMENT,
   ) {
     if (!(await this.prisma.user.findUnique({ where: { id: userId } })))
@@ -176,6 +178,11 @@ export class WalletsService {
         walletId: wallet.id,
         paidAt: new Date(),
       },
+    });
+
+    await this.prisma.wallet.update({
+      where:{businessId},
+      data:{balance:{increment: amount}}
     });
 
     return {
@@ -360,7 +367,7 @@ export class WalletsService {
     if (!wallet) throw new NotFoundException("wallet not found");
     const hashedPin = bcrypt.hashSync(pin.toString(), bcrypt.genSaltSync());
 
-    const walletPin = await this.prisma.wallet.update({
+    await this.prisma.wallet.update({
       where: { id: walletId },
       data: { pin: hashedPin },
     });
@@ -503,3 +510,9 @@ export class WalletsService {
     };
   }
 }
+
+// Customer
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImphbmVkb2VAZXhhbXBsZS5jb20iLCJzdWIiOjIsImlhdCI6MTcyMzgwNjMxOCwiZXhwIjoxNzIzODM4NzE4fQ.N-n1DmHhuKLN6rgCW08zw45K7RmXRZhYEfFy9426EzQ
+
+// Admin
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNhbW15b2xhMjQ2QGdtYWlsLmNvbSIsInN1YiI6MjIsImlhdCI6MTcyMzgwNjM2OCwiZXhwIjoxNzIzODM4NzY4fQ.kC1l0N82OvJyguSexYZO1Vw28jR2A0DF6kmnPXZQamA
