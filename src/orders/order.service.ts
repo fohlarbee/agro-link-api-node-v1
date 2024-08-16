@@ -501,6 +501,7 @@ export class OrderService {
           paidAt: new Date(),
           provider: PaymentProvider.CUSTOMER_TIP,
           providerId: `TP_CUS${getOrder.customerId}${Date.now()}`,
+          walletId: waiterWallet.id,
         },
       });
 
