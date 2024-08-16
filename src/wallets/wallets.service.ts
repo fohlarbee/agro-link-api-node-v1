@@ -517,9 +517,3 @@ export class WalletsService {
     };
   }
 }
-
-// Customer
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImphbmVkb2VAZXhhbXBsZS5jb20iLCJzdWIiOjIsImlhdCI6MTcyMzgwNjMxOCwiZXhwIjoxNzIzODM4NzE4fQ.N-n1DmHhuKLN6rgCW08zw45K7RmXRZhYEfFy9426EzQ
-
-// Admin
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNhbW15b2xhMjQ2QGdtYWlsLmNvbSIsInN1YiI6MjIsImlhdCI6MTcyMzgwNjM2OCwiZXhwIjoxNzIzODM4NzY4fQ.kC1l0N82OvJyguSexYZO1Vw28jR2A0DF6kmnPXZQamA

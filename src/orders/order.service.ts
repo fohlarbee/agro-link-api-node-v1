@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { OrderDto } from "./dto/order-option.dto";
 import { PrismaService } from "src/prisma/prisma.service";
-import { OrderStatus, PaymentType } from "@prisma/client";
+import { OrderStatus, PaymentProvider, PaymentType } from "@prisma/client";
 import { WalletsService } from "src/wallets/wallets.service";
 import { TransactionService } from "src/transactions/transaction.service";
 import { WebsocketService } from "src/websocket/websocket.service";
@@ -471,6 +471,7 @@ export class OrderService {
       type: "ORDER_DELIVERED",
       tip: getOrder.tip,
     };
+
     if (getOrder.tip && getOrder.tip > 0) {
       const waiterWallet = await this.prisma.wallet.findFirst({
         where: { AND: [{ userId: waiterId }, { businessId: null }] },
@@ -489,6 +490,20 @@ export class OrderService {
         where: { id: waiterWallet.id },
         data: { balance: { increment: getOrder.tip } },
       });
+
+      await this.prisma.payment.create({
+        data: {
+          reference: `TP_CUS${getOrder.customerId}${Date.now()}`,
+          userId: waiterId,
+          businessId: businessId,
+          type: PaymentType.TIP,
+          amount: getOrder.tip,
+          paidAt: new Date(),
+          provider: PaymentProvider.CUSTOMER_TIP,
+          providerId: `TP_CUS${getOrder.customerId}${Date.now()}`,
+        },
+      });
+
       this.event.notifyWaiter(getOrder.waiterId, "tips", payload);
     }
     this.event.notifyUser(getOrder.customerId, "orderDelivered", payload);

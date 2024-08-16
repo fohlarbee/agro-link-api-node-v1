@@ -41,10 +41,13 @@ export class BusinessService {
         status: "error",
       });
 
+    const wallet = await this.prisma.wallet.findFirst({
+      where: { businessId: business.id },
+    });
     return {
       message: "Business fetch successful",
       status: "success",
-      data: { business },
+      data: { ...business, walletId: wallet.id },
     };
   }
 
@@ -76,7 +79,7 @@ export class BusinessService {
         },
       },
     });
-    await this.prisma.wallet.create({
+    const wallet = await this.prisma.wallet.create({
       data: {
         businessId: business.id,
         userId: null,
@@ -88,7 +91,7 @@ export class BusinessService {
     return {
       message: "Business && Wallet created successfully.",
       status: "success",
-      data: { business },
+      data: { ...business, walletId: wallet.id },
     };
   }
 

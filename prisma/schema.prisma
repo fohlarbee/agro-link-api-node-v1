@@ -28,6 +28,7 @@ enum PaymentType {
   ORDER_PAYMENT
   REFUND
   WALLET_TRANSFER
+  TIP
 }
 
 enum OwnerType {
@@ -311,6 +312,7 @@ enum PaymentProvider {
   MONO
   MOMO_PSB
   QQ_WALLET
+  CUSTOMER_TIP
 }
 
 model Otp {
