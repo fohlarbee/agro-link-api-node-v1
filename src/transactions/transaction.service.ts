@@ -10,6 +10,7 @@ import { MonnifyService } from "src/monnify/monnify.service";
 import { PaystackService } from "src/paystack/paystack.service";
 import { PrismaService } from "src/prisma/prisma.service";
 import { v4 as uuidv4 } from "uuid";
+import { WebsocketService } from "src/websocket/websocket.service";
 
 type TransactionPayload = {
   reference: string;
@@ -28,6 +29,7 @@ export class TransactionService {
     private readonly monnify: MonnifyService,
     private readonly paystack: PaystackService,
     private readonly prisma: PrismaService,
+    private readonly event: WebsocketService,
   ) {}
 
   async handlePaystackTransaction(reference: string) {
@@ -84,7 +86,7 @@ export class TransactionService {
           balance: 0,
           userId: customerId,
           authToken: uuidv4(),
-          businessId: null,
+          businessId,
         },
       });
 
@@ -157,6 +159,7 @@ export class TransactionService {
         paidAt,
         provider,
         providerId,
+        businessId,
       });
 
     const payment = await this.prisma.payment.create({
@@ -168,6 +171,7 @@ export class TransactionService {
         userId: customerId,
         provider,
         providerId,
+        businessId,
       },
     });
     const orderIds = orders.map((order) => order.id);
@@ -179,6 +183,19 @@ export class TransactionService {
         paymentId: payment.id,
       },
     });
+
+    await this.prisma.wallet.update({
+      where: { businessId },
+      data: { balance: { increment: amount } },
+    });
+    const payload = {
+      businessId,
+      customerId,
+      type: "ORDER_PAYMENT",
+      amount,
+    };
+    this.event.notifyBusiness(businessId, "orderPayment", payload);
+
     return { message: "Payment successful", status: "success" };
   }
 

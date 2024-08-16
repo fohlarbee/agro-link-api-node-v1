@@ -141,7 +141,7 @@ export class WalletsService {
   async chargeWallet(
     userId: number,
     amount: number,
-    businessId: number
+    businessId: number,
     type: PaymentType = PaymentType.ORDER_PAYMENT,
   ) {
     if (!(await this.prisma.user.findUnique({ where: { id: userId } })))
@@ -181,9 +181,16 @@ export class WalletsService {
     });
 
     await this.prisma.wallet.update({
-      where:{businessId},
-      data:{balance:{increment: amount}}
+      where: { businessId },
+      data: { balance: { increment: amount } },
     });
+    const payload = {
+      businessId,
+      customerId: userId,
+      type: "ORDER_PAYMENT",
+      amount,
+    };
+    this.event.notifyBusiness(businessId, "orderPayment", payload);
 
     return {
       message: "Wallet charged successfully",
