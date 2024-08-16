@@ -137,6 +137,43 @@ export class WalletsService {
       data: { balance: wallet.balance, transactions },
     };
   }
+  async transactionHistoryForWallet(
+    businessId: number,
+    id: number,
+  ): Promise<any> {
+    if (!businessId || !id) throw new BadRequestException("Params are needed");
+    const staff = await this.prisma.staff.findUnique({
+      where: { userId_businessId: { userId: id, businessId } },
+      select: { role: true },
+    });
+    if (staff.role.name !== "owner" && staff.role.name !== "admin")
+      throw new UnauthorizedException(
+        "You are not authorized to view this transaction history",
+      );
+    const wallet = await this.prisma.wallet.findUnique({
+      where: { businessId },
+    });
+
+    if (!wallet) throw new NotFoundException("Wallet not found");
+
+    const transactions = await this.prisma.payment.findMany({
+      where: { businessId },
+      select: {
+        id: true,
+        amount: true,
+        reference: true,
+        type: true,
+        paidAt: true,
+      },
+      orderBy: { paidAt: "desc" },
+    });
+
+    return {
+      message: "Transaction history fetched successfully",
+      status: "success",
+      data: { balance: wallet.balance, transactions },
+    };
+  }
 
   async chargeWallet(
     userId: number,
@@ -167,6 +204,13 @@ export class WalletsService {
         balance: { decrement: amount },
       },
     });
+
+    await this.prisma.wallet.update({
+      where: { businessId },
+      data: { balance: { increment: amount } },
+    });
+
+    //User payment info
     const payment = await this.prisma.payment.create({
       data: {
         amount,
@@ -177,13 +221,10 @@ export class WalletsService {
         providerId: `QQ|${wallet.id}|${userId}|${Date.now()}`,
         walletId: wallet.id,
         paidAt: new Date(),
+        businessId,
       },
     });
 
-    await this.prisma.wallet.update({
-      where: { businessId },
-      data: { balance: { increment: amount } },
-    });
     const payload = {
       businessId,
       customerId: userId,

@@ -15,7 +15,9 @@ import { UpdateBusinessDto } from "./dto/updateBusinessDto";
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiHeader,
   ApiOkResponse,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from "@nestjs/swagger";
@@ -28,6 +30,8 @@ import { OrderService } from "src/orders/order.service";
 import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { Role } from "src/auth/dto/auth.dto";
 import RoleGuard from "src/auth/role/role.guard";
+import { TransactionHistoryResponse } from "src/wallets/entities/wallets.entity";
+import { WalletsService } from "src/wallets/wallets.service";
 
 @Controller("business")
 @ApiTags("Business")
@@ -49,7 +53,7 @@ export class ClientBusinessController {
   }
 
   @Get(":id/menus")
-  findMenus(@Param("id") id: string) {
+  findMenus(@Param("id") id: number) {
     return this.menuService.findMenusWithOptions(+id);
   }
 
@@ -73,10 +77,14 @@ export class ClientBusinessController {
 @Controller("admin/businesses")
 @ApiTags("Business (Admin)")
 @ApiBearerAuth()
+@ApiHeader({ name: "access_token", required: true })
 @UseGuards(HttpAuthGuard)
 // @Roles(Role.admin)
 export class AdminBusinessController {
-  constructor(private readonly businessService: BusinessService) {}
+  constructor(
+    private readonly businessService: BusinessService,
+    private readonly walletService: WalletsService,
+  ) {}
 
   @Post()
   @UseGuards(RoleGuard([Role.owner, Role.admin, Role.manager]))
@@ -90,7 +98,7 @@ export class AdminBusinessController {
   @UseGuards(RoleGuard([Role.admin]))
   @ApiOkResponse({ type: BusinessListResponse })
   findMemberBusinesses(@Req() { user: { id: userId } }: Record<string, any>) {
-    return this.businessService.findStaffBusiness(userId);
+    return this.businessService.findStaffBusiness(+userId);
   }
 
   @Put(":id")
@@ -103,6 +111,16 @@ export class AdminBusinessController {
   ) {
     const { id: userId } = request.user;
     return this.businessService.updateBusiness(+businessId, userId, updateData);
+  }
+  @Get(":id/transactions")
+  @ApiOkResponse({ type: TransactionHistoryResponse })
+  @ApiParam({ name: "id", required: true })
+  async getBusinessTransactions(
+    @Req() request,
+    @Param("id") businessId: number,
+  ) {
+    const { id } = request.user;
+    return this.walletService.transactionHistoryForWallet(+businessId, id);
   }
 
   @ApiBearerAuth()

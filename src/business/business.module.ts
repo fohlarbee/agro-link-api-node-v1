@@ -7,9 +7,10 @@ import {
 import { MenuModule } from "src/menus/menu.module";
 import { OrderModule } from "src/orders/order.module";
 import { PrismaModule } from "src/prisma/prisma.module";
+import { WalletsModule } from "src/wallets/wallets.module";
 
 @Module({
-  imports: [MenuModule, OrderModule, PrismaModule],
+  imports: [MenuModule, OrderModule, PrismaModule, WalletsModule],
   controllers: [ClientBusinessController, AdminBusinessController],
   providers: [BusinessService],
 })
