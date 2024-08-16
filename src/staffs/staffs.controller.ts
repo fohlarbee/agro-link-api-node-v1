@@ -88,6 +88,7 @@ export class StaffsController {
       Role.waiter,
       Role.kitchen,
       Role.owner,
+      Role.customer,
     ]),
   )
   getWaiterAnalytics(
@@ -96,7 +97,7 @@ export class StaffsController {
     @Query("sortBy") sortBy?: string,
   ) {
     const { business_id } = request.headers;
-    return this.staffsService.getWaiterAnalytics(+id, +business_id, sortBy);
+    return this.staffsService.waiterAnalytics(+id, +business_id, sortBy);
   }
 
   @Get("kitchen/:id/analytics")
@@ -107,6 +108,7 @@ export class StaffsController {
       Role.waiter,
       Role.kitchen,
       Role.owner,
+      Role.customer,
     ]),
   )
   getKitchenStaffAnalytics(
@@ -118,14 +120,6 @@ export class StaffsController {
     return this.staffsService.kitchenStaffAnalytics(+id, +business_id, sortBy);
   }
 
-  @Get("waiter/:id")
-  getWaiter(@Param("id") id: string, @Req() request) {
-    const { business_id } = request.headers;
-    const { id: userId } = request.user;
-
-    return this.staffsService.getWaiter(+userId, +business_id);
-  }
-
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateStaffDto: UpdateStaffDto) {
   //   return this.staffsService.update(+id, updateStaffDto);
@@ -134,5 +128,14 @@ export class StaffsController {
   // @Delete(':id')
   // remove(@Param('id') id: string) {
   //   return this.staffsService.remove(+id);
+  // }
+
+  // @Get("")
+  // @UseGuards(RoleGuard([Role.admin, Role.waiter, Role.owner, Role.manager]))
+  // getStaffMetrics(@Req() request) {
+  //   const { business_id } = request.headers;
+  //   const { id: waiterId } = request.user;
+
+  //   return this.staffsService.getStaffMetrics(+waiterId, +business_id);
   // }
 }

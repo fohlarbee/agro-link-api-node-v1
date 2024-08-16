@@ -4,14 +4,18 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { AuthEntity } from "./entities/auth.entity";
 import {
+  AuthDto,
   LoginDto,
+  ResetDeviceUUIDDto,
   ResetPasswordDto,
+  Role,
   SendRegistrationEmailDto,
   VerificationDto,
 } from "./dto/auth.dto";
@@ -19,6 +23,7 @@ import {
   parseFileInterceptor,
   FileUploadInterceptor,
 } from "src/utils/interceptors/file-upload.interceptor";
+import RoleGuard from "./role/role.guard";
 
 @Controller("auth")
 @ApiTags("Authentication")
@@ -28,16 +33,15 @@ export class AuthController {
   @Post("login")
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: AuthEntity, status: HttpStatus.OK })
-  login(@Body() { email, password }: LoginDto) {
-    return this.authService.login(email, password);
+  login(@Body() { email, password, deviceUUID }: LoginDto) {
+    return this.authService.login(email, password, deviceUUID);
   }
 
   @Post("register")
   @UseInterceptors(parseFileInterceptor, FileUploadInterceptor)
   @ApiCreatedResponse()
-  register(@Body() body: Record<string, any>) {
-    const { email, name, password, role, imageURL: avatar } = body;
-    return this.authService.register(email, name, password, role, avatar);
+  register(@Body() body: AuthDto) {
+    return this.authService.register(body);
   }
 
   @Post("otp/generate")
@@ -57,7 +61,7 @@ export class AuthController {
   verifyOTP(@Body() { otp, email }: VerificationDto) {
     return this.authService.verifyOTP(otp, email);
   }
-  @Post("reset/otp")
+  @Post("otp/reset")
   @ApiCreatedResponse()
   sendResetEmail(@Body() { email }: SendRegistrationEmailDto) {
     return this.authService.sendresetEmail(email);
@@ -67,5 +71,17 @@ export class AuthController {
   @ApiCreatedResponse()
   resetPassword(@Body() { email, newPassword }: ResetPasswordDto) {
     return this.authService.resetPassword(email, newPassword);
+  }
+
+  @Post("otp/verifydevice")
+  @ApiCreatedResponse()
+  sendVerifyDeviceUUIDEmail(@Body() { email }: SendRegistrationEmailDto) {
+    return this.authService.sendVerifyDeviceUUIDEmail(email);
+  }
+
+  @Post("reset/deviceUUID")
+  @ApiCreatedResponse()
+  resetDeviceUUID(@Body() { email, deviceUUID }: ResetDeviceUUIDDto) {
+    return this.authService.resetDeviceUUID(email, deviceUUID);
   }
 }

@@ -7,6 +7,7 @@ import {
 import { UpdateBusinessDto } from "./dto/updateBusinessDto";
 import { CreateBusinessDto } from "./dto/create-business.dto";
 import { PrismaService } from "src/prisma/prisma.service";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class BusinessService {
@@ -40,10 +41,13 @@ export class BusinessService {
         status: "error",
       });
 
+    const wallet = await this.prisma.wallet.findFirst({
+      where: { businessId: business.id },
+    });
     return {
       message: "Business fetch successful",
       status: "success",
-      data: { business },
+      data: { ...business, walletId: wallet.id },
     };
   }
 
@@ -75,14 +79,19 @@ export class BusinessService {
         },
       },
     });
-    await this.prisma.wallet.create({
-      data: { businessId: business.id, balance: 0.0 },
+    const wallet = await this.prisma.wallet.create({
+      data: {
+        businessId: business.id,
+        userId: null,
+        balance: 0.0,
+        authToken: uuidv4(),
+      },
     });
 
     return {
       message: "Business && Wallet created successfully.",
       status: "success",
-      data: { business },
+      data: { ...business, walletId: wallet.id },
     };
   }
 
@@ -221,6 +230,7 @@ export class BusinessService {
           },
         },
         menus: {
+          select: { id: true, name: true, type: true },
           where: {
             createdAt: { gte: startDate, lt: endDate },
           },
@@ -232,16 +242,9 @@ export class BusinessService {
           where: {
             createdAt: { gte: startDate, lt: endDate },
           },
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                name: true,
-                avatar: true,
-              },
-            },
-            role: true,
+          select: {
+            user: { select: { email: true, name: true } },
+            role: { select: { name: true } },
           },
           orderBy: { createdAt: "desc" },
           skip,
@@ -259,6 +262,7 @@ export class BusinessService {
           take: perPage,
         },
         options: {
+          select: { id: true, name: true, price: true },
           where: { createdAt: { gte: startDate, lt: endDate } },
           orderBy: { createdAt: "desc" },
           skip,
@@ -266,7 +270,7 @@ export class BusinessService {
         },
         outlets: {
           include: {
-            tables: true,
+            tables: { select: { id: true, identifier: true } },
           },
           skip,
           take: perPage,
@@ -274,54 +278,54 @@ export class BusinessService {
       },
     });
 
-    const pagination = {
-      menus: {
-        page,
-        perPage,
-        totalPages: Math.ceil(
-          (await this.prisma.menu.count({ where: { businessId: id } })) /
-            perPage,
-        ),
-      },
-      staffs: {
-        page,
-        perPage,
-        totalPages: Math.ceil(
-          (await this.prisma.staff.count({ where: { businessId: id } })) /
-            perPage,
-        ),
-      },
-      orders: {
-        page,
-        perPage,
-        totalPages: Math.ceil(
-          (await this.prisma.order.count({ where: { businessId: id } })) /
-            perPage,
-        ),
-      },
-      options: {
-        page,
-        perPage,
-        totalPages: Math.ceil(
-          (await this.prisma.option.count({ where: { businessId: id } })) /
-            perPage,
-        ),
-      },
-      outlets: {
-        page,
-        perPage,
-        totalPages: Math.ceil(
-          (await this.prisma.outlet.count({ where: { businessId: id } })) /
-            perPage,
-        ),
-      },
-    };
+    const totalPaidAmount = result.orders.reduce((acc, order) => {
+      return acc + order.payment.amount;
+    }, 0);
 
     return {
-      message: "Analytic Data fetched successfully",
+      message: "Analytics Data fetched successfully",
       status: "success",
-      data: result,
-      pagination,
+      data: {
+        time_frame: sortBy,
+        date: endDate.toISOString(),
+        businessId: result.id,
+        business_name: result.name,
+        currency: "NGN",
+        orders: {
+          count: result.orders.length,
+          total: (await this.prisma.order.count({
+            where: { businessId: id },
+          })) as number,
+          total_revenue: totalPaidAmount,
+          by_status: {
+            failed: (await this.prisma.order.count({
+              where: { businessId: id, status: "failed" },
+            })) as number,
+            completed: (await this.prisma.order.count({
+              where: { businessId: id, status: "completed" },
+            })) as number,
+            cancelled: (await this.prisma.order.count({
+              where: { businessId: id, status: "cancelled" },
+            })) as number,
+          },
+          by_payment_method: {
+            online: (await this.prisma.order.count({
+              where: { businessId: id, payment: { type: "ORDER_PAYMENT" } },
+            })) as number,
+            cash: "",
+            digital_wallet: "",
+          },
+          payment: {
+            total_amount_processed: totalPaidAmount,
+          },
+          menus: result.menus,
+          staffs: result.staffs,
+          orders: result.orders,
+          options: result.options,
+          outlets: result.outlets,
+        },
+      },
+      // pagination,
     };
   }
 }

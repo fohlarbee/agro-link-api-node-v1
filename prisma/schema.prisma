@@ -28,6 +28,7 @@ enum PaymentType {
   ORDER_PAYMENT
   REFUND
   WALLET_TRANSFER
+  TIP
 }
 
 enum OwnerType {
@@ -43,6 +44,7 @@ model User {
   password  String
   name      String
   avatar    String?
+  deviceUUID String?
   role      GuardRoles @default(customer)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -77,6 +79,7 @@ model Business {
   outlets   Outlet[]
   shifts    Shift[]
   wallet    Wallet?
+  payments  Payment[]
 }
 
 model Role {
@@ -248,8 +251,8 @@ model Order {
 
   waiterId       Int
   waiter         Staff         @relation("OrderWaiter", fields: [waiterId, businessId], references: [userId, businessId])
-  kitchenStaffId Int
-  kitchenStaff   Staff         @relation("OrderKitchenStaff", fields: [kitchenStaffId, businessId], references: [userId, businessId])
+  kitchenStaffId Int?
+  kitchenStaff   Staff?        @relation("OrderKitchenStaff", fields: [kitchenStaffId, businessId], references: [userId, businessId])
   options        OrderOption[]
 }
 
@@ -261,6 +264,7 @@ enum OrderStatus {
   rejected //The business has declined the order, possibly due to being too busy, out of stock items, or other reasons.
   cancelled //The order has been canceled by either the customer or the business.
   ready //The food is prepared and ready for pickup or delivery.
+  delivered //The order has been delivered to the customer or picked up by the customer.
   completed //The order has been delivered to the customer or picked up by the customer.
 }
 
@@ -293,8 +297,10 @@ model Payment {
 
   // Relationships
   orders   Order[]
-  userId   Int
-  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int?
+  businessId Int?
+  business Business?  @relation(fields: [businessId], references: [id])
+  user     User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   walletId Int?
   wallet   Wallet? @relation(fields: [walletId], references: [id])
 }
@@ -306,6 +312,7 @@ enum PaymentProvider {
   MONO
   MOMO_PSB
   QQ_WALLET
+  CUSTOMER_TIP
 }
 
 model Otp {
@@ -324,6 +331,9 @@ model Wallet {
   balance    Float
   userId     Int?      @unique
   businessId Int?      @unique
+  authToken  String @unique
+  pin        String? @unique
+  locked     Boolean   @default(false)
   // ownerType  OwnerType
   payments   Payment[]
   createdAt  DateTime  @default(now())

@@ -9,6 +9,8 @@ import { OrderStatus, PaymentProvider, PaymentType } from "@prisma/client";
 import { MonnifyService } from "src/monnify/monnify.service";
 import { PaystackService } from "src/paystack/paystack.service";
 import { PrismaService } from "src/prisma/prisma.service";
+import { v4 as uuidv4 } from "uuid";
+import { WebsocketService } from "src/websocket/websocket.service";
 
 type TransactionPayload = {
   reference: string;
@@ -27,6 +29,7 @@ export class TransactionService {
     private readonly monnify: MonnifyService,
     private readonly paystack: PaystackService,
     private readonly prisma: PrismaService,
+    private readonly event: WebsocketService,
   ) {}
 
   async handlePaystackTransaction(reference: string) {
@@ -42,7 +45,7 @@ export class TransactionService {
     return this.processTransaction({
       reference,
       customerId: +customerId,
-      businessId: +businessId || businessId,
+      businessId: +businessId,
       type: type ?? PaymentType.ORDER_PAYMENT,
       amount: +amount / 100,
       paidAt: new Date(paid_at),
@@ -72,15 +75,18 @@ export class TransactionService {
     paidAt,
     provider,
     providerId,
+    businessId,
   }: TransactionPayload) {
     let wallet = await this.prisma.wallet.findFirst({
-      where: { AND: [{ userId: customerId }, { businessId: null }] },
+      where: { OR: [{ userId: customerId }, { businessId }] },
     });
     if (!wallet)
       wallet = await this.prisma.wallet.create({
         data: {
           balance: 0,
           userId: customerId,
+          authToken: uuidv4(),
+          businessId,
         },
       });
 
@@ -90,10 +96,11 @@ export class TransactionService {
         type,
         amount,
         paidAt,
-        userId: customerId,
+        userId: wallet.userId,
         walletId: wallet.id,
         provider,
         providerId,
+        businessId: wallet.businessId,
       },
     });
     await this.prisma.wallet.update({
@@ -152,6 +159,7 @@ export class TransactionService {
         paidAt,
         provider,
         providerId,
+        businessId,
       });
 
     const payment = await this.prisma.payment.create({
@@ -163,6 +171,7 @@ export class TransactionService {
         userId: customerId,
         provider,
         providerId,
+        businessId,
       },
     });
     const orderIds = orders.map((order) => order.id);
@@ -174,6 +183,19 @@ export class TransactionService {
         paymentId: payment.id,
       },
     });
+
+    await this.prisma.wallet.update({
+      where: { businessId },
+      data: { balance: { increment: amount } },
+    });
+    const payload = {
+      businessId,
+      customerId,
+      type: "ORDER_PAYMENT",
+      amount,
+    };
+    this.event.notifyBusiness(businessId, "orderPayment", payload);
+
     return { message: "Payment successful", status: "success" };
   }
 

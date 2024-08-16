@@ -58,7 +58,7 @@ export class StaffsService {
     role: GuardRoles;
   }) {
     const staff = await this.prisma.staff.findFirst({
-      where: { userId },
+      where: { userId, businessId },
     });
     if (staff)
       throw new BadRequestException("Staff already exists in the business");
@@ -127,31 +127,89 @@ export class StaffsService {
     };
   }
 
-  async findStaff(userId: number, businessId: number) {
+  async findStaff(staffId: number, businessId: number) {
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
     });
     if (!business) throw new NotFoundException("Invalid business");
-    const staff = await this.prisma.staff.findFirst({
-      where: { businessId, userId },
+
+    const staff = await this.prisma.staff.findUnique({
+      where: { userId_businessId: { userId: staffId, businessId } },
       select: {
-        user: { select: { name: true, id: true, email: true } },
-        role: { select: { name: true, id: true } },
+        role: true,
+        shifts: {
+          select: {
+            startTime: true,
+            endTime: true,
+            assignedTables: {
+              select: { table: { select: { id: true, identifier: true } } },
+            },
+          },
+        },
+        ordersAsWaiter: {
+          select: {
+            id: true,
+            tableId: true,
+            status: true,
+            tip: true,
+            payment: { select: { amount: true } },
+            createdAt: true,
+          },
+        },
+        ordersAsKitchenStaff: {
+          select: {
+            id: true,
+            tableId: true,
+            status: true,
+            // tip: true,
+            payment: { select: { amount: true } },
+            createdAt: true,
+          },
+        },
+        business: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        user: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
       },
     });
-    if (!staff) throw new NotFoundException("No such staff");
+
+    if (!staff || !["waiter", "kitchen"].includes(staff.role.name))
+      throw new NotFoundException(`User is not a staff 
+        in the business of of id ${businessId}`);
     return {
       message: "Staff fetched successfully",
-      status: "success",
-      data: { staff },
+      success: "true",
+      data: {
+        id: staffId,
+        name: staff.user.name,
+        role: staff.role.name,
+        email: staff.user.email,
+        business: {
+          id: staff.business.id,
+          name: staff.business.name,
+        },
+        shifts: staff.shifts,
+        orders:
+          staff.role.name === "waiter"
+            ? staff.ordersAsWaiter
+            : staff.ordersAsKitchenStaff,
+      },
     };
   }
 
-  async getWaiterAnalytics(userId: number, businessId: number, sortBy: string) {
+  async waiterAnalytics(userId: number, businessId: number, sortBy: string) {
     if (!sortBy) sortBy = "thisYear";
     const staff = await this.findStaff(userId, businessId);
 
-    if (staff.data.staff.role.name != "waiter")
+    if (staff.data.role != "waiter")
       throw new BadRequestException("This staff is not a waiter");
 
     let startDate: Date;
@@ -342,7 +400,7 @@ export class StaffsService {
     if (!sortBy) sortBy = "thisYear";
     const staff = await this.findStaff(userId, businessId);
 
-    if (staff.data.staff.role.name != "kitchen")
+    if (staff.data.role != "kitchen")
       throw new BadRequestException("This user is not a Kitchen stafff");
 
     let startDate: Date;
@@ -497,88 +555,32 @@ export class StaffsService {
     const salesGrowthRate =
       ((totalSales - previousPeriodSales) / previousPeriodSales) * 100;
 
-      return {
-        // orders,
-        timeFrame: sortBy,
-        date: endDate.toISOString(),
-        businessId: businessId,
-        currency: "NGN",
-        kitchenStaff_performance: {
-          kitchenStaffId,
-          orders_taken: ordersTaken,
-          total_payment_amount: totalPaymentAmount,
-          average_order_value: averageOrderValue,
-          tables_served: numTables,
-        },
-        kichenStaff_sales_performance: {
-          total_sales: totalSales,
-          sales_growth_rate: salesGrowthRate,
-        },
-        orders: {
-          count: ordersTaken,
-          total_revenue: totalRevenue,
-          average_order_value: averageOrderValue,
-          by_status: {
-            paidAt: paidOrders,
-            completed: completedOrders,
-            cancelled: cancelledOrders,
-          },
-        },
-      };
-  }
-
-  async getWaiter(userId: number, businessId: number): Promise<any> {
-    const waiterAsUser = await this.prisma.staff.findUnique({
-      where: { userId_businessId: { userId, businessId } },
-      select: {
-        role: true,
-        shifts: {
-          select: {
-            startTime: true,
-            endTime: true,
-            assignedTables: {
-              select: { table: { select: { id: true, identifier: true } } },
-            },
-          },
-        },
-        ordersAsWaiter: {
-          select: {
-            id: true,
-            tableId: true,
-            status: true,
-            tip: true,
-          },
-        },
-        business: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        user: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    if (!waiterAsUser) throw new NotFoundException("Waiter not found");
-
     return {
-      message: "waiter fetched successfully",
-      success: "true",
-      waiter: {
-        id: userId,
-        name: waiterAsUser.user.name,
-        email: waiterAsUser.user.email,
-        business: {
-          id: waiterAsUser.business.id,
-          name: waiterAsUser.business.name,
+      // orders,
+      timeFrame: sortBy,
+      date: endDate.toISOString(),
+      businessId: businessId,
+      currency: "NGN",
+      kitchenStaff_performance: {
+        kitchenStaffId,
+        orders_taken: ordersTaken,
+        total_payment_amount: totalPaymentAmount,
+        average_order_value: averageOrderValue,
+        tables_served: numTables,
+      },
+      kichenStaff_sales_performance: {
+        total_sales: totalSales,
+        sales_growth_rate: salesGrowthRate,
+      },
+      orders: {
+        count: ordersTaken,
+        total_revenue: totalRevenue,
+        average_order_value: averageOrderValue,
+        by_status: {
+          paidAt: paidOrders,
+          completed: completedOrders,
+          cancelled: cancelledOrders,
         },
-        shifts: waiterAsUser.shifts,
-        orders: waiterAsUser.ordersAsWaiter,
       },
     };
   }

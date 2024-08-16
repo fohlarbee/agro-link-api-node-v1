@@ -34,3 +34,19 @@ export class DepositInitiationResponse extends BaseResponse {
     reference: string;
   };
 }
+
+export class TransactionHistoryResponse extends BaseResponse {
+  @ApiProperty({ required: true })
+  data: {
+    balance: number;
+    transactions: object;
+  };
+}
+
+export class WalletBalanceResponse extends BaseResponse {
+  @ApiProperty({ required: true })
+  data: {
+    balance: number;
+    id: number;
+  };
+}

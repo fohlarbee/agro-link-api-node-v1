@@ -5,7 +5,7 @@ import {
   Param,
   Post,
   Put,
-  Req,
+  Query,
   UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
@@ -14,7 +14,6 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { PaystackAuthInterceptor } from "./interceptors/paystack-auth.interceptor";
 import { MonnifyAuthInterceptor } from "./interceptors/monnify-auth.interceptor";
-import { PaymentType } from "@prisma/client";
 
 @Controller("transactions")
 @ApiTags("Transactions")
@@ -24,14 +23,15 @@ export class TransactionController {
   @Put("/verify/:reference")
   @ApiBearerAuth()
   @UseGuards(HttpAuthGuard)
-  async verifyPayment(@Param("reference") reference: string, @Req() request) {
-    const provider = request.headers["provider"];
-
+  async verifyPayment(
+    @Param("reference") reference: string,
+    @Query("paymentProvider") provider: string,
+  ) {
     if (!provider) throw new BadRequestException("provider is required");
 
     switch (provider) {
       case "PSK":
-        return this.transactionService.handleMonnifyTransaction(reference);
+        return this.transactionService.handlePaystackTransaction(reference);
       case "MNF":
         return this.transactionService.handleMonnifyTransaction(reference);
       default:

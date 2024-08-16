@@ -9,6 +9,8 @@ import { OrderService } from "./order.service";
 import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { ApiBearerAuth, ApiHeader, ApiTags } from "@nestjs/swagger";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
+import RoleGuard from "src/auth/role/role.guard";
+import { Role } from "src/auth/dto/auth.dto";
 @Controller("admin/orders")
 @ApiTags("Orders (Admin)")
 @ApiBearerAuth()
@@ -23,9 +25,9 @@ export class AdminOrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get()
+  @UseGuards(RoleGuard([Role.kitchen, Role.admin, Role.manager]))
   async create(@Req() request) {
-    const { id: ownerId } = request.user;
-    const { business_id: businessId } = request.headers;
+    // const { id: ownerId } = request.user;
     // const baseUrl = request.protocol + "://" + request.headers.host;
     // const orders = (await this.orderService.fetchPaidOrders(ownerId, businessId)).map(order => {
     //   order.options.map(orderOPtions => {
@@ -33,11 +35,8 @@ export class AdminOrderController {
     //   });
     //   return order;
     // });
-    const orders = await this.orderService.fetchPaidOrders(
-      ownerId,
-      +businessId,
-    );
-
+    const { business_id: businessId } = request.headers;
+    const orders = await this.orderService.fetchPaidOrders(+businessId);
     return {
       message: "Orders fetch successful",
       status: "success",

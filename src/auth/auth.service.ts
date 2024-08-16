@@ -1,8 +1,8 @@
-/* eslint-disable prettier/prettier */
 import {
   ConflictException,
   HttpException,
   Injectable,
+  NotAcceptableException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -12,7 +12,7 @@ import * as bcrypt from "bcrypt";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { OtpService } from "src/otp/otp.service";
 import { v1 as uuidv1 } from "uuid";
-import { Role } from "./dto/auth.dto";
+import { AuthDto, Role } from "./dto/auth.dto";
 
 @Injectable()
 export class AuthService {
@@ -22,10 +22,34 @@ export class AuthService {
     private otpService: OtpService,
   ) {}
 
-  async login(email: string, password: string): Promise<AuthEntity> {
+  async login(
+    email: string,
+    password: string,
+    deviceUUID: string,
+  ): Promise<AuthEntity> {
     const user = await this.prisma.user.findUnique({ where: { email } });
+
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException("Invalid email or password");
+    }
+
+    if (!user.deviceUUID) {
+      const staff = await this.prisma.staff.findFirst({
+        where: { userId: user.id },
+      });
+      if (!staff) throw new UnauthorizedException("Unauthorized to login");
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { deviceUUID: bcrypt.hashSync(deviceUUID, bcrypt.genSaltSync()) },
+      });
+    }
+    if (
+      user.role !== Role.guest &&
+      !(await bcrypt.compare(deviceUUID, user.deviceUUID))
+    ) {
+      throw new NotAcceptableException(
+        "Invalid device, Kindly, authorize with this device",
+      );
     }
     let staff;
     if (!user.role) {
@@ -54,7 +78,8 @@ export class AuthService {
     };
   }
 
-  async register(email, name, password, role, avatar): Promise<BaseResponse> {
+  async register(authDto: AuthDto): Promise<BaseResponse> {
+    const { name, email, password, role, imageURL, deviceUUID } = authDto;
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -66,10 +91,18 @@ export class AuthService {
     if (!userVerified)
       throw new UnauthorizedException("Please verify your email first");
     const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync());
+    const hashedDeviceUUID = bcrypt.hashSync(deviceUUID, bcrypt.genSaltSync());
     await this.prisma.user.create({
-      data: { email, password: hashedPassword, name, avatar, role },
+      data: {
+        email,
+        password: hashedPassword,
+        name,
+        avatar: imageURL,
+        role,
+        deviceUUID: hashedDeviceUUID,
+      },
     });
-    await this.prisma.otp.delete({ where: { email } });
+    await this.prisma.otp.delete({ where: { email, for: "signup" } });
 
     return {
       status: "success",
@@ -134,11 +167,6 @@ export class AuthService {
       email,
       generatedOTP,
     });
-    // if (!mail)
-    //   throw new HttpException(
-    //     "An error occured while sending verification email",
-    //     403,
-    //   );
 
     const hashedOTP = await bcrypt.hashSync(generatedOTP, bcrypt.genSaltSync());
 
@@ -210,7 +238,7 @@ export class AuthService {
       data: { password: hashedPassword },
     });
 
-    await this.prisma.otp.delete({ where: { email } });
+    await this.prisma.otp.delete({ where: { email, for: "resetPassword" } });
 
     return {
       message: "Password reset successful",
@@ -227,6 +255,68 @@ export class AuthService {
     return {
       status: "success",
       message: "OTP Verification Successful",
+    };
+  }
+
+  async sendVerifyDeviceUUIDEmail(email: string) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!existingUser)
+      throw new UnauthorizedException("Email address not validd");
+
+    const otpExits = await this.prisma.otp.findFirst({ where: { email } });
+    if (otpExits) {
+      if (otpExits && Number(otpExits.expiresAt.getTime()) < Date.now()) {
+        await this.prisma.otp.delete({ where: { email } });
+      } else {
+        throw new HttpException("OTP has been sent to your mail already", 401);
+      }
+    }
+
+    const generatedOTP = `${Math.floor(100000 + Math.random() * 900000)}`;
+
+    await this.otpService.sendVerifyEmailForDeviceUUID({ email, generatedOTP });
+
+    const hashedOTP = await bcrypt.hashSync(generatedOTP, bcrypt.genSaltSync());
+
+    await this.prisma.otp.create({
+      data: {
+        email: email,
+        otp: hashedOTP,
+        for: "verifyDevice",
+        isVerified: false,
+        expiresAt: new Date(Date.now() + 3600000),
+      },
+    });
+
+    return {
+      message: "Device verification mail sent",
+      status: "success",
+    };
+  }
+
+  async resetDeviceUUID(email: string, deviceUUID: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) throw new HttpException("User not found", 404);
+
+    const otpRecord = await this.prisma.otp.findUnique({
+      where: { email, for: { equals: "verifyDevice" } },
+    });
+    if (!otpRecord)
+      throw new UnauthorizedException("PLease verify Email to proceed");
+
+    const hashedDeviceUUID = bcrypt.hashSync(deviceUUID, bcrypt.genSaltSync());
+    await this.prisma.user.update({
+      where: { email },
+      data: { deviceUUID: hashedDeviceUUID },
+    });
+
+    await this.prisma.otp.delete({ where: { email, for: "verifyDevice" } });
+
+    return {
+      message: "New device registered",
+      status: "success",
     };
   }
 }

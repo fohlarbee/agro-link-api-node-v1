@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
-import { GuardRoles, MenuType, PrismaClient } from '@prisma/client';
+import { GuardRoles, MenuType, OrderStatus, PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { count } from 'console';
+import { v4 as uuidv4 } from "uuid";
+
 
 const prisma = new PrismaClient();
 
@@ -12,6 +13,7 @@ const users = [
     "email": 'johndoe@example.com',
     "password":"Sammyola246@1",
     "role":GuardRoles.customer,
+    "deviceUUID":'SSB234NAC3'
 
     
   },
@@ -20,6 +22,8 @@ const users = [
     "email": 'janedoe@example.com',
     "password":"Sammyola246@1",
     "role":GuardRoles.customer,
+    "deviceUUID":'BNM234NAC20'
+
 
 
   },
@@ -28,6 +32,8 @@ const users = [
     "email": 'janesmith@example.com',
     "password": "Password123!",
     "role":GuardRoles.customer,
+    "deviceUUID":'XCF234NAC4'
+
 
     },
     {
@@ -35,6 +41,8 @@ const users = [
     "email": 'michaelbrown@example.com',
     "password": "MB123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'RTY234NAC5'
+
 
     },
     {
@@ -42,6 +50,8 @@ const users = [
     "email": 'emilydavis@example.com',
     "password": "ED123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'FVG234NAC6'
+
 
     },
     {
@@ -49,6 +59,8 @@ const users = [
     "email": 'christopherlee@example.com',
     "password": "CL123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'BNM234NAC7'
+
 
     },
     {
@@ -56,6 +68,8 @@ const users = [
     "email": 'jessicawhite@example.com',
     "password": "JW123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'VBN234NAC8'
+
 
     },
     {
@@ -63,6 +77,8 @@ const users = [
     "email": 'matthewmartin@example.com',
     "password": "MM123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'MKN234NAC9'
+
 
     },
     {
@@ -70,12 +86,16 @@ const users = [
     "email": 'amandajohnson@example.com',
     "password": "AJ123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'POI234NAC10'
+
     },
     {
     "name": "Daniel Williams",
     "email": 'danielwilliams@example.com',
     "password": "DW123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'LKJ234NAC11',
+
 
     },
     {
@@ -83,6 +103,8 @@ const users = [
     "email": 'elizabeththompson@example.com',
     "password": "ET123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'ZXCV234NAC12'
+
 
     },
     {
@@ -90,30 +112,42 @@ const users = [
     "email": 'josephlewis@example.com',
     "password": "JL123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'QWERT234NAC13'
+
 
     },
     {
     "name": "Laura Harris",
     "email": 'lauraharris@example.com',
-    "password": "LH123456!"
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
+    "deviceUUID":'YUIO234NAC14'
+
     },
     {
     "name": "Thomas Hall",
     "email": 'thomashall@example.com',
     "password": "TH123456!",
     "role":GuardRoles.customer,
+    "deviceUUID":'TYUI234NAC15'
+
 
     },
     {
     "name": "Sophia Jackson",
     "email": 'sophiajackson@example.com',
-    "password": "SJ123456!"
+    "password": "SJ123456!",
+    "role":GuardRoles.customer,
+    "deviceUUID":'RFGN234NAC16'
+
     },
     {
       "name": "Emily Chen",
       "email": 'emilychen@example.com',
       "password": "EC123456!",
       "role":GuardRoles.customer,
+      "deviceUUID":'MNBV234NAC17'
+
 
       },
       {
@@ -121,6 +155,8 @@ const users = [
       "email": 'michaelkim@example.com',
       "password": "MK123456!",
       "role":GuardRoles.customer,
+      "deviceUUID":'CVBN234NAC18'
+
 
       },
       {
@@ -128,6 +164,8 @@ const users = [
       "email": 'sarahtaylor@example.com',
       "password": "ST123456!",
       "role":GuardRoles.customer,
+      "deviceUUID":'XZCV234NAC19'
+
 
       },
       {
@@ -135,6 +173,8 @@ const users = [
       "email": 'davidlee@example.com',
       "password": "DL123456!",
       "role":GuardRoles.customer,
+      "deviceUUID":'BNM234NAC20'
+
 
       },
       {
@@ -142,6 +182,8 @@ const users = [
       "email": 'oliviabrown@example.com',
       "password": "OB123456!",
       "role":GuardRoles.customer,
+      "deviceUUID":'BNM234NAC21'
+
 
       },
       {
@@ -149,11 +191,73 @@ const users = [
       "email": 'kevinwhite@example.com',
       "password": "KW123456",
       "role":GuardRoles.customer,
+      "deviceUUID":'BNM234NAC22'
+
 
       }
     
-    
 ];
+
+const kitchenUsers = [
+  {
+    "name": "Kunle Edward",
+    "email": 'kunleedward@example.com',
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
+    "deviceUUID":'BNM234NAC23'
+
+
+  },
+  {
+    "name": "Kunle Frank",
+    "email": 'kunlefrank@example.com',
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
+    "deviceUUID":'BNM234NAC24'
+
+
+  },
+  {
+    "name": "Angelica Tony",
+    "email": 'angelicatony@example.com',
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
+    "deviceUUID":'BNM234NAC25'
+
+
+  },
+]
+
+
+const waiterUsers = [
+  {
+    "name": "Dotun Tony",
+    "email": 'dotuntony@example.com',
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
+    "deviceUUID":'BNM234NAC26'
+
+
+  },
+  {
+    "name": "Gabriel Frank",
+    "email": 'gabrielfrank@example.com',
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
+    "deviceUUID":'BNM234NAC27'
+
+
+  },
+  {
+    "name": "Juliet Isreal",
+    "email": 'julietIsreal@example.com',
+    "password": "LH123456!",
+    "role": GuardRoles.customer,
+    "deviceUUID":'BNM234NAC28'
+
+
+  },
+]
 
 const businesses =  [
   {
@@ -531,6 +635,7 @@ const businesses =  [
         return {
           ...user,
           password: bcrypt.hashSync(user.password,  bcrypt.genSaltSync()),
+          deviceUUID: bcrypt.hashSync(user.deviceUUID, bcrypt.genSaltSync()),
 
         };
       });
@@ -582,20 +687,27 @@ async function main() {
     data:{
       "name": "Fohlarbee",
       "email": 'sammyola246@gmail.com',
-      "password":"Sammyola246@1",
+      "password": bcrypt.hashSync("Sammyola246@1", bcrypt.genSaltSync()),
       "role":GuardRoles.admin,
+      deviceUUID: bcrypt.hashSync('FB234678SW', bcrypt.genSaltSync())
 
     }
+  });
+  await prisma.wallet.create({
+    data:{userId:user.id, balance: 0.0, authToken: uuidv4(),pin:bcrypt.hashSync('2020', bcrypt.genSaltSync())}
   })
  const business = await prisma.business.create({data:{
     "name": "Fohlarbee one",
     "cacNumber": "RC999999",
     "phoneNumber": "+2348161174630",
     "email": "sammyola246@gmail.com",
-    // "creatorId": user.id,
     "type":"restaurant",
     creator:{connect:{id:user.id}}
   }});
+
+  await prisma.wallet.create({
+    data:{businessId: business.id, authToken: uuidv4(), balance: 0.0 ,pin:bcrypt.hashSync('2020', bcrypt.genSaltSync()) }
+  })
 
   const outlet = await prisma.outlet.create({data:{address:'Fohlar', businessId:business.id}});
 
@@ -640,6 +752,7 @@ async function main() {
   const optionMenu3 = await prisma.menuOptions.create({data:{menuId:menu3.id, optionId: option3.id}}) 
 
   const waiterRole = await prisma.role.create({data:{name:'waiter', businessId: business.id}})
+  const kitchenStaffRole = await prisma.role.create({data:{name:'kitchen', businessId: business.id}})
 
   const table1 = await prisma.table.create({data:{identifier:"Tablen", outletId: outlet.id}})
   const table2 = await prisma.table.create({data:{identifier:"Tableb", outletId: outlet.id}});
@@ -648,7 +761,15 @@ async function main() {
   const staff = await prisma.staff.create({
     data:{businessId:business.id, roleId:waiterRole.id, userId:1}
   });
+  const adminRole = await prisma.role.create({data:{name:'admin', businessId:business.id}});
+  const adminStaff = await prisma.staff.create({data:{businessId:business.id, roleId:adminRole.id, userId:user.id}})
 
+
+  await prisma.user.update({
+    where:{id:1},
+    data:{role:GuardRoles.waiter}
+  })
+  
   const shift = await prisma.shift.create({
     data:{
         startTime:new Date(),
@@ -672,9 +793,376 @@ async function main() {
       shiftId: shift.id,
       tableId: table2.id
     }
+  });
+
+  ////////////////////////////////////////////////////////
+  // kitchensUsers
+  const user1 = await prisma.user.create({
+    data:{name: kitchenUsers[0].name, email: kitchenUsers[0].email, password:  bcrypt.hashSync(kitchenUsers[0].password, bcrypt.genSaltSync()),
+      deviceUUID:bcrypt.hashSync(kitchenUsers[0].deviceUUID, bcrypt.genSaltSync())
+    }
+  });
+  const user2  = await prisma.user.create({
+    data:{name: kitchenUsers[1].name, email: kitchenUsers[1].email, password: bcrypt.hashSync(kitchenUsers[1].password, bcrypt.genSaltSync()),
+      deviceUUID:bcrypt.hashSync(kitchenUsers[1].deviceUUID, bcrypt.genSaltSync())
+    }
+  });
+  const user3 = await prisma.user.create({
+    data:{name: kitchenUsers[2].name, email: kitchenUsers[2].email, password:bcrypt.hashSync(kitchenUsers[2].password, bcrypt.genSaltSync()),
+      deviceUUID:bcrypt.hashSync(kitchenUsers[2].deviceUUID, bcrypt.genSaltSync())
+    }
   })
 
+  // waiterUsers
+  const user4 = await prisma.user.create({
+    data:{name: waiterUsers[0].name, email: waiterUsers[0].email, password: bcrypt.hashSync(waiterUsers[0].password, bcrypt.genSaltSync()),
+      deviceUUID:bcrypt.hashSync(waiterUsers[0].deviceUUID, bcrypt.genSaltSync())
+    }
+  });
+  const user5 = await prisma.user.create({
+    data:{name: waiterUsers[1].name, email: waiterUsers[1].email, password: bcrypt.hashSync(waiterUsers[1].password, bcrypt.genSaltSync()),
+      deviceUUID:bcrypt.hashSync(waiterUsers[1].deviceUUID, bcrypt.genSaltSync())
+    }
+  });
+  const user6 = await prisma.user.create({
+    data:{name: waiterUsers[2].name, email: waiterUsers[2].email, password:  bcrypt.hashSync(waiterUsers[2].password, bcrypt.genSaltSync()),
+      deviceUUID:bcrypt.hashSync(waiterUsers[2].deviceUUID, bcrypt.genSaltSync())
+    }
+  });
+  
+
+
+  const kitchenStaff1 = await prisma.staff.create({
+    data:{businessId:business.id, userId: user1.id, roleId: kitchenStaffRole.id}
+  });
+  const kitchenStaff2 = await prisma.staff.create({
+    data:{businessId:business.id, userId: user2.id, roleId: kitchenStaffRole.id}
+  });
+  const kitchenStaff3 = await prisma.staff.create({
+    data:{businessId:business.id, userId: user3.id, roleId: kitchenStaffRole.id}
+  });
+
+  const waiterStaff1 = await prisma.staff.create({
+    data:{businessId:business.id, userId: user4.id, roleId: waiterRole.id}
+  });
+  const waiterStaff2 = await prisma.staff.create({
+    data:{businessId:business.id, userId: user5.id, roleId: waiterRole.id}
+  });
+  const waiterStaff3 = await prisma.staff.create({
+    data:{businessId:business.id, userId: user6.id, roleId: waiterRole.id}
+  });
+
+  await prisma.user.update({
+    where:{id:user1.id},
+    data:{role:GuardRoles.kitchen}
+  });
+  await prisma.user.update({
+    where:{id:user2.id},
+    data:{role:GuardRoles.kitchen}
+  });
+  await prisma.user.update({
+    where:{id:user3.id},
+    data:{role:GuardRoles.kitchen}
+  });
+
+
+  await prisma.user.update({
+    where:{id:user4.id},
+    data:{role:GuardRoles.waiter}
+  });
+  await prisma.user.update({
+    where:{id:user5.id},
+    data:{role:GuardRoles.waiter}
+  });
+  await prisma.user.update({
+    where:{id:user6.id},
+    data:{role:GuardRoles.waiter}
+  });
+
+
+ const customerUser = await prisma.user.create({data:
+    {
+      name: 'Jubril Hussain',
+      email: 'jubril@example.com',
+      password: bcrypt.hashSync('Sammyola246@1', bcrypt.genSaltSync()),
+      role: GuardRoles.customer,
+      deviceUUID:"FBRYHD34D"
+    }
+    
+  })
+
+  ///////////////////////////////// ORDER 1
+    const order = await prisma.order.create({
+      data: {
+        customer: { connect: { id: customerUser.id } },
+        business: { connect: { id: business.id } },
+        table: { connect: { id: table1.id } },
+        shift: { connect: { id: shift.id } },
+        tip:1000,
+        waiter: {
+          connect: {
+            userId_businessId: { userId: 1, businessId: business.id },
+          },
+        },
+        cancelledBy: 0,
+      },
+      select: { id: true, options:true, tip: true },
+    });
+
+ await prisma.orderOption.create({
+  data:{quantity:3, optionId:option1.id, orderId:order.id}
+ });
+ 
+  ///////////////////////////////// ORDER 2
+
+
+   
+  const order2 = await prisma.order.create({
+    data: {
+      customer: { connect: { id: customerUser.id } },
+      business: { connect: { id: business.id } },
+      table: { connect: { id: table2.id } },
+      shift: { connect: { id: shift.id } },
+      tip:2000,
+      waiter: {
+        connect: {
+          userId_businessId: { userId: waiterStaff1.userId, businessId: business.id },
+        },
+      },
+      cancelledBy: 0,
+    },
+    select: { id: true, options:true, tip: true },
+  });
+
+
+
+await prisma.orderOption.create({
+data:{quantity:4, optionId:option2.id, orderId:order2.id}
+});
+
+const totalPrice = order.options.reduce((acc, option) => {
+  return acc + option.quantity * option1.price + order.tip;
+}, 0);
+const newPayment = await prisma.payment.create({
+  data:{
+    amount: 10200,
+    provider:"PAYSTACK",
+    reference:`CHP_${ Date.now()}`,
+   type:"ORDER_PAYMENT",
+    user:{
+      connect:{id:customerUser.id}
+    },
+    providerId: `QQ|${user.id}|${user.id}|${Date.now()}`,
+    orders:{connect:{id: order2.id}}
+
+    
+  }
+})
+
+await prisma.order.update({
+  where:{id: order2.id, businessId: business.id},
+  data:{status:OrderStatus.paid, paidAt:new Date(), completedAt:new Date(),paymentId: newPayment.id }
+});
+
+ ///////////////////////////////// ORDER 3
+
+
+   
+ const order3 = await prisma.order.create({
+  data: {
+    customer: { connect: { id: customerUser.id } },
+    business: { connect: { id: business.id } },
+    table: { connect: { id: table1.id } },
+    shift: { connect: { id: shift.id } },
+    tip:3000,
+    waiter: {
+      connect: {
+        userId_businessId: { userId: waiterStaff2.userId, businessId: business.id },
+      },
+    },
+    cancelledBy: 0,
+  },
+  select: { id: true, options:true, tip: true },
+});
+
+
+
+await prisma.orderOption.create({
+data:{quantity:5, optionId:option3.id, orderId:order3.id}
+});
+
+const newPayment2 = await prisma.payment.create({
+data:{
+  amount: 12200,
+  provider:"PAYSTACK",
+  reference:`CHP_${ Date.now()}`,
+ type:"ORDER_PAYMENT",
+  user:{
+    connect:{id:customerUser.id}
+  },
+  providerId: `QQ|${user.id}|${user.id}|${Date.now()}`,
+  orders:{connect:{id: order3.id}}
+
+  
 }
+})
+
+await prisma.order.update({
+where:{id: order3.id, businessId: business.id},
+data:{status:OrderStatus.preparing, paidAt:new Date(), completedAt:new Date(),paymentId: newPayment2.id }
+});
+
+
+
+ ///////////////////////////////// ORDER 4
+
+
+   
+ const order4 = await prisma.order.create({
+  data: {
+    customer: { connect: { id: customerUser.id } },
+    business: { connect: { id: business.id } },
+    table: { connect: { id: table2.id } },
+    shift: { connect: { id: shift.id } },
+    tip:4000,
+    waiter: {
+      connect: {
+        userId_businessId: { userId: waiterStaff3.userId, businessId: business.id },
+      },
+    },
+    cancelledBy: 0,
+  },
+  select: { id: true, options:true, tip: true },
+});
+
+
+
+await prisma.orderOption.create({
+data:{quantity:6, optionId:option1.id, orderId:order4.id}
+});
+
+const newPayment3 = await prisma.payment.create({
+data:{
+  amount: 101200,
+  provider:"PAYSTACK",
+  reference:`CHP_${ Date.now()}`,
+ type:"ORDER_PAYMENT",
+  user:{
+    connect:{id:customerUser.id}
+  },
+  providerId: `QQ|${user.id}|${user.id}|${Date.now()}`,
+  orders:{connect:{id: order4.id}}
+
+  
+}
+})
+
+await prisma.order.update({
+where:{id: order4.id, businessId: business.id},
+data:{status:OrderStatus.ready, paidAt:new Date(), completedAt:new Date(),paymentId: newPayment3.id }
+});
+
+
+ ///////////////////////////////// ORDER 5
+
+
+   
+ const order5 = await prisma.order.create({
+  data: {
+    customer: { connect: { id: customerUser.id } },
+    business: { connect: { id: business.id } },
+    table: { connect: { id: table1.id } },
+    shift: { connect: { id: shift.id } },
+    tip:5000,
+    waiter: {
+      connect: {
+        userId_businessId: { userId: waiterStaff1.userId, businessId: business.id },
+      },
+    },
+    cancelledBy: 0,
+  },
+  select: { id: true, options:true, tip: true },
+});
+
+
+
+await prisma.orderOption.create({
+data:{quantity:7, optionId:option2.id, orderId:order5.id}
+});
+
+const newPayment4 = await prisma.payment.create({
+data:{
+  amount: 6500,
+  provider:"PAYSTACK",
+  reference:`CHP_${ Date.now()}`,
+ type:"ORDER_PAYMENT",
+  user:{
+    connect:{id:customerUser.id}
+  },
+  providerId: `QQ|${user.id}|${user.id}|${Date.now()}`,
+  orders:{connect:{id: order5.id}}
+
+  
+}
+})
+
+await prisma.order.update({
+where:{id: order5.id, businessId: business.id},
+data:{status:OrderStatus.delivered, paidAt:new Date(), completedAt:new Date(),paymentId: newPayment4.id }
+});
+
+ ///////////////////////////////// ORDER 6
+
+
+   
+ const order6 = await prisma.order.create({
+  data: {
+    customer: { connect: { id: customerUser.id } },
+    business: { connect: { id: business.id } },
+    table: { connect: { id: table2.id } },
+    shift: { connect: { id: shift.id } },
+    tip:6000,
+    waiter: {
+      connect: {
+        userId_businessId: { userId: waiterStaff2.userId, businessId: business.id },
+      },
+    },
+    cancelledBy: 0,
+  },
+  select: { id: true, options:true, tip: true },
+});
+
+
+
+await prisma.orderOption.create({
+data:{quantity:7, optionId:option3.id, orderId:order6.id}
+});
+
+const newPayment5 = await prisma.payment.create({
+data:{
+  amount: 7200,
+  provider:"PAYSTACK",
+  reference:`CHP_${ Date.now()}`,
+ type:"ORDER_PAYMENT",
+  user:{
+    connect:{id:customerUser.id}
+  },
+  providerId: `QQ|${user.id}|${user.id}|${Date.now()}`,
+  orders:{connect:{id: order6.id}}
+
+  
+}
+})
+
+await prisma.order.update({
+where:{id: order6.id, businessId: business.id},
+data:{status:OrderStatus.completed, paidAt:new Date(), completedAt:new Date(),paymentId: newPayment5.id }
+});
+
+
+
+}
+
 
 
 main()

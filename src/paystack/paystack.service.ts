@@ -5,6 +5,8 @@ import {
 } from "@nestjs/common";
 import axios from "axios";
 
+const { PAYMENT_REDIRECT_URL, PSK_SECRET_KEY } = process.env;
+
 @Injectable()
 export class PaystackService {
   async createPaymentLink({
@@ -25,9 +27,9 @@ export class PaystackService {
           currency: "NGN",
           metadata,
           email,
-          callback_url: process.env.PAYMENT_REDIRECT_URL + "PSK",
+          callback_url: `${PAYMENT_REDIRECT_URL}?provider=PSK&type=${metadata.type}`,
         },
-        { headers: { Authorization: `Bearer ${process.env.PSK_SECRET_KEY}` } },
+        { headers: { Authorization: `Bearer ${PSK_SECRET_KEY}` } },
       );
 
       const { authorization_url: paymentLink, reference } = response.data.data;
@@ -51,7 +53,7 @@ export class PaystackService {
       const response = await axios.get(
         `https://api.paystack.co/transaction/verify/${reference}`,
         {
-          headers: { Authorization: `Bearer ${process.env.PSK_SECRET_KEY}` },
+          headers: { Authorization: `Bearer ${PSK_SECRET_KEY}` },
         },
       );
       return { status: "success", data: response.data.data };

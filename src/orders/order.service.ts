@@ -2,15 +2,16 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
   UnprocessableEntityException,
 } from "@nestjs/common";
 import { OrderDto } from "./dto/order-option.dto";
 import { PrismaService } from "src/prisma/prisma.service";
-import { OrderStatus, PaymentType } from "@prisma/client";
-import { PaystackService } from "src/paystack/paystack.service";
-import { MonnifyService } from "src/monnify/monnify.service";
+import { OrderStatus, PaymentProvider, PaymentType } from "@prisma/client";
 import { WalletsService } from "src/wallets/wallets.service";
 import { TransactionService } from "src/transactions/transaction.service";
+import { WebsocketService } from "src/websocket/websocket.service";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class OrderService {
@@ -18,6 +19,7 @@ export class OrderService {
     private prisma: PrismaService,
     private transactionService: TransactionService,
     private wallet: WalletsService,
+    private event: WebsocketService,
   ) {}
 
   async orderOption(
@@ -117,11 +119,11 @@ export class OrderService {
           },
         },
         ////how do i get the kitchenStaffId assined to take the order??
-        kitchenStaff: {
-          connect: {
-            userId_businessId: { userId: staffId, businessId },
-          },
-        },
+        // kitchenStaff: {
+        //   connect: {
+        //     userId_businessId: { userId: staffId, businessId },
+        //   },
+        // },
         cancelledBy: 0,
       },
       select: { id: true },
@@ -196,10 +198,11 @@ export class OrderService {
     return this.prisma.order.findMany({
       where: { customerId, status: { not: OrderStatus.active } },
       select: {
+        id: true,
         status: true,
         createdAt: true,
         completedAt: true,
-        id: true,
+        tip: true,
         options: {
           select: {
             option: {
@@ -264,10 +267,11 @@ export class OrderService {
       return total + totalPrice + order.tip;
     }, 0);
 
-    if (provider == "WALLET")
+    if (provider === "WALLET")
       return this.payWithWallet(
         customerId,
         totalAmount,
+        businessId,
         currentOrders.map((order) => order.id),
       );
 
@@ -293,11 +297,12 @@ export class OrderService {
   private async payWithWallet(
     customerId: number,
     total: number,
+    businessId: number,
     orderIds: number[],
   ) {
     const {
       data: { payment },
-    } = await this.wallet.chargeWallet(customerId, total);
+    } = await this.wallet.chargeWallet(customerId, total, businessId);
     await this.prisma.order.updateMany({
       where: { id: { in: orderIds } },
       data: {
@@ -310,23 +315,6 @@ export class OrderService {
       message: "Orders successfully paid",
       status: "success",
     };
-  }
-
-  async fetchPaidOrders(ownerId: number, businessId: number) {
-    return this.prisma.order.findMany({
-      where: { business: { id: businessId }, status: OrderStatus.paid },
-      select: {
-        id: true,
-        status: true,
-        options: {
-          select: {
-            option: { select: { image: true, price: true, id: true } },
-            quantity: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "asc" },
-    });
   }
 
   async changeOrdertoActive(
@@ -355,5 +343,211 @@ export class OrderService {
       message: "Order is now active",
       status: "success",
     };
+  }
+
+  async fetchPaidOrders(businessId: number) {
+    return this.prisma.order.findMany({
+      where: { status: OrderStatus.paid, businessId },
+      select: {
+        id: true,
+        status: true,
+        waiter: true,
+        options: {
+          select: {
+            option: { select: { image: true, price: true, id: true } },
+            quantity: true,
+          },
+        },
+        customer: { select: { name: true, email: true } },
+        business: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+  async acceptOrder(
+    orderId: number,
+    kitchenStaffId: number,
+    businessId: number,
+  ): Promise<any> {
+    const staff = await this.prisma.staff.findUnique({
+      where: {
+        userId_businessId: { businessId, userId: kitchenStaffId },
+        role: { name: { equals: "kitchen" } },
+      },
+    });
+    if (!staff) throw new UnauthorizedException("staff not found");
+    const order = await this.prisma.order.update({
+      where: { id: orderId, businessId },
+      data: {
+        status: OrderStatus.preparing,
+        kitchenStaff: {
+          connect: {
+            userId_businessId: { userId: kitchenStaffId, businessId },
+          },
+        },
+      },
+      select: { customerId: true, waiterId: true },
+    });
+    const payload = {
+      businessId,
+      orderId,
+      status: OrderStatus.preparing,
+      type: "ORDER_ACCEPTED",
+    };
+    this.event.notifyKitchen(kitchenStaffId, "acceptedOrder", payload);
+    this.event.notifyUser(order.customerId, "acceptedOrder", payload);
+    this.event.notifyWaiter(order.waiterId, "acceptedOrder", payload);
+    return {
+      message: "Order is accepted",
+      status: "success",
+    };
+  }
+
+  async markOrderAsReady(
+    orderId: number,
+    kitchenStaffId: number,
+    businessId: number,
+  ): Promise<any> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId, kitchenStaffId, businessId },
+      select: {
+        businessId: true,
+        kitchenStaffId: true,
+        customerId: true,
+        waiterId: true,
+        status: true,
+      },
+    });
+    if (!order) throw new BadRequestException(`Order ${orderId} not found`);
+    if (order.status === OrderStatus.ready)
+      throw new BadRequestException("Order has already been marked ready");
+
+    if (order.kitchenStaffId !== kitchenStaffId)
+      throw new UnauthorizedException("Unauthorized to mark order as ready");
+
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: { status: OrderStatus.ready },
+    });
+    const payload = {
+      businessId: order.businessId,
+      orderId,
+      status: OrderStatus.ready,
+      type: "ORDER_READY",
+    };
+    this.event.notifyUser(order.customerId, "orderIsReady", payload);
+    this.event.notifyWaiter(order.waiterId, "orderIsReady", payload);
+    this.event.notifyKitchen(kitchenStaffId, "orderIsReady", payload);
+
+    return {
+      message: "Order is marked as ready",
+      status: "success",
+    };
+  }
+  async markOrderAsDelivered(
+    orderId: number,
+    waiterId: number,
+    businessId: number,
+  ): Promise<any> {
+    const getOrder = await this.prisma.order.findUnique({
+      where: { id: orderId, businessId },
+    });
+    if (getOrder.status === OrderStatus.delivered)
+      throw new BadRequestException(
+        `Order ${orderId} has already been delivered`,
+      );
+    if (!getOrder || getOrder.waiterId !== waiterId)
+      throw new UnauthorizedException(
+        "Unauthorized to mark order as delivered",
+      );
+    await this.prisma.order.update({
+      where: { id: orderId, businessId },
+      data: { status: OrderStatus.delivered },
+    });
+
+    const payload = {
+      orderId,
+      status: OrderStatus.delivered,
+      type: "ORDER_DELIVERED",
+      tip: getOrder.tip,
+    };
+
+    if (getOrder.tip && getOrder.tip > 0) {
+      const waiterWallet = await this.prisma.wallet.findFirst({
+        where: { AND: [{ userId: waiterId }, { businessId: null }] },
+      });
+      if (!waiterWallet)
+        await this.prisma.wallet.create({
+          data: {
+            userId: waiterId,
+            balance: getOrder.tip,
+            businessId: null,
+            authToken: uuidv4(),
+          },
+        });
+
+      await this.prisma.wallet.update({
+        where: { id: waiterWallet.id },
+        data: { balance: { increment: getOrder.tip } },
+      });
+
+      await this.prisma.payment.create({
+        data: {
+          reference: `TP_CUS${getOrder.customerId}${Date.now()}`,
+          userId: waiterId,
+          businessId: businessId,
+          type: PaymentType.TIP,
+          amount: getOrder.tip,
+          paidAt: new Date(),
+          provider: PaymentProvider.CUSTOMER_TIP,
+          providerId: `TP_CUS${getOrder.customerId}${Date.now()}`,
+          walletId: waiterWallet.id,
+        },
+      });
+
+      this.event.notifyWaiter(getOrder.waiterId, "tips", payload);
+    }
+    this.event.notifyUser(getOrder.customerId, "orderDelivered", payload);
+    this.event.notifyWaiter(getOrder.waiterId, "orderDelivered", payload);
+    this.event.notifyKitchen(
+      getOrder.kitchenStaffId,
+      "orderDelivered",
+      payload,
+    );
+
+    return {
+      message: "Order is marked as delivered",
+      status: "success",
+    };
+  }
+  async markOrderAsComplete(
+    orderId: number,
+    businessId: number,
+    customerId: number,
+  ): Promise<any> {
+    const order = await this.prisma.order.update({
+      where: { id: orderId, businessId, customerId },
+      data: { status: OrderStatus.delivered },
+    });
+    if (!order) throw new BadRequestException("Order not found");
+
+    if (order.customerId !== customerId)
+      throw new UnauthorizedException("Unauthorized to mark order as complete");
+    if (order.status === OrderStatus.completed)
+      throw new BadRequestException("Order already marked completed");
+
+    const payload = {
+      orderId,
+      status: OrderStatus.completed,
+      type: "ORDER_COMPLETED",
+      customerId: order.customerId,
+    };
+    await this.prisma.order.update({
+      where: { id: orderId, businessId, customerId },
+      data: { status: OrderStatus.completed },
+    });
+    this.event.notifyUser(order.customerId, "orderCompleted", payload);
+    this.event.notifyWaiter(order.waiterId, "orderCompleted", payload);
+    this.event.notifyKitchen(order.kitchenStaffId, "orderCompleted", payload);
   }
 }

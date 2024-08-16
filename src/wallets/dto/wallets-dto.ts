@@ -1,6 +1,6 @@
 // wallet.dto.ts
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber } from "class-validator";
+import { IsNumber, IsString } from "class-validator";
 
 export enum OwnerType {
   Business = "BUSINESS",
@@ -13,4 +13,24 @@ export class FundWalletDto {
   @ApiProperty({ required: true, type: Number })
   @IsNumber()
   amount: number;
+}
+
+export class TransferDto extends FundWalletDto {
+  @ApiProperty({ required: true, type: Number })
+  @IsNumber()
+  toWalletId: number;
+
+  @ApiProperty({ required: true, type: Number })
+  @IsNumber()
+  fromWalletId: number;
+
+  @ApiProperty({ required: true, type: String })
+  @IsString()
+  pin: string;
+}
+
+export class createWalletPinDto {
+  @ApiProperty({ required: true, type: String })
+  @IsString()
+  pin: string;
 }
