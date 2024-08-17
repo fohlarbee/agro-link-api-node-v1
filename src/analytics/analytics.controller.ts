@@ -1,7 +1,6 @@
-import { Controller, Get, Req, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Controller, Get, Req, UseGuards } from "@nestjs/common";
 import { AnalyticsService } from "./analytics.service";
-import { ApiBearerAuth, ApiHeader, ApiParam, ApiTags } from "@nestjs/swagger";
-import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
+import { ApiBearerAuth, ApiParam, ApiTags } from "@nestjs/swagger";
 import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import RoleGuard from "src/auth/role/role.guard";
 import { Role } from "src/auth/dto/auth.dto";
