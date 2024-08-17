@@ -584,4 +584,60 @@ export class StaffsService {
       },
     };
   }
+
+  async getWaiter(userId: number, businessId: number): Promise<any> {
+    const waiterAsUser = await this.prisma.staff.findUnique({
+      where: { userId_businessId: { userId, businessId } },
+      select: {
+        role: true,
+        shifts: {
+          select: {
+            startTime: true,
+            endTime: true,
+            assignedTables: {
+              select: { table: { select: { id: true, identifier: true } } },
+            },
+          },
+        },
+        ordersAsWaiter: {
+          select: {
+            id: true,
+            tableId: true,
+            status: true,
+            tip: true,
+          },
+        },
+        business: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        user: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!waiterAsUser) throw new NotFoundException("Waiter not found");
+
+    return {
+      message: "waiter fetched successfully",
+      success: "true",
+      waiter: {
+        id: userId,
+        name: waiterAsUser.user.name,
+        email: waiterAsUser.user.email,
+        business: {
+          id: waiterAsUser.business.id,
+          name: waiterAsUser.business.name,
+        },
+        shifts: waiterAsUser.shifts,
+        orders: waiterAsUser.ordersAsWaiter,
+      },
+    };
+  }
 }
