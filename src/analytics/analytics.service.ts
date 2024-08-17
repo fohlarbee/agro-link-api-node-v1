@@ -43,7 +43,7 @@ export class AnalyticsService {
         AND e.enumlabel != '${PaymentProvider.CUSTOMER_TIP}'
         GROUP BY e.enumlabel;
     `;
-    console.log(Prisma.raw(paymentMethodQuery));
+
     const paymentMethodCount: any[] = await this.prisma.$queryRaw`${Prisma.raw(paymentMethodQuery)}`;
 
     const orderStatusQuery = `
@@ -119,14 +119,14 @@ export class AnalyticsService {
       (result, orderSum) => {
         switch(orderSum.status) {
           case OrderStatus.active:
-            result.pending += Number(orderSum.sum);
+            result.pending += orderSum.sum;
             break;
           case OrderStatus.rejected:
           case OrderStatus.cancelled:
           case OrderStatus.failed:
             break;
           default:
-            result.received += Number(orderSum.sum);
+            result.received += orderSum.sum;
         }
         return result;
       }, { received: 0, pending: 0 }
@@ -136,21 +136,21 @@ export class AnalyticsService {
       message: "Analytics Data fetched successfully",
       status: "success", 
       data: {
-        time_frame: duration,
-        date: new Date(),
+        duration,
+        // date: new Date(),
         businessId: business.id,
         business_name: business.name,
         currency: "NGN",
         orders: {
           by_status: orderStatusCount.reduce(
             (result, ordersCount) => {
-              result[ordersCount.status] = Number(ordersCount.count);
+              result[ordersCount.status] = ordersCount.count;
               return result;
             }, {}
           ),
           by_payment_method: paymentMethodCount.reduce(
             (result, ordersCount) => {
-              result[ordersCount.provider] = Number(ordersCount.count);
+              result[ordersCount.provider] = ordersCount.count;
               return result;
             }, {}
           ),
@@ -162,20 +162,130 @@ export class AnalyticsService {
         menus: menusCount,
         staffs: staffsCount.reduce(
           (result, rolesCount) => {
-            result[rolesCount.role] = Number(rolesCount.count);
+            result[rolesCount.role] = rolesCount.count;
             return result;
           }, {}
         ),
         options: optionsCount.reduce(
           (result, typeCount) => {
-            result[typeCount.type] = Number(typeCount.count);
+            result[typeCount.type] = typeCount.count;
             return result;
           }, {}
         ),
         outlets: outlets.map(outlet => ({
-            ...outlet, tables_count: Number(outlet.tables_count) 
+            ...outlet, tables_count: outlet.tables_count
           })
         )
+      }
+    }
+  }
+
+  async findStaffAnalytics(creatorId: number, duration: "DAILY"|"WEEKLY"|"MONTHLY" = "DAILY") {
+    const business = await this.prisma.business.findFirst({
+      where: { creatorId }
+    });
+    if (!business) throw new ForbiddenException({
+      message: "You do not own a restaurant",
+      status: "error",
+    });
+    let durationQuery : string;
+    switch (duration) {
+      case "DAILY":
+        durationQuery = `CURRENT_DATE AND NOW()`
+        break;
+      case "WEEKLY":
+        durationQuery = "CURRENT_DATE - INTERVAL '1 WEEK' AND NOW()"
+        break;
+      case "MONTHLY":
+        durationQuery = "CURRENT_DATE - INTERVAL '1 MONTH' AND NOW()"
+        break;
+    }
+
+    const staffsCount: any[] = await this.prisma.$queryRaw`
+      SELECT  r.id as roleId, r.name AS role, COUNT(s.*) count
+        FROM "Role" r
+        LEFT JOIN "Staff" s ON s."roleId" = r.id
+        WHERE r."businessId" = ${business.id}
+        GROUP BY r.id, r.name
+        ORDER BY count DESC;
+      `;
+
+    const staffs = await this.prisma.$queryRaw`
+      SELECT u.id, u.name, r.name as role from "Staff" s
+        JOIN "User" u ON u.id = s."userId"
+        JOIN "Role" r ON r.id = s."roleId"
+        WHERE s."businessId" = ${business.id}
+    `;
+
+    const waiterOrdersQuery = `
+      WITH processed_orders AS (
+        SELECT u.id AS userId, s."roleId" as roleId, count(*) AS count FROM "Order" o
+          JOIN "User" u on (u.id = o."waiterId" OR u.id = o."kitchenStaffId")
+          JOIN "Staff" s ON s."userId" = u.id
+          WHERE o."businessId" = 1
+          AND o.status not in ('active', 'failed', 'cancelled')
+          GROUP BY u.id, s."roleId"
+      ), roles as (
+        SELECT DISTINCT roleId from processed_orders
+      )
+      SELECT u.id, u.name, r.name as role, COALESCE(o.count, 0) AS ordersCount from "Staff" s
+        JOIN "User" u ON s."userId" = u.id
+        JOIN "Role" r ON s."roleId" = r.id
+        LEFT JOIN processed_orders o ON u.id = o.userId
+        WHERE s."businessId" = ${business.id}
+        AND s."roleId" in (SELECT roleId FROM roles)
+        ORDER BY ordersCount DESC;
+    `;
+
+    const staffOrders: any[] = await this.prisma.$queryRaw`${Prisma.raw(waiterOrdersQuery)}`;
+
+    const staffShiftsQuery = `
+      WITH staff_shifts AS (
+        SELECT * FROM "Shift"
+          WHERE "businessId" = ${business.id}
+      ), active_shifts as (
+        SELECT "userId", count(*) from staff_shifts
+          WHERE "startTime" <= NOW()
+          AND "endTime" >= NOW()
+          GROUP BY "userId"
+      ), upcoming_shifts as (
+        SELECT "userId", count(*) from staff_shifts
+          WHERE "startTime" > NOW()
+          GROUP BY "userId"
+      ), completed_shifts as (
+        SELECT "userId", count(*) from staff_shifts
+          WHERE "endTime" < NOW()
+          GROUP BY "userId"
+      )
+      SELECT u.id, u.name, r.name as role, 
+        COALESCE(active.count, 0) AS "activeShifts",
+        COALESCE(upcoming.count, 0) AS "upcomingShifts",
+        COALESCE(completed.count, 0) AS "completedShifts" 
+        FROM "Staff" s
+        JOIN "User" u ON s."userId" = u.id
+        JOIN "Role" r ON s."roleId" = r.id
+        LEFT JOIN active_shifts AS active ON s."userId" = active."userId"
+        LEFT JOIN upcoming_shifts AS upcoming ON s."userId" = upcoming."userId"
+        LEFT JOIN completed_shifts AS completed ON s."userId" = completed."userId"
+        WHERE s."businessId" = ${business.id};
+    `;
+
+    const staffShifts: any[] = await this.prisma.$queryRaw`${Prisma.raw(staffShiftsQuery)}`;
+    return {
+      message: "Analytics Data fetched successfully",
+      status: "success", 
+      data: {
+        businessId: business.id,
+        business_name: business.name,
+        roles: staffsCount.reduce(
+          (result, rolesCount) => {
+            result[rolesCount.role] = rolesCount.count;
+            return result;
+          }, {}
+        ),
+        staffs,
+        staffOrders,
+        staffShifts,
       }
     }
   }

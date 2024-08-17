@@ -23,4 +23,15 @@ export class AnalyticsController {
     const { duration } = request.params;
     return this.analyticsService.findAllAnalytics(+creatorId, duration);
   }
+
+  @Get('/staffs')
+  @ApiParam({
+    name: "duration",
+    required: false,
+  })
+  findStaffAnalytics(@Req() request) {
+    const { id: creatorId } = request.user;
+    const { duration } = request.params;
+    return this.analyticsService.findStaffAnalytics(+creatorId, duration);
+  }
 }

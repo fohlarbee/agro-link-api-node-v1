@@ -6,6 +6,14 @@ import { PrismaClientExceptionFilter } from "./prisma-client-exception/prisma-cl
 import { PrismaService } from "./prisma/prisma.service";
 declare const module: any;
 
+declare global {
+  interface BigInt {
+      toJSON(): Number;
+  }
+}
+
+BigInt.prototype.toJSON = function () { return Number(this) }
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     // logger: console,
