@@ -23,9 +23,11 @@ import { CronModule } from "src/cron/cron.module";
 import { SecretsModule } from "src/secrets/secrets.module";
 import { WalletsModule } from "src/wallets/wallets.module";
 import { WebsocketModule } from "src/websocket/websocket.module";
+import { AnalyticsModule } from "src/analytics/analytics.module";
 
 @Module({
   imports: [
+    AnalyticsModule,
     HttpModule,
     ConfigModule.forRoot(),
     ScheduleModule.forRoot(),
