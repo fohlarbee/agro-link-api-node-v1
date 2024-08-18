@@ -1,12 +1,46 @@
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
 import { OrderStatus, PaymentProvider, Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
+
+type DurationType = "DAILY" | "WEEKLY" | "MONTHLY";
 
 @Injectable()
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAllAnalytics(creatorId: number, duration: "DAILY"|"WEEKLY"|"MONTHLY" = "DAILY") {
+  private getDurationQuery(duration: DurationType = "DAILY", length: number = 1) {
+    if (isNaN(length) || length < 1) throw new BadRequestException({
+      message: "Invalid length submitted",
+      status: "error"
+    });
+
+    switch (duration) {
+      case "DAILY":
+        return {
+          start: `CURRENT_DATE - INTERVAL '${length - 1} DAY'`,
+          end: `NOW()`
+        };
+      case "WEEKLY":
+        return { 
+          start: `CURRENT_DATE - INTERVAL '${length} WEEK'`,
+          end: `NOW()`
+        };
+      case "MONTHLY":
+        return { 
+          start: `CURRENT_DATE - INTERVAL '${length} MONTH'`,
+          end: `NOW()`
+        };
+      default:
+        throw new BadRequestException({
+          message: `Invalid duration ${duration} provided`,
+          status: "error"
+        });
+    }
+  }
+
+  async findAllAnalytics(creatorId: number, 
+      duration: DurationType = "DAILY",
+      length: number = 1) {
     const business = await this.prisma.business.findFirst({
       where: { creatorId }
     });
@@ -14,25 +48,14 @@ export class AnalyticsService {
       message: "You do not own a restaurant",
       status: "error",
     });
-    let durationQuery : string;
-    switch (duration) {
-      case "DAILY":
-        durationQuery = `CURRENT_DATE AND NOW()`
-        break;
-      case "WEEKLY":
-        durationQuery = "CURRENT_DATE - INTERVAL '1 WEEK' AND NOW()"
-        break;
-      case "MONTHLY":
-        durationQuery = "CURRENT_DATE - INTERVAL '1 MONTH' AND NOW()"
-        break;
-    }
+    const {start, end } = this.getDurationQuery(duration, length);
 
     const paymentMethodQuery = `
       WITH payments as (
         SELECT * FROM "Order" o 
           JOIN "Payment" p ON o."paymentId" = p.id 
           WHERE o."businessId" = ${business.id}
-          AND o."createdAt" BETWEEN ${durationQuery}
+          AND o."createdAt" BETWEEN ${start} and ${end}
       )
       SELECT  e.enumlabel AS provider, COUNT(payments.provider) as count
         FROM pg_enum e
@@ -50,7 +73,7 @@ export class AnalyticsService {
       WITH orders as (
         SELECT * FROM "Order" 
           WHERE "Order"."businessId" = ${business.id}
-          AND "Order"."createdAt" BETWEEN ${durationQuery}
+          AND "Order"."createdAt" BETWEEN ${start} and ${end}
       )
       SELECT e.enumlabel AS status, COUNT(orders.status) AS count
         FROM pg_enum e
@@ -102,7 +125,7 @@ export class AnalyticsService {
         SELECT * FROM "Order" o 
         LEFT JOIN "Payment" p ON o."paymentId" = p.id
         WHERE o."businessId" = ${business.id}
-        AND o."createdAt" BETWEEN ${durationQuery}
+        AND o."createdAt" BETWEEN ${start} and ${end}
       )
       SELECT e.enumlabel AS status, SUM(orders.amount) AS sum
         FROM pg_enum e
@@ -180,7 +203,9 @@ export class AnalyticsService {
     }
   }
 
-  async findStaffAnalytics(creatorId: number, duration: "DAILY"|"WEEKLY"|"MONTHLY" = "DAILY") {
+  async findStaffAnalytics(creatorId: number, 
+      duration: DurationType = "DAILY",
+      length: number = 1) {
     const business = await this.prisma.business.findFirst({
       where: { creatorId }
     });
@@ -188,18 +213,7 @@ export class AnalyticsService {
       message: "You do not own a restaurant",
       status: "error",
     });
-    let durationQuery : string;
-    switch (duration) {
-      case "DAILY":
-        durationQuery = `CURRENT_DATE AND NOW()`
-        break;
-      case "WEEKLY":
-        durationQuery = "CURRENT_DATE - INTERVAL '1 WEEK' AND NOW()"
-        break;
-      case "MONTHLY":
-        durationQuery = "CURRENT_DATE - INTERVAL '1 MONTH' AND NOW()"
-        break;
-    }
+    const { start, end } = this.getDurationQuery(duration, length);
 
     const staffsCount: any[] = await this.prisma.$queryRaw`
       SELECT  r.id as roleId, r.name AS role, COUNT(s.*) count
@@ -224,6 +238,7 @@ export class AnalyticsService {
           JOIN "Staff" s ON s."userId" = u.id
           WHERE o."businessId" = 1
           AND o.status not in ('active', 'failed', 'cancelled')
+          AND o."createdAt" BETWEEN ${start} and ${end}
           GROUP BY u.id, s."roleId"
       ), roles as (
         SELECT DISTINCT roleId from processed_orders
@@ -243,6 +258,11 @@ export class AnalyticsService {
       WITH staff_shifts AS (
         SELECT * FROM "Shift"
           WHERE "businessId" = ${business.id}
+          AND (
+            "Shift"."startTime" BETWEEN ${start} AND CURRENT_DATE + INTERVAL '1 DAY' OR 
+            "Shift"."endTime" BETWEEN ${start} AND CURRENT_DATE + INTERVAL '1 DAY' OR
+            ("Shift"."startTime" < NOW() AND "Shift"."endTime" > NOW())
+          )
       ), active_shifts as (
         SELECT "userId", count(*) from staff_shifts
           WHERE "startTime" <= NOW()
@@ -269,6 +289,8 @@ export class AnalyticsService {
         LEFT JOIN completed_shifts AS completed ON s."userId" = completed."userId"
         WHERE s."businessId" = ${business.id};
     `;
+
+    console.log(staffShiftsQuery);
 
     const staffShifts: any[] = await this.prisma.$queryRaw`${Prisma.raw(staffShiftsQuery)}`;
     return {
