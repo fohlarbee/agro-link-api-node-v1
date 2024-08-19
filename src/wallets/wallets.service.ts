@@ -424,6 +424,7 @@ export class WalletsService {
       status: "success",
     };
   }
+
   async validatePin(walletId: number, pin: string) {
     const wallet = await this.prisma.wallet.findUnique({
       where: { id: walletId },

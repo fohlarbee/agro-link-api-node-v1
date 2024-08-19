@@ -34,3 +34,20 @@ export class createWalletPinDto {
   @IsString()
   pin: string;
 }
+
+export class ExpressDto {
+  @ApiProperty({ example: "credit" })
+  action: string;
+
+  @ApiProperty({ example: 1000 })
+  amount: number;
+
+  @ApiProperty({ example: 123456 })
+  authorizationCode: number;
+
+  @ApiProperty({ example: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" })
+  deviceUUID: string;
+
+  @ApiProperty({ example: 1 })
+  walletId: number;
+}
