@@ -770,18 +770,46 @@ async function main() {
     data:{role:GuardRoles.waiter}
   })
   
+//   const date = new Date();
+// const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+// console.log(time); // Output: "09:16:03"
+
+  
   const shift = await prisma.shift.create({
     data:{
-        startTime:new Date(),
-        endTime: new Date(Date.now() + 7200000),
+        // startTime:new Date(),
+        // endTime: new Date(Date.now() + 7200000),
         userId:1,
         roleId: waiterRole.id,
         outletId:outlet.id,
-        businessId:business.id
+        businessId:business.id,
         
     }
     
-  })
+  });
+
+  const period1 = await prisma.period.create({
+    data:{day:"Mon", startTime:"08:00:00", endTime:"21:00:00", shiftId: shift.id}
+  });
+  const period2 = await prisma.period.create({
+    data:{day:"Tue", startTime:"08:00:00", endTime:"21:00:00", shiftId: shift.id}
+  });
+  const period3 = await prisma.period.create({
+    data:{day:"Wed", startTime:"08:00:00", endTime:"21:00:00", shiftId: shift.id}
+  });
+  const period4 = await prisma.period.create({
+    data:{day:"Thur", startTime:"08:00:00", endTime:"21:00:00", shiftId: shift.id}
+  });
+  const period5 = await prisma.period.create({
+    data:{day:"Fri", startTime:"08:00:00", endTime:"21:00:00", shiftId: shift.id}
+  });
+  const period6 = await prisma.period.create({
+    data:{day:"Sat", startTime:"08:00:00", endTime:"21:00:00", shiftId: shift.id}
+  });
+  const period7 = await prisma.period.create({
+    data:{day:"Sun", startTime:"08:00:00", endTime:"21:00:00", shiftId: shift.id}
+  });
+
   const assignTablesToShift1 = await prisma.shiftTables.create({
     data:{
       shiftId: shift.id,

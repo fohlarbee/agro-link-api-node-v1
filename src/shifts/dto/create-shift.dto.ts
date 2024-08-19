@@ -1,20 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
-import { IsDate, IsNotEmpty, IsNumber, IsPositive } from "class-validator";
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsPositive,
+  IsString,
+} from "class-validator";
 
 export class CreateShiftDto {
-  @IsNotEmpty()
-  @Transform(({ value }) => new Date(value))
-  @IsDate()
-  @ApiProperty({ required: true })
-  startTime: Date;
-
-  @IsNotEmpty()
-  @Transform(({ value }) => new Date(value))
-  @IsDate()
-  @ApiProperty({ required: true })
-  endTime: Date;
-
   @IsNumber()
   @IsPositive()
   @ApiProperty({ required: false })
@@ -29,4 +22,28 @@ export class CreateShiftDto {
   @IsPositive()
   @ApiProperty({ required: true })
   roleId: number;
+
+  @IsNotEmpty()
+  @IsArray()
+  @ApiProperty({ required: true })
+  periods: PeriodDto[];
 }
+
+export class PeriodDto {
+  @ApiProperty({
+    example: ["Mon, Tue, Wed", "Thur", "Fri", "Sat", "Sun"],
+    required: true,
+  })
+  @IsString()
+  day: string;
+
+  @ApiProperty({ example: "08:00:00" })
+  @IsString()
+  startTime: string;
+
+  @ApiProperty({ example: "17:00:00" })
+  @IsString()
+  endTime: string;
+}
+
+export class UpdatePeriodDto extends PeriodDto {}

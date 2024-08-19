@@ -8,11 +8,13 @@ declare const module: any;
 
 declare global {
   interface BigInt {
-      toJSON(): Number;
+    toJSON(): Number;
   }
 }
 
-BigInt.prototype.toJSON = function () { return Number(this) }
+BigInt.prototype.toJSON = function () {
+  return Number(this);
+};
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {

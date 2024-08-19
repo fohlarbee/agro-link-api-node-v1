@@ -23,7 +23,7 @@ export class AnalyticsController {
     return this.analyticsService.findAllAnalytics(+creatorId, duration);
   }
 
-  @Get('/staffs')
+  @Get("/staffs")
   @ApiParam({
     name: "duration",
     required: false,

@@ -24,9 +24,9 @@ import { Role } from "src/auth/dto/auth.dto";
 export class AdminOrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  @Get()
+  @Get("paid")
   @UseGuards(RoleGuard([Role.kitchen, Role.admin, Role.manager]))
-  async create(@Req() request) {
+  async fetchPaidOrder(@Req() request) {
     // const { id: ownerId } = request.user;
     // const baseUrl = request.protocol + "://" + request.headers.host;
     // const orders = (await this.orderService.fetchPaidOrders(ownerId, businessId)).map(order => {
@@ -39,6 +39,30 @@ export class AdminOrderController {
     const orders = await this.orderService.fetchPaidOrders(+businessId);
     return {
       message: "Orders fetch successful",
+      status: "success",
+      data: orders,
+    };
+  }
+
+  @Get("active")
+  @UseGuards(RoleGuard([Role.kitchen, Role.admin, Role.manager]))
+  async fetchActiveOrders(@Req() request) {
+    // const { id: ownerId } = request.user;
+    // const baseUrl = request.protocol + "://" + request.headers.host;
+    // const orders = (await this.orderService.fetchPaidOrders(ownerId, businessId)).map(order => {
+    //   order.options.map(orderOPtions => {
+    //     orderMeal.option.image = `${baseUrl}/v2/files/image/${orderMeal.option.image}`;
+    //   });
+    //   return order;
+    // });
+    const { business_id: businessId } = request.headers;
+    const { id: userId } = request.user;
+    const orders = await this.orderService.findOpenBusinessOrder(
+      userId,
+      +businessId,
+    );
+    return {
+      message: "Order fetch successful",
       status: "success",
       data: orders,
     };
