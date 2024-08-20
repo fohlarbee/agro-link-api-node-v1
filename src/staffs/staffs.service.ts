@@ -139,8 +139,9 @@ export class StaffsService {
         role: true,
         shifts: {
           select: {
-            startTime: true,
-            endTime: true,
+            // startTime: true,
+            // endTime: true,
+            periods: true,
             assignedTables: {
               select: { table: { select: { id: true, identifier: true } } },
             },
@@ -592,8 +593,9 @@ export class StaffsService {
         role: true,
         shifts: {
           select: {
-            startTime: true,
-            endTime: true,
+            // startTime: true,
+            // endTime: true,
+            periods: true,
             assignedTables: {
               select: { table: { select: { id: true, identifier: true } } },
             },

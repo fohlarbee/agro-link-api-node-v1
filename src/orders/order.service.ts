@@ -22,6 +22,22 @@ export class OrderService {
     private event: WebsocketService,
   ) {}
 
+  async getDayOfWeek(date: Date) {
+    const days = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
+    return days[date.getDay()];
+  }
+
+  async formatTime(date: Date) {
+    return date.toTimeString().split(" ")[0]; // Format time as HH:mm:ss
+  }
   async orderOption(
     createOrderDto: OrderDto,
     customerId: number,
@@ -93,7 +109,31 @@ export class OrderService {
           where: {
             shift: {
               // startTime: { lte: new Date() },
-              endTime: { gt: new Date() },
+              // endTime: { gt: new Date() },
+              periods: {
+                some: {
+                  AND: [
+                    {
+                      day: {
+                        equals: new Date()
+                          .toLocaleString("en-NG", { weekday: "short" })
+                          .toString(),
+                      },
+                    },
+
+                    {
+                      startTime: {
+                        lte: new Date().toTimeString().split(" ")[0].toString(),
+                      }, //09:00:00
+                    },
+                    {
+                      endTime: {
+                        gte: new Date().toTimeString().split(" ")[0].toString(),
+                      },
+                    },
+                  ],
+                },
+              },
             },
           },
           select: { shift: true },
@@ -118,12 +158,6 @@ export class OrderService {
             userId_businessId: { userId: staffId, businessId },
           },
         },
-        ////how do i get the kitchenStaffId assined to take the order??
-        // kitchenStaff: {
-        //   connect: {
-        //     userId_businessId: { userId: staffId, businessId },
-        //   },
-        // },
         cancelledBy: 0,
       },
       select: { id: true },
@@ -550,4 +584,6 @@ export class OrderService {
     this.event.notifyWaiter(order.waiterId, "orderCompleted", payload);
     this.event.notifyKitchen(order.kitchenStaffId, "orderCompleted", payload);
   }
+
+  // Helper functions
 }

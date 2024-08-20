@@ -7,9 +7,10 @@ import {
   Req,
   UseGuards,
   UseInterceptors,
+  Put,
 } from "@nestjs/common";
 import { ShiftsService } from "./shifts.service";
-import { CreateShiftDto } from "./dto/create-shift.dto";
+import { CreateShiftDto, UpdatePeriodDto } from "./dto/create-shift.dto";
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -61,7 +62,7 @@ export class ShiftsController {
     return this.shiftsService.findAllShifts(+business_id);
   }
 
-  @Post("/:id/assign/tables")
+  @Post(":id/assign/tables")
   @UseGuards(RoleGuard([Role.admin, Role.manager]))
   // @UseInterceptors(new ValidPathParamInterceptor())
   @ApiOkResponse({ type: BaseResponse })
@@ -78,6 +79,11 @@ export class ShiftsController {
     );
   }
 
+  @Put(":id/period")
+  async updatePeriod(@Req() request, @Body() updateDto: UpdatePeriodDto) {
+    const { period_id } = request.headers;
+    return this.shiftsService.updatePeriod(+period_id, updateDto);
+  }
   // @Get(':id')
   // findOne(@Param('id') id: string) {
   //   return this.shiftsService.findOne(+id);

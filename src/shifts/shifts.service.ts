@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { CreateShiftDto } from "./dto/create-shift.dto";
+import { CreateShiftDto, UpdatePeriodDto } from "./dto/create-shift.dto";
 import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
@@ -43,9 +43,21 @@ export class ShiftsService {
             },
           },
         },
-        startTime: shiftData.startTime,
-        endTime: shiftData.endTime,
+        // startTime: shiftData.startTime,
+        // endTime: shiftData.endTime,
+        // periods: { createMany: { data: shiftData.periods } },
       },
+    });
+
+    shiftData.periods.forEach(async (period) => {
+      await this.prisma.period.create({
+        data: {
+          day: period.day,
+          startTime: period.startTime,
+          endTime: period.endTime,
+          shiftId: shift.id,
+        },
+      });
     });
 
     return {
@@ -99,12 +111,32 @@ export class ShiftsService {
       throw new BadRequestException(
         `These tables do not exist in shift outlet ${invalidTableIds}`,
       );
-    const createdShiftsTables = await this.prisma.shiftTables.createMany({
+    await this.prisma.shiftTables.createMany({
       data: tableIds.map((tableId) => ({ shiftId, tableId })),
     });
 
     return {
       message: "Tables assigned successfully",
+      status: "success",
+    };
+  }
+
+  async updatePeriod(periodId: number, updateDto: UpdatePeriodDto) {
+    if (!periodId) throw new BadRequestException("Period ID is required");
+
+    const period = await this.prisma.period.findUnique({
+      where: { id: periodId },
+    });
+
+    if (!period) throw new NotFoundException("No such period");
+
+    await this.prisma.period.update({
+      where: { id: periodId },
+      data: updateDto,
+    });
+
+    return {
+      message: "Period updated successfully",
       status: "success",
     };
   }

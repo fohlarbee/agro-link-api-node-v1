@@ -142,10 +142,21 @@ model Table {
   orders         Order[]
 }
 
+model Period {
+  id     Int     @id @default(autoincrement())
+  shiftId  Int   
+  shift    Shift  @relation(fields: [shiftId], references: [id])
+  day      String  
+  startTime    String
+  endTime      String?
+}
+
+
 model Shift {
   id        Int      @id @default(autoincrement())
-  startTime DateTime
-  endTime   DateTime
+  // startTime DateTime
+  // endTime   DateTime
+  active    Boolean?  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -161,7 +172,9 @@ model Shift {
   staff          Staff         @relation(fields: [userId, businessId], references: [userId, businessId])
   assignedTables ShiftTables[]
   orders         Order[]
+  periods       Period[]
 }
+
 
 model ShiftTables {
   shiftId Int

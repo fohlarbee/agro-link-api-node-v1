@@ -42,7 +42,7 @@ export class AnalyticsService {
       duration: DurationType = "DAILY",
       length: number = 1) {
     const business = await this.prisma.business.findFirst({
-      where: { creatorId }
+      where: { creatorId },
     });
     if (!business) throw new ForbiddenException({
       message: "You do not own a restaurant",
@@ -67,7 +67,8 @@ export class AnalyticsService {
         GROUP BY e.enumlabel;
     `;
 
-    const paymentMethodCount: any[] = await this.prisma.$queryRaw`${Prisma.raw(paymentMethodQuery)}`;
+    const paymentMethodCount: any[] = await this.prisma
+      .$queryRaw`${Prisma.raw(paymentMethodQuery)}`;
 
     const orderStatusQuery = `
       WITH orders as (
@@ -84,7 +85,8 @@ export class AnalyticsService {
         GROUP BY e.enumlabel;
     `;
 
-    const orderStatusCount: any[] = await this.prisma.$queryRaw`${Prisma.raw(orderStatusQuery)}`;
+    const orderStatusCount: any[] = await this.prisma
+      .$queryRaw`${Prisma.raw(orderStatusQuery)}`;
 
     const outlets: any[] = await this.prisma.$queryRaw`
       SELECT o.id, o.address, COUNT(t.*) tables_count 
@@ -118,7 +120,7 @@ export class AnalyticsService {
       `;
 
     const menusCount = await this.prisma.menu.count({
-      where: { businessId: business.id }
+      where: { businessId: business.id },
     });
     const paymentsQuery = `
       WITH orders as (
@@ -136,11 +138,12 @@ export class AnalyticsService {
         GROUP BY e.enumlabel;
     `;
 
-    const payments: any[] = await this.prisma.$queryRaw`${Prisma.raw(paymentsQuery)}`;
+    const payments: any[] = await this.prisma
+      .$queryRaw`${Prisma.raw(paymentsQuery)}`;
 
     const { received, pending } = payments.reduce(
       (result, orderSum) => {
-        switch(orderSum.status) {
+        switch (orderSum.status) {
           case OrderStatus.active:
             result.pending += orderSum.sum;
             break;
@@ -152,12 +155,13 @@ export class AnalyticsService {
             result.received += orderSum.sum;
         }
         return result;
-      }, { received: 0, pending: 0 }
+      },
+      { received: 0, pending: 0 },
     );
 
     return {
       message: "Analytics Data fetched successfully",
-      status: "success", 
+      status: "success",
       data: {
         duration,
         // date: new Date(),
@@ -165,17 +169,16 @@ export class AnalyticsService {
         business_name: business.name,
         currency: "NGN",
         orders: {
-          by_status: orderStatusCount.reduce(
-            (result, ordersCount) => {
-              result[ordersCount.status] = ordersCount.count;
-              return result;
-            }, {}
-          ),
+          by_status: orderStatusCount.reduce((result, ordersCount) => {
+            result[ordersCount.status] = ordersCount.count;
+            return result;
+          }, {}),
           by_payment_method: paymentMethodCount.reduce(
             (result, ordersCount) => {
               result[ordersCount.provider] = ordersCount.count;
               return result;
-            }, {}
+            },
+            {},
           ),
         },
         payments: {
@@ -183,31 +186,27 @@ export class AnalyticsService {
           received,
         },
         menus: menusCount,
-        staffs: staffsCount.reduce(
-          (result, rolesCount) => {
-            result[rolesCount.role] = rolesCount.count;
-            return result;
-          }, {}
-        ),
-        options: optionsCount.reduce(
-          (result, typeCount) => {
-            result[typeCount.type] = typeCount.count;
-            return result;
-          }, {}
-        ),
-        outlets: outlets.map(outlet => ({
-            ...outlet, tables_count: outlet.tables_count
-          })
-        )
-      }
-    }
+        staffs: staffsCount.reduce((result, rolesCount) => {
+          result[rolesCount.role] = rolesCount.count;
+          return result;
+        }, {}),
+        options: optionsCount.reduce((result, typeCount) => {
+          result[typeCount.type] = typeCount.count;
+          return result;
+        }, {}),
+        outlets: outlets.map((outlet) => ({
+          ...outlet,
+          tables_count: outlet.tables_count,
+        })),
+      },
+    };
   }
 
   async findStaffAnalytics(creatorId: number, 
       duration: DurationType = "DAILY",
       length: number = 1) {
     const business = await this.prisma.business.findFirst({
-      where: { creatorId }
+      where: { creatorId },
     });
     if (!business) throw new ForbiddenException({
       message: "You do not own a restaurant",
@@ -252,7 +251,8 @@ export class AnalyticsService {
         ORDER BY ordersCount DESC;
     `;
 
-    const staffOrders: any[] = await this.prisma.$queryRaw`${Prisma.raw(waiterOrdersQuery)}`;
+    const staffOrders: any[] = await this.prisma
+      .$queryRaw`${Prisma.raw(waiterOrdersQuery)}`;
 
     const staffShiftsQuery = `
       WITH staff_shifts AS (
@@ -295,20 +295,18 @@ export class AnalyticsService {
     const staffShifts: any[] = await this.prisma.$queryRaw`${Prisma.raw(staffShiftsQuery)}`;
     return {
       message: "Analytics Data fetched successfully",
-      status: "success", 
+      status: "success",
       data: {
         businessId: business.id,
         business_name: business.name,
-        roles: staffsCount.reduce(
-          (result, rolesCount) => {
-            result[rolesCount.role] = rolesCount.count;
-            return result;
-          }, {}
-        ),
+        roles: staffsCount.reduce((result, rolesCount) => {
+          result[rolesCount.role] = rolesCount.count;
+          return result;
+        }, {}),
         staffs,
         staffOrders,
         staffShifts,
-      }
-    }
+      },
+    };
   }
 }
