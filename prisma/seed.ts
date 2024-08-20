@@ -694,7 +694,7 @@ async function main() {
     }
   });
   await prisma.wallet.create({
-    data:{userId:user.id, balance: 0.0, authToken: uuidv4(),pin:bcrypt.hashSync('2020', bcrypt.genSaltSync())}
+    data:{userId:user.id, balance: 0.0,pin:bcrypt.hashSync('2020', bcrypt.genSaltSync())}
   })
  const business = await prisma.business.create({data:{
     "name": "Fohlarbee one",
@@ -706,7 +706,7 @@ async function main() {
   }});
 
   await prisma.wallet.create({
-    data:{businessId: business.id, authToken: uuidv4(), balance: 0.0 ,pin:bcrypt.hashSync('2020', bcrypt.genSaltSync()) }
+    data:{businessId: business.id, balance: 0.0 ,pin:bcrypt.hashSync('2020', bcrypt.genSaltSync()) }
   })
 
   const outlet = await prisma.outlet.create({data:{address:'Fohlar', businessId:business.id}});

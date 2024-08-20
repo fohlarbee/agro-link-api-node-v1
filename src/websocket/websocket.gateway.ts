@@ -8,12 +8,14 @@ import {
 } from "@nestjs/websockets";
 import { JwtService } from "@nestjs/jwt";
 import { Socket, Server } from "socket.io";
-import { Business, User } from "@prisma/client";
+import { Business, User, Wallet } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 
 class CustomSocket extends Socket {
   user: User;
   business?: Business;
+  wallet?: Wallet;
+  businessWallet?: Wallet;
 }
 
 @WebSocketGateway({ cors: true })
@@ -41,13 +43,28 @@ export class WebsocketGateway
         });
         if (!user) next(new Error("Unauthorised"));
         socket.user = user;
+        const wallet = await this.prisma.wallet.findUnique({
+          where: { userId: user.id },
+        });
+        if (!wallet) next();
+        else {
+          socket.wallet = wallet;
+          next();
+        }
         const staff = await this.prisma.staff.findFirst({
           where: { userId: user.id },
-          select: { business: true },
+          select: { business: true, role: true },
         });
         if (!staff) next();
         else {
           socket.business = staff.business;
+          // staff.business.
+          const businessWallet = await this.prisma.wallet.findFirst({
+            where: { businessId: staff.business.id },
+          });
+          if ((businessWallet && staff.role.name === "owner") || "admin")
+            socket.businessWallet = businessWallet;
+
           next();
         }
       } catch (error) {
@@ -57,7 +74,10 @@ export class WebsocketGateway
     });
   }
   handleConnection(client: CustomSocket) {
-    let rooms = [`${client.user.id}:notifications`];
+    let rooms = [
+      `${client.user.id}:notifications`,
+      `${client.wallet.id}:notifications`,
+    ];
     if (client.business) {
       // rooms = [`${client.business.id}:business`];
       switch (client.user.role) {
@@ -66,6 +86,7 @@ export class WebsocketGateway
           rooms.push(
             `${client.user.id}:waiter`,
             `${client.business.id}:business`,
+            `${client.wallet.id}:notifications`,
           );
           break;
         case "kitchen":
@@ -73,6 +94,7 @@ export class WebsocketGateway
           rooms.push(
             `${client.user.id}:kitchen`,
             `${client.business.id}:business`,
+            `${client.wallet.id}:notifications`,
           );
           break;
         case "owner":
@@ -80,12 +102,14 @@ export class WebsocketGateway
           rooms.push(
             `${client.user.id}:owner`,
             `${client.business.id}:business`,
+            `${client.businessWallet.id}:wallet`,
           );
         case "admin":
           rooms = [];
           rooms.push(
             `${client.user.id}:admin`,
             `${client.business.id}:business`,
+            `${client.businessWallet.id}:wallet`,
           );
         default:
           rooms.push();

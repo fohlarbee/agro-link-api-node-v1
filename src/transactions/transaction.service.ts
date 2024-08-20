@@ -85,7 +85,6 @@ export class TransactionService {
         data: {
           balance: 0,
           userId: customerId,
-          authToken: uuidv4(),
           businessId,
         },
       });

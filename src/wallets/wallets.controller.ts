@@ -21,6 +21,7 @@ import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import {
   createWalletPinDto,
+  ExpressDto,
   FundWalletDto,
   TransferDto,
 } from "./dto/wallets-dto";
@@ -128,7 +129,16 @@ export class WalletsController {
   @Get(":id/token")
   @ApiOkResponse({ type: BaseResponse })
   @ApiParam({ name: "id", required: true, description: "User wallet id" })
-  async getWalletAuthToken(@Param("id") walletId: string) {
-    return this.walletService.getWalletAuthToken(+walletId);
+  async getWalletAuthToken(@Param("id") walletId: string, @Req() request) {
+    const { action } = request.headers;
+    return this.walletService.getWalletAuthToken(+walletId, action);
+  }
+  @Post("/express")
+  @ApiOkResponse({ type: BaseResponse })
+  async validateWalletAuthToken(@Body() payload: ExpressDto, @Req() request) {
+    // const payload = { action, amount, authorizationCode, deviceUUID, walletId };
+    const { id: userId } = request.user;
+    console.log(userId, payload);
+    return this.walletService.expressFlow(userId, payload);
   }
 }
