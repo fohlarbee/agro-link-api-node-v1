@@ -516,7 +516,6 @@ export class OrderService {
             userId: waiterId,
             balance: getOrder.tip,
             businessId: null,
-            authToken: uuidv4(),
           },
         });
 

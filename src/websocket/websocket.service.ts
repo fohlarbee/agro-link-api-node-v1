@@ -32,4 +32,7 @@ export class WebsocketService {
   notifyBusiness(businessId: number, event: string, payload: any) {
     return this.gateway.sendEvent([`${businessId}:business`], event, payload);
   }
+  notifyWallet(walletId: number, event: string, payload: any) {
+    return this.gateway.sendEvent([`${walletId}:wallet`], event, payload);
+  }
 }

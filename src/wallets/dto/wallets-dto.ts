@@ -36,18 +36,23 @@ export class createWalletPinDto {
 }
 
 export class ExpressDto {
-  @ApiProperty({ example: "credit" })
+  @ApiProperty({ required: true, type: String })
+  @IsString()
   action: string;
 
-  @ApiProperty({ example: 1000 })
+  @ApiProperty({ required: true, type: Number })
+  @IsNumber()
   amount: number;
 
-  @ApiProperty({ example: 123456 })
-  authorizationCode: number;
+  @ApiProperty({ required: true, type: String })
+  @IsString()
+  authorizationCode: string;
 
-  @ApiProperty({ example: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" })
+  @ApiProperty({ required: true, type: String })
+  @IsString()
   deviceUUID: string;
 
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ required: true, type: Number })
+  @IsNumber()
   walletId: number;
 }

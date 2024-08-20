@@ -84,7 +84,6 @@ export class BusinessService {
         businessId: business.id,
         userId: null,
         balance: 0.0,
-        authToken: uuidv4(),
       },
     });
 
