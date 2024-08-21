@@ -40,15 +40,15 @@ enum OwnerType {
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  email     String     @unique
-  password  String
-  name      String
-  avatar    String?
+  id         Int        @id @default(autoincrement())
+  email      String     @unique
+  password   String
+  name       String
+  avatar     String?
   deviceUUID String?
-  role      GuardRoles @default(customer)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  role       GuardRoles @default(customer)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   // Relationships
   orders            Order[]
@@ -57,6 +57,7 @@ model User {
   createdBusinesses Business[]
   shifts            Shift[]
   wallet            Wallet?
+  userDevices       UserDevice[]
 }
 
 model Business {
@@ -71,7 +72,7 @@ model Business {
 
   // Relationships
   creatorId Int
-  creator   User     @relation(fields: [creatorId], references: [id])
+  creator   User      @relation(fields: [creatorId], references: [id])
   menus     Menu[]
   options   Option[]
   orders    Order[]
@@ -144,24 +145,23 @@ model Table {
 }
 
 model Period {
-  id     Int     @id @default(autoincrement())
-  shiftId  Int   
-  shift    Shift  @relation(fields: [shiftId], references: [id])
-  day      String  
-  startTime    String
-  endTime      String?
- createdAt     DateTime @default(now())
- updatedAt      DateTime   @updatedAt
+  id        Int      @id @default(autoincrement())
+  shiftId   Int
+  shift     Shift    @relation(fields: [shiftId], references: [id])
+  day       String
+  startTime String
+  endTime   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
- 
 
 model Shift {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   startTime DateTime?
   endTime   DateTime?
   active    Boolean?  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   // Relationships
   businessId     Int
@@ -175,9 +175,8 @@ model Shift {
   staff          Staff         @relation(fields: [userId, businessId], references: [userId, businessId])
   assignedTables ShiftTables[]
   orders         Order[]
-  periods       Period[]
+  periods        Period[]
 }
-
 
 model ShiftTables {
   shiftId Int
@@ -313,13 +312,13 @@ model Payment {
   providerId String          @unique
 
   // Relationships
-  orders   Order[]
-  userId   Int?
+  orders     Order[]
+  userId     Int?
   businessId Int?
-  business Business?  @relation(fields: [businessId], references: [id])
-  user     User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  walletId Int?
-  wallet   Wallet? @relation(fields: [walletId], references: [id])
+  business   Business? @relation(fields: [businessId], references: [id])
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletId   Int?
+  wallet     Wallet?   @relation(fields: [walletId], references: [id])
 }
 
 enum PaymentProvider {
@@ -346,42 +345,74 @@ model Otp {
 }
 
 model Wallet {
-  id         Int       @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   balance    Float
-  userId     Int?      @unique
-  businessId Int?      @unique
-  pin        String? @unique
-  locked     Boolean   @default(false)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  userId     Int?     @unique
+  businessId Int?     @unique
+  pin        String?  @unique
+  locked     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   //Relationships
-  user     User?     @relation(fields: [userId], references: [id])
-  business Business? @relation(fields: [businessId], references: [id])
-  authTokens  AuthCode[]
+  user       User?      @relation(fields: [userId], references: [id])
+  business   Business?  @relation(fields: [businessId], references: [id])
+  authTokens AuthCode[]
   payments   Payment[]
 
-
-
   @@unique([userId, businessId])
- 
 }
+
 enum TokenType {
   SEND
   RECEIVE
   TRANSFER
 }
 
-model AuthCode{
-  type   TokenType
-  code  String  @unique
-  expired  Boolean  @default(false)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+model AuthCode {
+  type      TokenType
+  code      String    @unique
+  expired   Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   //Relationships
-  walletId  Int
-  wallet    Wallet  @relation(fields: [walletId], references: [id])
-  }
+  walletId Int
+  wallet   Wallet @relation(fields: [walletId], references: [id])
+}
+
+enum DeviceState {
+  ACTIVE
+  INACTIVE
+  DELETED
+}
+
+model UserDevice {
+  id          Int    @id @default(autoincrement())
+  deviceType  String
+  deviceToken String @unique
+  status      DeviceState @default(ACTIVE)
+
+  // Relationships
+  userId        Int
+  user          User            @relation(fields: [userId], references: [id])
+  notifications Notifications[]
+
+  // @@map("user_device")
+}
+
+model Notifications {
+  id        Int     @id @default(autoincrement())
+  read      Boolean @default(false)
+  title     String
+  body      String?
+  metadata  Json
+  createdBy String
 
 
+  //Relationships
+  userDeviceId Int
+  userDevice   UserDevice @relation(fields: [userDeviceId], references: [id])
+
+  // @@map("notifications")
+}

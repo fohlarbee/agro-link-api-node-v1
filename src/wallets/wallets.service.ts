@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from "uuid";
 import { WebsocketService } from "src/websocket/websocket.service";
 import * as bcrypt from "bcrypt";
 import { ExpressDto } from "./dto/wallets-dto";
+import { NotificationsService } from "src/notifications/notifications.service";
 
 @Injectable()
 export class WalletsService {
@@ -21,6 +22,7 @@ export class WalletsService {
     private readonly prisma: PrismaService,
     private transactionService: TransactionService,
     private event: WebsocketService,
+    private readonly notificationService: NotificationsService,
   ) {}
 
   async create(userId: number): Promise<any> {
@@ -56,60 +58,18 @@ export class WalletsService {
     await this.prisma.wallet.create({
       data: { userId, balance: 0.0, businessId: null },
     });
+    const payload = {
+      title: "Wallet",
+      body: "Wallet created successfully",
+      metadata: {},
+    };
+    this.notificationService.sendPush(userId, payload);
 
     return {
       message: "wallet created successfully",
       status: "success",
     };
   }
-
-  // async addFunds(
-  //   userId: number,
-  //   amount: number,
-  //   provider: string,
-  // ): Promise<any> {
-  //   if (!["PSK", "MNF"].includes(provider))
-  //     throw new BadRequestException(
-  //       `Invalid payment provider code: "${provider}"`,
-  //     );
-  //   let wallet = await this.prisma.wallet.findUnique({
-  //     where: { userId },
-  //     select: {
-  //       id: true,
-  //       user: { select: { email: true } },
-  //     },
-  //   });
-
-  //   if (!wallet)
-  //     wallet = await this.prisma.wallet.create({
-  //       data: { balance: 0, userId, authToken: uuidv4() },
-  //       select: {
-  //         id: true,
-  //         user: { select: { email: true } },
-  //       },
-  //     });
-
-  //   const payload = {
-  //     email: wallet.user.email,
-  //     amount,
-  //     metadata: {
-  //       customerId: userId,
-  //       type: PaymentType.DEPOSIT,
-  //     },
-  //   };
-
-  //   const { paymentLink, reference } =
-  //     await this.transactionService.createTransactionLink(provider, payload);
-
-  //   return {
-  //     message: "Deposit initiation successful",
-  //     status: "success",
-  //     data: {
-  //       paymentLink,
-  //       reference,
-  //     },
-  //   } as DepositInitiationResponse;
-  // }
 
   async transactionHistory(walletId: number): Promise<any> {
     if (!walletId) throw new BadRequestException("walletId is needed");
@@ -225,14 +185,6 @@ export class WalletsService {
         businessId,
       },
     });
-
-    const payload = {
-      businessId,
-      customerId: userId,
-      type: "ORDER_PAYMENT",
-      amount,
-    };
-    this.event.notifyBusiness(businessId, "orderPayment", payload);
 
     return {
       message: "Wallet charged successfully",
@@ -403,17 +355,30 @@ export class WalletsService {
     };
   }
 
-  async createPin(walletId: number, pin: string) {
+  async createPin(walletId: number, pin: string, userId: number) {
     const wallet = await this.prisma.wallet.findUnique({
       where: { id: walletId },
     });
     if (!wallet) throw new NotFoundException("wallet not found");
+    if (wallet.userId !== userId)
+      throw new BadRequestException("Yoou cant create a pin");
     const hashedPin = bcrypt.hashSync(pin.toString(), bcrypt.genSaltSync());
 
     await this.prisma.wallet.update({
       where: { id: walletId },
       data: { pin: hashedPin },
     });
+    const metadata = {
+      title: "Wallet",
+      body: "Wallet pin created successfully",
+      metadata: {
+        walletId,
+      },
+    };
+
+    this.notificationService.sendPush(userId, metadata);
+    this.event.notifyWallet(walletId, "walletPinCreated", { walletId });
+
     return {
       message: "Wallet pin created",
       status: "success",
@@ -447,6 +412,16 @@ export class WalletsService {
       where: { id: walletId },
       data: { pin: bcrypt.hashSync(pin, bcrypt.genSaltSync()) },
     });
+    const metadata = {
+      title: "Wallet",
+      body: "Wallet pin reset successfully",
+      metadata: {
+        walletId,
+      },
+    };
+
+    this.notificationService.sendPush(userId, metadata);
+    this.event.notifyWallet(walletId, "walletPinReset", { walletId });
 
     return {
       message: "Pin reset successfully",
@@ -625,19 +600,40 @@ export class WalletsService {
           payload,
         );
         const debitPayload2 = {
-          userId: fromWallet.userId ?? null,
-          businessId: fromWallet.businessId ?? null,
-          walletId: fromWallet.id,
+          userId: senderWallet.userId ?? null,
+          businessId: senderWallet.businessId ?? null,
+          walletId: senderWallet.id,
           status: "success",
           type: "WALLET_DEBIT",
         };
         const creditPayload2 = {
-          from: fromWallet.userId ? fromWallet.userId : fromWallet.businessId,
-          walletId: toWallet.id,
+          from: senderWallet.userId
+            ? senderWallet.userId
+            : senderWallet.businessId,
+          walletId: receiverWallet.id,
           type: "WALLET_CREDIT",
         };
         this.event.notifyWallet(fromWallet.id, "walletDebit", debitPayload2);
         this.event.notifyWallet(toWallet.id, "walletCredit", creditPayload2);
+
+        this.notificationService.sendPush(
+          receiverWallet.userId
+            ? receiverWallet.userId
+            : receiverWallet.businessId,
+          {
+            body: `Wallet credit of ${payload.amount} was successful`,
+            title: "Wallet",
+            metadata: { creditPayload2 },
+          },
+        );
+        this.notificationService.sendPush(
+          senderWallet.userId ? senderWallet.userId : senderWallet.businessId,
+          {
+            body: `Wallet debit of ${payload.amount} was successful`,
+            title: "Wallet",
+            metadata: { debitPayload2 },
+          },
+        );
 
         break;
     }
