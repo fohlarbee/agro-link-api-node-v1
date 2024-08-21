@@ -292,10 +292,35 @@ export class OrderService {
       throw new BadRequestException(
         "You do not currently have any open orders",
       );
-    if (!["PSK", "MNF", "WALLET"].includes(provider))
+    if (!["PSK", "MNF", "WALLET", "CASH", "POS"].includes(provider))
       throw new BadRequestException(
         `Invalid payment provider code: "${provider}"`,
       );
+
+    if (provider === "CASH" || provider === "POS") {
+      await this.prisma.order.updateMany({
+        where: { id: { in: currentOrders.map((order) => order.id) } },
+        data: { status: OrderStatus.payment_pending },
+      });
+      // TODO: WS message when a usaer opts to pay with cash or POS
+      currentOrders.map((order) => {
+        const payload = {
+          businessId,
+          customerId,
+          channel: provider,
+          type: "PAYMENT_PENDING",
+          amount:
+            order.options.reduce((total, option) => {
+              return total + option.quantity * option.option.price;
+            }, 0) + order.tip,
+        };
+        this.event.notifyBusiness(businessId, "orderPayment", payload);
+      });
+      return {
+        message: "Please proceed to pay for your order",
+        status: "success",
+      };
+    }
 
     const totalAmount = currentOrders.reduce((total, order) => {
       const totalPrice = order.options.reduce((acc, option) => {
@@ -579,9 +604,8 @@ export class OrderService {
     businessId: number,
     customerId: number,
   ): Promise<any> {
-    const order = await this.prisma.order.update({
+    const order = await this.prisma.order.findUnique({
       where: { id: orderId, businessId, customerId },
-      data: { status: OrderStatus.delivered },
     });
     if (!order) throw new BadRequestException("Order not found");
 
@@ -603,6 +627,81 @@ export class OrderService {
     this.event.notifyUser(order.customerId, "orderCompleted", payload);
     this.event.notifyWaiter(order.waiterId, "orderCompleted", payload);
     this.event.notifyKitchen(order.kitchenStaffId, "orderCompleted", payload);
+  }
+
+  async confirmPayment(
+    orderId: number,
+    businessId: number,
+    waiterId: number,
+    completed: boolean,
+    provider: "CASH" | "POS",
+  ): Promise<any> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId, businessId },
+      include: {
+        options: {
+          include: {
+            option: {
+              select: { price: true },
+            },
+          },
+        },
+      },
+    });
+    if (order.status !== OrderStatus.payment_pending)
+      throw new BadRequestException(
+        `Order ${orderId} is not in payment pending state`,
+      );
+    if (!order || order.waiterId !== waiterId)
+      throw new UnauthorizedException("Unauthorized to confirm payment");
+    if (!["CASH", "POS"].includes((provider as string).toUpperCase()))
+      throw new BadRequestException({
+        message: "Invalid channel submitted",
+        status: "error",
+      });
+    const totalAmount =
+      order.options.reduce((total, option) => {
+        return total + option.quantity * option.option.price;
+      }, 0) + order.tip;
+
+    if (completed)
+      await this.prisma.payment.create({
+        data: {
+          reference: `QQ_${Date.now()}`,
+          userId: order.customerId,
+          orders: { connect: { id: orderId } },
+          businessId,
+          type: PaymentType.ORDER_PAYMENT,
+          amount: totalAmount,
+          paidAt: new Date(),
+          provider,
+          providerId: `${provider}|${order.customerId}|${Date.now()}`,
+        },
+      });
+    await this.prisma.order.update({
+      where: { id: orderId, businessId },
+      data: { status: completed ? OrderStatus.paid : OrderStatus.active },
+    });
+    if (completed)
+      this.event.notifyBusiness(businessId, "orderPayment", {
+        businessId,
+        customerId: order.customerId,
+        type: "ORDER_PAYMENT",
+        amount: totalAmount,
+      });
+    this.event.notifyUser(order.customerId, "orderPayment", {
+      orderId,
+      status: completed ? OrderStatus.paid : OrderStatus.active,
+      type: "ORDER_PAYMENT",
+      customerId: order.customerId,
+    });
+
+    return {
+      message: completed
+        ? "Order payment successfully confirmed"
+        : "Order payment successfully cancelled",
+      status: "success",
+    };
   }
 
   // Helper functions
