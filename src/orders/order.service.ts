@@ -13,7 +13,6 @@ import { TransactionService } from "src/transactions/transaction.service";
 import { WebsocketService } from "src/websocket/websocket.service";
 import { NotificationsService } from "src/notifications/notifications.service";
 
-
 @Injectable()
 export class OrderService {
   constructor(
@@ -22,7 +21,6 @@ export class OrderService {
     private wallet: WalletsService,
     private event: WebsocketService,
     private readonly notificationService: NotificationsService,
-
   ) {}
 
   async getDayOfWeek(date: Date) {
@@ -384,10 +382,10 @@ export class OrderService {
       title: "Order",
       body: "Order payment successful",
       metadata: {
-        type:'order',
+        type: "order",
         ids: orderIds,
         amount: total,
-        transactionTime: new Date()
+        transactionTime: new Date(),
       },
     };
     this.notificationService.sendPush(customerId, metadata);
