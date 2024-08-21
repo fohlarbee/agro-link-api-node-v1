@@ -11,7 +11,8 @@ import { OrderStatus, PaymentProvider, PaymentType } from "@prisma/client";
 import { WalletsService } from "src/wallets/wallets.service";
 import { TransactionService } from "src/transactions/transaction.service";
 import { WebsocketService } from "src/websocket/websocket.service";
-import { v4 as uuidv4 } from "uuid";
+import { NotificationsService } from "src/notifications/notifications.service";
+
 
 @Injectable()
 export class OrderService {
@@ -20,6 +21,8 @@ export class OrderService {
     private transactionService: TransactionService,
     private wallet: WalletsService,
     private event: WebsocketService,
+    private readonly notificationService: NotificationsService,
+
   ) {}
 
   async getDayOfWeek(date: Date) {
@@ -345,6 +348,24 @@ export class OrderService {
         status: OrderStatus.paid,
       },
     });
+    const payload = {
+      businessId,
+      customerId,
+      type: "ORDER_PAYMENT",
+      total,
+    };
+    this.event.notifyBusiness(businessId, "orderPayment", payload);
+    const metadata = {
+      title: "Order",
+      body: "Order payment successful",
+      metadata: {
+        type:'order',
+        ids: orderIds,
+        amount: total,
+        transactionTime: new Date()
+      },
+    };
+    this.notificationService.sendPush(customerId, metadata);
     return {
       message: "Orders successfully paid",
       status: "success",

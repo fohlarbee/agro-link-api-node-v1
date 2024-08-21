@@ -112,7 +112,8 @@ export class WalletsController {
     @Body() { pin }: createWalletPinDto,
   ) {
     const { wallet_id: walletId } = request.headers;
-    return await this.walletService.createPin(+walletId, pin);
+    const { id: userId } = request.user;
+    return await this.walletService.createPin(+walletId, pin, userId);
   }
 
   @Put("pin/reset")

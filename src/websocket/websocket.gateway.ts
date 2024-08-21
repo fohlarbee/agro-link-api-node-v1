@@ -86,7 +86,7 @@ export class WebsocketGateway
           rooms.push(
             `${client.user.id}:waiter`,
             `${client.business.id}:business`,
-            `${client.wallet.id}:notifications`,
+            `${client.wallet.id}:wallet`,
           );
           break;
         case "kitchen":

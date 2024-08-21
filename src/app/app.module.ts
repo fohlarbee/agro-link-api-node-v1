@@ -24,6 +24,7 @@ import { SecretsModule } from "src/secrets/secrets.module";
 import { WalletsModule } from "src/wallets/wallets.module";
 import { WebsocketModule } from "src/websocket/websocket.module";
 import { AnalyticsModule } from "src/analytics/analytics.module";
+import { NotificationsModule } from "src/notifications/notifications.module";
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { AnalyticsModule } from "src/analytics/analytics.module";
     SecretsModule,
     WalletsModule,
     WebsocketModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   // providers: [CronService],

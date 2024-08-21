@@ -4,7 +4,6 @@ import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { ClassSerializerInterceptor, ValidationPipe } from "@nestjs/common";
 import { PrismaClientExceptionFilter } from "./prisma-client-exception/prisma-client-exception.filter";
 import { PrismaService } from "./prisma/prisma.service";
-declare const module: any;
 
 declare global {
   interface BigInt {
@@ -40,11 +39,6 @@ async function bootstrap() {
   SwaggerModule.setup("bankfieh/api-docs", app, document, { explorer: true });
 
   await app.listen(4000);
-
-  if (module.hot) {
-    module.hot.accept();
-    module.hot.dispose(() => app.close());
-  }
 
   async function connectToDb() {
     while (true) {
