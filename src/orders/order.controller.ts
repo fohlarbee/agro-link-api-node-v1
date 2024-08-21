@@ -9,6 +9,7 @@ import {
   BadRequestException,
   Post,
   Query,
+  Body,
 } from "@nestjs/common";
 import { OrderService } from "./order.service";
 import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
@@ -173,6 +174,32 @@ export class OrderController {
       +orderId,
       +businessId,
       customerId,
+    );
+  }
+
+  @Post(":id/complete")
+  @UseGuards(RoleGuard([Role.admin, Role.kitchen, Role.waiter]))
+  @ApiAcceptedResponse({ type: BaseResponse })
+  @ApiHeader({
+    name: "business_id",
+    required: true,
+    description: "The business Id",
+  })
+  @UseInterceptors(new ValidPathParamInterceptor())
+  async confirmPayment(
+    @Param("id") orderId: number,
+    @Req() request: any,
+    @Body()
+    { completed, channel }: { completed: boolean; channel: "CASH" | "POS" },
+  ) {
+    const { id: customerId } = request.user;
+    const { business_id: businessId } = request.headers;
+    return await this.orderService.confirmPayment(
+      +customerId,
+      +orderId,
+      +businessId,
+      completed,
+      channel,
     );
   }
 }

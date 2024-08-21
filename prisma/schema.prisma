@@ -274,6 +274,7 @@ model Order {
 
 enum OrderStatus {
   active //The order has been placed by the customer but is yet to be processed by the business.
+  payment_pending //The order has been placed by the customer but is yet to be processed by the business.
   paid //indicates successful payment
   failed //means the payment was unsuccessful.
   preparing //The business has accepted the order and is currently preparing the food.
@@ -329,6 +330,8 @@ enum PaymentProvider {
   MOMO_PSB
   QQ_WALLET
   CUSTOMER_TIP
+  CASH
+  POS
 }
 
 model Otp {
