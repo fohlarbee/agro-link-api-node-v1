@@ -28,6 +28,7 @@ import RoleGuard from "src/auth/role/role.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 import { FindOpenOrdersResponse } from "./entities/order.entity";
 import { DepositInitiationResponse } from "src/wallets/entities/wallets.entity";
+import { ConfirmationDto } from "./dto/confirm-order.dto";
 
 @Controller("orders")
 @ApiTags("Orders")
@@ -177,7 +178,7 @@ export class OrderController {
     );
   }
 
-  @Post(":id/complete")
+  @Post(":id/confirm")
   @UseGuards(RoleGuard([Role.admin, Role.kitchen, Role.waiter]))
   @ApiAcceptedResponse({ type: BaseResponse })
   @ApiHeader({
@@ -190,7 +191,7 @@ export class OrderController {
     @Param("id") orderId: number,
     @Req() request: any,
     @Body()
-    { completed, channel }: { completed: boolean; channel: "CASH" | "POS" },
+    { completed, channel }: ConfirmationDto,
   ) {
     const { id: customerId } = request.user;
     const { business_id: businessId } = request.headers;
