@@ -76,7 +76,7 @@ export class WebsocketGateway
   handleConnection(client: CustomSocket) {
     let rooms = [
       `${client.user.id}:notifications`,
-      `${client.wallet.id}:notifications`,
+      client.wallet?.id ? `${client.wallet.id}:notifications` : undefined,
     ];
     if (client.business) {
       // rooms = [`${client.business.id}:business`];
@@ -86,7 +86,7 @@ export class WebsocketGateway
           rooms.push(
             `${client.user.id}:waiter`,
             `${client.business.id}:business`,
-            `${client.wallet.id}:notifications`,
+            client.wallet?.id ? `${client.wallet.id}:notifications` : undefined,
           );
           break;
         case "kitchen":
@@ -94,7 +94,7 @@ export class WebsocketGateway
           rooms.push(
             `${client.user.id}:kitchen`,
             `${client.business.id}:business`,
-            `${client.wallet.id}:notifications`,
+            client.wallet?.id ? `${client.wallet.id}:notifications` : undefined,
           );
           break;
         case "owner":
@@ -102,15 +102,19 @@ export class WebsocketGateway
           rooms.push(
             `${client.user.id}:owner`,
             `${client.business.id}:business`,
-            `${client.businessWallet.id}:wallet`,
+            client.businessWallet?.id ? `${client.businessWallet.id}:wallet` : undefined,
           );
+          break;
         case "admin":
           rooms = [];
           rooms.push(
             `${client.user.id}:admin`,
             `${client.business.id}:business`,
-            `${client.businessWallet.id}:wallet`,
+            client.businessWallet?.id
+              ? `${client.businessWallet.id}:wallet`
+              : undefined,
           );
+          break
         default:
           rooms.push();
       }
