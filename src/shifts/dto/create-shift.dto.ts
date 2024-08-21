@@ -1,6 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
 import {
   IsArray,
+  IsDate,
   IsNotEmpty,
   IsNumber,
   IsPositive,
@@ -27,6 +29,18 @@ export class CreateShiftDto {
   @IsArray()
   @ApiProperty({ required: true })
   periods: PeriodDto[];
+
+  @IsNotEmpty()
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  @ApiProperty({ required: true })
+  startTime: Date;
+
+  @IsNotEmpty()
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  @ApiProperty({ required: true })
+  endTime: Date;
 }
 
 export class PeriodDto {

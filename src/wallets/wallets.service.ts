@@ -529,6 +529,9 @@ export class WalletsService {
   }
 
   async getWalletAuthToken(walletId: number, action: TokenType) {
+    if (action !== TokenType.SEND && action !== TokenType.RECEIVE)
+      throw new BadRequestException("Invalid action");
+
     const wallet = await this.prisma.wallet.findUnique({
       where: { id: walletId },
     });
@@ -570,18 +573,18 @@ export class WalletsService {
       payload.action,
     );
 
-    if (!authTokenValid) {
+    if (!authTokenValid)
       throw new UnauthorizedException("Invalid or Expired authorization code");
-    }
-
-    const fromWallet = await this.getWallet(authTokenValid.walletId);
-    const toWallet = await this.getReceiverWallet(staff, payload.walletId);
-    if (fromWallet.balance < payload.amount)
-      throw new UnprocessableEntityException("Insufficient funds");
 
     switch (payload.action) {
       case "SEND":
-        await this.processSendTransaction(
+        const fromWallet = await this.getWallet(authTokenValid.walletId);
+        const toWallet = await this.getReceiverWallet(staff, payload.walletId);
+        if (fromWallet.locked)
+          throw new UnprocessableEntityException("Wallet is locked");
+        if (fromWallet.balance < payload.amount)
+          throw new UnprocessableEntityException("Insufficient funds");
+        await this.processTransaction(
           fromWallet,
           toWallet,
           payload.amount,
@@ -605,13 +608,22 @@ export class WalletsService {
 
         break;
       case "RECEIVE":
-        await this.processReceiveTransaction(
-          fromWallet,
-          toWallet,
+        const senderWallet = await this.getWallet(payload.walletId);
+        const receiverWallet = await this.prisma.wallet.findUnique({
+          where: { id: authTokenValid.walletId },
+        });
+        if (senderWallet.locked)
+          throw new UnprocessableEntityException("Wallet is locked");
+
+        if (senderWallet.balance < payload.amount)
+          throw new UnprocessableEntityException("Insufficient funds");
+
+        await this.processTransaction(
+          senderWallet,
+          receiverWallet,
           payload.amount,
           payload,
         );
-
         const debitPayload2 = {
           userId: fromWallet.userId ?? null,
           businessId: fromWallet.businessId ?? null,
@@ -647,7 +659,7 @@ export class WalletsService {
     return await this.prisma.authCode.findFirst({
       where: {
         code,
-        type: action === "SEND" ? TokenType.SEND : TokenType.RECIEVE,
+        type: action === "SEND" ? TokenType.SEND : TokenType.RECEIVE,
         expired: false,
       },
     });
@@ -656,7 +668,13 @@ export class WalletsService {
   async getWallet(walletId: number) {
     return await this.prisma.wallet.findFirst({
       where: { id: walletId },
-      select: { id: true, balance: true, userId: true, businessId: true },
+      select: {
+        id: true,
+        balance: true,
+        locked: true,
+        userId: true,
+        businessId: true,
+      },
     });
   }
 
@@ -669,7 +687,7 @@ export class WalletsService {
     return await this.prisma.wallet.findUnique({ where: { id: walletId } });
   }
 
-  async processSendTransaction(
+  async processTransaction(
     fromWallet: any,
     toWallet: any,
     amount: number,
@@ -705,41 +723,6 @@ export class WalletsService {
     });
   }
 
-  async processReceiveTransaction(
-    fromWallet: any,
-    toWallet: any,
-    amount: number,
-    payload: any,
-  ) {
-    await this.prisma.$transaction(async (tx) => {
-      await tx.wallet.update({
-        where: { id: fromWallet.id },
-        data: { locked: true },
-      });
-      await tx.wallet.update({
-        where: { id: fromWallet.id },
-        data: { balance: { decrement: amount } },
-      });
-      await tx.wallet.update({
-        where: { id: toWallet.id },
-        data: { balance: { increment: amount } },
-      });
-      await tx.payment.create({
-        data: this.getTransferPaymentData(fromWallet, toWallet, amount),
-      });
-      await tx.payment.create({
-        data: this.getCreditPaymentData(fromWallet, toWallet, amount),
-      });
-      await tx.wallet.update({
-        where: { id: fromWallet.id },
-        data: { locked: false },
-      });
-      await tx.authCode.update({
-        where: { code: payload.authorizationCode },
-        data: { expired: true },
-      });
-    });
-  }
   getTransferPaymentData(fromWallet: any, toWallet: any, amount: number) {
     return {
       reference: `QQ_${Date.now()}`,
@@ -768,177 +751,3 @@ export class WalletsService {
     };
   }
 }
-
-// const fromWallet = await this.prisma.wallet.findFirst({
-//   where: { id: authTokenValidV1.walletId },
-// });
-// if (!fromWallet) throw new UnauthorizedException("Invalid wallet");
-
-// if (fromWallet.locked)
-//   throw new UnprocessableEntityException("Action Interference");
-
-// if (fromWallet.balance < payload.amount)
-//   throw new UnprocessableEntityException("Insufficient funds");
-
-// let toWallet;
-
-// toWallet = await this.prisma.wallet.findUnique({
-//   where: { id: payload.walletId },
-// });
-
-// console.log('staff businessId',staff.businessId);
-// if (staff && ["owner", "admin", "manager"].includes(staff.role.name))
-//   toWallet = await this.prisma.wallet.findFirst({
-//     where: { businessId: staff.businessId },
-//   });
-
-// if (!toWallet)
-//   throw new NotFoundException("Receipent Wallet not found");
-
-// await this.prisma.$transaction(async (tx) => {
-//   await tx.wallet.update({
-//     where: { id: fromWallet.id },
-//     data: { locked: true },
-//   });
-
-//   await tx.wallet.update({
-//     where: { id: fromWallet.id },
-//     data: {
-//       balance: { decrement: payload.amount },
-//     },
-//   });
-
-//   await tx.wallet.update({
-//     where: { id: toWallet.id },
-//     data: {
-//       balance: { increment: payload.amount },
-//     },
-//   });
-
-//   await tx.payment.create({
-//     data: {
-//       reference: `QQ_${Date.now()}`,
-//       type: PaymentType.WALLET_TRANSFER,
-//       amount: payload.amount,
-//       paidAt: new Date(),
-//       provider: PaymentProvider.QQ_WALLET,
-//       userId: fromWallet.userId,
-//       businessId: fromWallet.businessId,
-//       walletId: fromWallet.id,
-//       providerId: `QQ|${fromWallet.id}|${fromWallet.userId ? fromWallet.userId : fromWallet.businessId}|${Date.now()}`,
-//     },
-//   });
-
-//   await tx.payment.create({
-//     data: {
-//       reference: `QQ_${Date.now()}`,
-//       type: PaymentType.WALLET_CREDIT,
-//       amount: payload.amount,
-//       paidAt: new Date(),
-//       provider: PaymentProvider.QQ_WALLET,
-//       userId: toWallet.userId,
-//       businessId: toWallet.businessId,
-//       walletId: toWallet.id,
-//       providerId: `QQ|${fromWallet.id}|${fromWallet.userId ? fromWallet.userId : fromWallet.businessId}|${Date.now()}`,
-//     },
-//   });
-
-//   await tx.wallet.update({
-//     where: { id: fromWallet.id },
-//     data: { locked: false },
-//   });
-//   await tx.authCode.update({
-//     where: { code: payload.authorizationCode },
-//     data: { expired: true },
-//   });
-// });
-
-// const authTokenValidV2 = await this.prisma.authCode.findFirst({
-//   where: {
-//     code: payload.authorizationCode,
-//     type: "RECIEVE",
-//     expired: false,
-//   },
-// });
-// if (!authTokenValidV2)
-//   throw new UnauthorizedException(
-//     "Invalid or Expired authorization code",
-//   );
-
-// const receipentwallet = await this.prisma.wallet.findFirst({
-//   where: { id: authTokenValidV2.walletId },
-// });
-// if (!receipentwallet) throw new UnauthorizedException("Invalid wallet");
-
-// let senderWallet;
-
-// senderWallet = await this.prisma.wallet.findUnique({
-//   where: { id: payload.walletId },
-// });
-
-// if (staff && ["owner", "admin", "manager"].includes(staff.role.name))
-//   senderWallet = await this.prisma.wallet.findFirst({
-//     where: { businessId: staff.businessId },
-//   });
-
-// console.log(senderWallet);
-// if (!senderWallet)
-//   throw new NotFoundException("Receipent Wallet not found");
-
-// await this.prisma.$transaction(async (tx) => {
-//   await tx.wallet.update({
-//     where: { id: senderWallet.id },
-//     data: { locked: true },
-//   });
-
-//   await tx.wallet.update({
-//     where: { id: senderWallet.id },
-//     data: {
-//       balance: { decrement: payload.amount },
-//     },
-//   });
-
-//   await tx.wallet.update({
-//     where: { id: receipentwallet.id },
-//     data: {
-//       balance: { increment: payload.amount },
-//     },
-//   });
-
-//   await tx.payment.create({
-//     data: {
-//       reference: `QQ_${Date.now()}`,
-//       type: PaymentType.WALLET_CREDIT,
-//       amount: payload.amount,
-//       paidAt: new Date(),
-//       provider: PaymentProvider.QQ_WALLET,
-//       userId: receipentwallet.userId,
-//       businessId: receipentwallet.businessId,
-//       walletId: receipentwallet.id,
-//       providerId: `QQ|${receipentwallet.id}|${receipentwallet.userId ? receipentwallet.userId : receipentwallet.businessId}|${Date.now()}`,
-//     },
-//   });
-
-//   await tx.payment.create({
-//     data: {
-//       reference: `QQ_${Date.now()}`,
-//       type: PaymentType.WALLET_TRANSFER,
-//       amount: payload.amount,
-//       paidAt: new Date(),
-//       provider: PaymentProvider.QQ_WALLET,
-//       userId: senderWallet.userId,
-//       businessId: senderWallet.businessId,
-//       walletId: senderWallet.id,
-//       providerId: `QQ|${senderWallet.id}|${senderWallet.userId ? senderWallet.userId : senderWallet.businessId}|${Date.now()}`,
-//     },
-//   });
-//   await tx.wallet.update({
-//     where: { id: senderWallet.id },
-//     data: { locked: false },
-//   });
-
-//   await tx.authCode.update({
-//     where: { code: payload.authorizationCode },
-//     data: { expired: true },
-//   });
-// });

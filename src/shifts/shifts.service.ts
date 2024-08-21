@@ -43,8 +43,8 @@ export class ShiftsService {
             },
           },
         },
-        // startTime: shiftData.startTime,
-        // endTime: shiftData.endTime,
+        startTime: shiftData.startTime,
+        endTime: shiftData.endTime,
         // periods: { createMany: { data: shiftData.periods } },
       },
     });
