@@ -62,8 +62,7 @@ export class NotificationsService {
   async sendPush(userId: number, { body, title, metadata }: NotificationDto) {
     if (!userId || !body || !title || !metadata)
       throw new BadRequestException("Invalid request body");
-      const data =   JSON.stringify(metadata)
-
+    const data = JSON.stringify(metadata);
 
     const userDevice = await this.prisma.userDevice.findFirst({
       where: { user: { id: userId }, status: "ACTIVE" },
@@ -81,7 +80,7 @@ export class NotificationsService {
       await admin
         .messaging()
         .send({
-          notification: { title, body  },
+          notification: { title, body },
           token: userDevice.deviceToken,
           android: {
             priority: "high",
@@ -112,7 +111,6 @@ export class NotificationsService {
     };
   }
 }
-
 
 // {
 //   "type": "order",

@@ -18,7 +18,7 @@ import { NotificationsModule } from "src/notifications/notifications.module";
     WalletsModule,
     WebsocketModule,
     JwtModule,
-    NotificationsModule
+    NotificationsModule,
   ],
   controllers: [OrderController, AdminOrderController],
   providers: [OrderService, WebsocketGateway, WebsocketService],

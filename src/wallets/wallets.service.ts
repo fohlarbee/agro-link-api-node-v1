@@ -613,8 +613,12 @@ export class WalletsService {
           walletId: receiverWallet.id,
           type: "WALLET_CREDIT",
         };
-        this.event.notifyWallet(fromWallet.id, "walletDebit", debitPayload2);
-        this.event.notifyWallet(toWallet.id, "walletCredit", creditPayload2);
+        this.event.notifyWallet(senderWallet.id, "walletDebit", debitPayload2);
+        this.event.notifyWallet(
+          receiverWallet.id,
+          "walletCredit",
+          creditPayload2,
+        );
 
         this.notificationService.sendPush(
           receiverWallet.userId
