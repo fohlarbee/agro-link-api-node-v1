@@ -36,3 +36,16 @@ CREATE UNIQUE INDEX "AuthCode_code_key" ON "AuthCode"("code");
 
 -- AddForeignKey
 ALTER TABLE "AuthCode" ADD CONSTRAINT "AuthCode_walletId_fkey" FOREIGN KEY ("walletId") REFERENCES "Wallet"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AlterTable
+ALTER TABLE "Shift" ADD COLUMN     "endTime" TIMESTAMP(3),
+ADD COLUMN     "startTime" TIMESTAMP(3);
+
+
+BEGIN;
+CREATE TYPE "TokenType_new" AS ENUM ('SEND', 'RECEIVE', 'TRANSFER');
+ALTER TABLE "AuthCode" ALTER COLUMN "type" TYPE "TokenType_new" USING ("type"::text::"TokenType_new");
+ALTER TYPE "TokenType" RENAME TO "TokenType_old";
+ALTER TYPE "TokenType_new" RENAME TO "TokenType";
+DROP TYPE "TokenType_old";
+COMMIT;

@@ -8,6 +8,12 @@ class ShiftEntity implements Shift {
   @ApiProperty({ required: true })
   id: number;
 
+  @ApiProperty({ required: true })
+  startTime: Date;
+
+  @ApiProperty({ required: true })
+  endTime: Date;
+
   @ApiProperty({ required: false })
   outletId: number;
 
