@@ -8,7 +8,7 @@ import { Role } from "src/auth/dto/auth.dto";
 enum Duration {
   DAILY = "DAILY",
   WEEKLY = "WEEKLY",
-  MONTHLY = "MONTHLY"
+  MONTHLY = "MONTHLY",
 }
 
 @Controller("/admin/analytics")
@@ -23,28 +23,36 @@ enum Duration {
 @ApiQuery({
   name: "length",
   required: false,
-  type: 'number',
+  type: "number",
 })
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Get()
   findAll(
-    @Req() request, 
-    @Query("duration") duration: Duration, 
-    @Query("length") length = 1
+    @Req() request,
+    @Query("duration") duration: Duration,
+    @Query("length") length = 1,
   ) {
     const { id: creatorId } = request.user;
-    return this.analyticsService.findAllAnalytics(+creatorId, duration, +length);
+    return this.analyticsService.findAllAnalytics(
+      +creatorId,
+      duration,
+      +length,
+    );
   }
 
-  @Get('/staffs')
+  @Get("/staffs")
   findStaffAnalytics(
-    @Req() request, 
-    @Query("duration") duration: Duration, 
-    @Query("length") length = 1
+    @Req() request,
+    @Query("duration") duration: Duration,
+    @Query("length") length = 1,
   ) {
     const { id: creatorId } = request.user;
-    return this.analyticsService.findStaffAnalytics(+creatorId, duration, +length);
+    return this.analyticsService.findStaffAnalytics(
+      +creatorId,
+      duration,
+      +length,
+    );
   }
 }

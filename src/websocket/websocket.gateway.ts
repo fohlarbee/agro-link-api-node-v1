@@ -74,10 +74,8 @@ export class WebsocketGateway
     });
   }
   handleConnection(client: CustomSocket) {
-    let rooms = [
-      `${client.user.id}:notifications`,
-      client.wallet?.id ? `${client.wallet.id}:notifications` : undefined,
-    ];
+    let rooms = [`${client.user.id}:notifications`];
+    if (client.wallet?.id) rooms.push(`${client.wallet.id}:notifications`);
     if (client.business) {
       // rooms = [`${client.business.id}:business`];
       switch (client.user.role) {
@@ -86,35 +84,37 @@ export class WebsocketGateway
           rooms.push(
             `${client.user.id}:waiter`,
             `${client.business.id}:business`,
-            client.wallet?.id ? `${client.wallet.id}:notifications` : undefined,
           );
+          if (client.wallet?.id)
+            rooms.push(`${client.wallet.id}:notifications`);
           break;
         case "kitchen":
           rooms = [];
           rooms.push(
             `${client.user.id}:kitchen`,
             `${client.business.id}:business`,
-            client.wallet?.id ? `${client.wallet.id}:notifications` : undefined,
           );
+          if (client.wallet?.id)
+            rooms.push(`${client.wallet.id}:notifications`);
           break;
         case "owner":
           rooms = [];
           rooms.push(
             `${client.user.id}:owner`,
             `${client.business.id}:business`,
-            client.businessWallet?.id ? `${client.businessWallet.id}:wallet` : undefined,
           );
+          if (client.businessWallet?.id)
+            rooms.push(`${client.businessWallet.id}:wallet`);
           break;
         case "admin":
           rooms = [];
           rooms.push(
             `${client.user.id}:admin`,
             `${client.business.id}:business`,
-            client.businessWallet?.id
-              ? `${client.businessWallet.id}:wallet`
-              : undefined,
           );
-          break
+          if (client.businessWallet?.id)
+            rooms.push(`${client.businessWallet.id}:wallet`);
+          break;
         default:
           rooms.push();
       }

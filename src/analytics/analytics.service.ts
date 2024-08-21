@@ -1,4 +1,8 @@
-import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from "@nestjs/common";
 import { OrderStatus, PaymentProvider, Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 
@@ -8,47 +12,54 @@ type DurationType = "DAILY" | "WEEKLY" | "MONTHLY";
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private getDurationQuery(duration: DurationType = "DAILY", length: number = 1) {
-    if (isNaN(length) || length < 1) throw new BadRequestException({
-      message: "Invalid length submitted",
-      status: "error"
-    });
+  private getDurationQuery(
+    duration: DurationType = "DAILY",
+    length: number = 1,
+  ) {
+    if (isNaN(length) || length < 1)
+      throw new BadRequestException({
+        message: "Invalid length submitted",
+        status: "error",
+      });
 
     switch (duration) {
       case "DAILY":
         return {
           start: `CURRENT_DATE - INTERVAL '${length - 1} DAY'`,
-          end: `NOW()`
+          end: `NOW()`,
         };
       case "WEEKLY":
-        return { 
+        return {
           start: `CURRENT_DATE - INTERVAL '${length} WEEK'`,
-          end: `NOW()`
+          end: `NOW()`,
         };
       case "MONTHLY":
-        return { 
+        return {
           start: `CURRENT_DATE - INTERVAL '${length} MONTH'`,
-          end: `NOW()`
+          end: `NOW()`,
         };
       default:
         throw new BadRequestException({
           message: `Invalid duration ${duration} provided`,
-          status: "error"
+          status: "error",
         });
     }
   }
 
-  async findAllAnalytics(creatorId: number, 
-      duration: DurationType = "DAILY",
-      length: number = 1) {
+  async findAllAnalytics(
+    creatorId: number,
+    duration: DurationType = "DAILY",
+    length: number = 1,
+  ) {
     const business = await this.prisma.business.findFirst({
       where: { creatorId },
     });
-    if (!business) throw new ForbiddenException({
-      message: "You do not own a restaurant",
-      status: "error",
-    });
-    const {start, end } = this.getDurationQuery(duration, length);
+    if (!business)
+      throw new ForbiddenException({
+        message: "You do not own a restaurant",
+        status: "error",
+      });
+    const { start, end } = this.getDurationQuery(duration, length);
 
     const paymentMethodQuery = `
       WITH payments as (
@@ -202,16 +213,19 @@ export class AnalyticsService {
     };
   }
 
-  async findStaffAnalytics(creatorId: number, 
-      duration: DurationType = "DAILY",
-      length: number = 1) {
+  async findStaffAnalytics(
+    creatorId: number,
+    duration: DurationType = "DAILY",
+    length: number = 1,
+  ) {
     const business = await this.prisma.business.findFirst({
       where: { creatorId },
     });
-    if (!business) throw new ForbiddenException({
-      message: "You do not own a restaurant",
-      status: "error",
-    });
+    if (!business)
+      throw new ForbiddenException({
+        message: "You do not own a restaurant",
+        status: "error",
+      });
     const { start, end } = this.getDurationQuery(duration, length);
 
     const staffsCount: any[] = await this.prisma.$queryRaw`
@@ -292,7 +306,8 @@ export class AnalyticsService {
 
     console.log(staffShiftsQuery);
 
-    const staffShifts: any[] = await this.prisma.$queryRaw`${Prisma.raw(staffShiftsQuery)}`;
+    const staffShifts: any[] = await this.prisma
+      .$queryRaw`${Prisma.raw(staffShiftsQuery)}`;
     return {
       message: "Analytics Data fetched successfully",
       status: "success",
