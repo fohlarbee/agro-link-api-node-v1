@@ -193,12 +193,12 @@ export class OrderController {
     @Body()
     { completed, channel }: ConfirmationDto,
   ) {
-    const { id: customerId } = request.user;
+    const { id: waiterId } = request.user;
     const { business_id: businessId } = request.headers;
     return await this.orderService.confirmPayment(
-      +customerId,
       +orderId,
       +businessId,
+      +waiterId,
       completed,
       channel,
     );
