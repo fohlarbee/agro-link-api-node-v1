@@ -45,7 +45,7 @@ export class CreateShiftDto {
 
 export class PeriodDto {
   @ApiProperty({
-    example: ["Mon, Tue, Wed", "Thur", "Fri", "Sat", "Sun"],
+    example: ["Mon, Tue, Wed", "Thu", "Fri", "Sat", "Sun"],
     required: true,
   })
   @IsString()
