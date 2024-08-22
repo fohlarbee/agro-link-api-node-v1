@@ -279,6 +279,7 @@ export class OrderService {
       select: {
         id: true,
         tip: true,
+        waiterId: true,
         options: {
           select: {
             quantity: true,
@@ -314,6 +315,12 @@ export class OrderService {
             }, 0) + order.tip,
         };
         this.event.notifyBusiness(businessId, "orderPayment", payload);
+        this.event.notifyWaiter(order.waiterId, "paymentPending", payload);
+        this.notificationService.sendPush(order.waiterId, {
+          title: "Order",
+          body: `Order payment for id ${order.id} is pending`,
+          metadata: payload,
+        });
       });
       return {
         message: "Please proceed to pay for your order",
@@ -381,7 +388,39 @@ export class OrderService {
       customerId,
       type: "ORDER_PAYMENT",
     };
+    const kitchenStaffs = await this.prisma.staff.findMany({
+      where: { businessId, role: { name: { equals: "kitchen" } } },
+    });
+    if (!kitchenStaffs) throw new NotFoundException("No staffs found");
+
+    kitchenStaffs.forEach((staff) => {
+      this.event.notifyKitchen(staff.userId, "orderPayment", metadata);
+      this.notificationService.sendPush(staff.userId, {
+        title: "orderPayment",
+        body: "OrderPayment successful",
+        metadata,
+      });
+    });
     this.event.notifyBusiness(businessId, "orderPayment", metadata);
+
+    const orders = await Promise.all(
+      orderIds.map(async (orderId) => {
+        return await this.prisma.order.findUnique({
+          where: { id: orderId },
+          select: { waiterId: true },
+        });
+      }),
+    );
+
+    if (!orders.length) throw new NotFoundException("No orders found");
+    orders.forEach((order) => {
+      this.event.notifyWaiter(order.waiterId, "orderPayment", metadata);
+      this.notificationService.sendPush(order.waiterId, {
+        title: "orderPayment",
+        body: "OrderPayment successful",
+        metadata,
+      });
+    });
 
     return {
       message: "Orders successfully paid",
@@ -639,7 +678,6 @@ export class OrderService {
     completed: boolean,
     provider: "CASH" | "POS",
   ): Promise<any> {
-    console.log(orderId);
     const order = await this.prisma.order.findUnique({
       where: { id: orderId, businessId },
 
@@ -653,7 +691,6 @@ export class OrderService {
         },
       },
     });
-    console.log(order);
     if (order.status !== OrderStatus.payment_pending)
       throw new BadRequestException(
         `Order ${orderId} is not in payment pending state`,
@@ -689,6 +726,14 @@ export class OrderService {
       data: { status: completed ? OrderStatus.paid : OrderStatus.active },
     });
     if (completed) {
+      const metadata = {
+        amount: totalAmount,
+        orderId,
+        businessId,
+        type: "ORDER_PAYMENT",
+        status: OrderStatus.paid,
+        customerId: order.customerId,
+      };
       this.event.notifyBusiness(businessId, "orderPayment", {
         businessId,
         customerId: order.customerId,
@@ -698,14 +743,20 @@ export class OrderService {
       this.notificationService.sendPush(order.customerId, {
         title: "OrderPayment",
         body: `Payment for ${order.id} successful`,
-        metadata: {
-          amount: totalAmount,
-          orderId,
-          businessId,
-          type: "ORDER_PAYMENT",
-          status: OrderStatus.paid,
-          customerId: order.customerId,
-        },
+        metadata,
+      });
+      const kitchenStaffs = await this.prisma.staff.findMany({
+        where: { businessId, role: { name: { equals: "kitchen" } } },
+      });
+      if (!kitchenStaffs) throw new NotFoundException("No staffs found");
+
+      kitchenStaffs.forEach((staff) => {
+        this.event.notifyKitchen(staff.userId, "orderPayment", metadata);
+      });
+      this.notificationService.sendPush(order.customerId, {
+        title: "Order Payment",
+        body: "Order Payment confirmed",
+        metadata,
       });
     }
     this.event.notifyUser(order.customerId, "orderPayment", {
