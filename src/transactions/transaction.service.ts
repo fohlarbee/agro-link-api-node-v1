@@ -188,10 +188,12 @@ export class TransactionService {
       data: { balance: { increment: amount } },
     });
     const payload = {
+      orderIds,
       businessId,
       customerId,
       type: "ORDER_PAYMENT",
       amount,
+      paidAt: new Date(),
     };
     this.event.notifyBusiness(businessId, "orderPayment", payload);
 

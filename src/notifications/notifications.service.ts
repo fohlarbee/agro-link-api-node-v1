@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import * as admin from "firebase-admin";
 import {
@@ -15,6 +19,7 @@ export class NotificationsService {
     userId: number,
     notificationDto: UserDeviceDto,
   ) {
+    console.log(userId);
     await this.prisma.userDevice.updateMany({
       where: { userId },
       data: { status: "INACTIVE" },
@@ -22,6 +27,12 @@ export class NotificationsService {
 
     if (!["web", "mobile", "desktop"].includes(notificationDto.deviceType))
       throw new BadRequestException("Invalid device type");
+    if (
+      await this.prisma.userDevice.findFirst({
+        where: { deviceToken: notificationDto.deviceToken },
+      })
+    )
+      throw new ConflictException("Device already subscribed");
 
     const notification_token = await this.prisma.userDevice.create({
       data: {
@@ -59,7 +70,7 @@ export class NotificationsService {
     });
   }
 
-  async sendPush(userId: number, { body, title, metadata }: NotificationDto) {
+  async sendPush(userId: number, { title, body, metadata }: NotificationDto) {
     if (!userId || !body || !title || !metadata)
       throw new BadRequestException("Invalid request body");
     const data = JSON.stringify(metadata);
