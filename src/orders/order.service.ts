@@ -117,7 +117,7 @@ export class OrderService {
                     {
                       day: {
                         equals: new Date()
-                          .toLocaleString("en-NG", { weekday: "short" })
+                          .toLocaleString("en-UK", { weekday: "short" })
                           .toString(),
                       },
                     },
@@ -141,6 +141,7 @@ export class OrderService {
         },
       },
     });
+    console.log(table);
     if (!table) throw new BadRequestException("Invalid table selected");
     if (table.assignedShifts.length < 1)
       throw new UnprocessableEntityException(
