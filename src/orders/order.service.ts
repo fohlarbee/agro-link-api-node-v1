@@ -639,8 +639,10 @@ export class OrderService {
     completed: boolean,
     provider: "CASH" | "POS",
   ): Promise<any> {
+    console.log(orderId);
     const order = await this.prisma.order.findUnique({
       where: { id: orderId, businessId },
+
       include: {
         options: {
           include: {
@@ -651,6 +653,7 @@ export class OrderService {
         },
       },
     });
+    console.log(order);
     if (order.status !== OrderStatus.payment_pending)
       throw new BadRequestException(
         `Order ${orderId} is not in payment pending state`,
