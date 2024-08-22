@@ -3,14 +3,15 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
   NotImplementedException,
 } from "@nestjs/common";
 import { OrderStatus, PaymentProvider, PaymentType } from "@prisma/client";
 import { MonnifyService } from "src/monnify/monnify.service";
 import { PaystackService } from "src/paystack/paystack.service";
 import { PrismaService } from "src/prisma/prisma.service";
-import { v4 as uuidv4 } from "uuid";
 import { WebsocketService } from "src/websocket/websocket.service";
+import { NotificationsService } from "src/notifications/notifications.service";
 
 type TransactionPayload = {
   reference: string;
@@ -30,6 +31,7 @@ export class TransactionService {
     private readonly paystack: PaystackService,
     private readonly prisma: PrismaService,
     private readonly event: WebsocketService,
+    private readonly notificationService: NotificationsService,
   ) {}
 
   async handlePaystackTransaction(reference: string) {
@@ -108,6 +110,11 @@ export class TransactionService {
         balance: { increment: amount },
       },
     });
+    this.event.notifyWallet(wallet.id, "WalletDeposit", {
+      amount,
+      paidAt,
+      type,
+    });
     return { message: "Deposit successful", status: "success" };
   }
 
@@ -126,6 +133,7 @@ export class TransactionService {
       select: {
         id: true,
         businessId: true,
+        waiterId: true,
         tip: true,
         options: {
           select: {
@@ -196,6 +204,28 @@ export class TransactionService {
       paidAt: new Date(),
     };
     this.event.notifyBusiness(businessId, "orderPayment", payload);
+
+    orders.forEach((order) => {
+      this.event.notifyWaiter(order.waiterId, "orderPayment", payload);
+      this.notificationService.sendPush(order.waiterId, {
+        title: "Order",
+        body: "orderPayment",
+        metadata: payload,
+      });
+    });
+    const kitchenStaffs = await this.prisma.staff.findMany({
+      where: { businessId, role: { name: { equals: "kitchen" } } },
+    });
+    if (!kitchenStaffs) throw new NotFoundException("No staffs found");
+
+    kitchenStaffs.forEach((staff) => {
+      this.event.notifyKitchen(staff.userId, "orderPayment", payload);
+      this.notificationService.sendPush(staff.userId, {
+        title: "Order",
+        body: "orderPayment",
+        metadata: payload,
+      });
+    });
 
     return { message: "Payment successful", status: "success" };
   }

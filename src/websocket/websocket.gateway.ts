@@ -85,8 +85,7 @@ export class WebsocketGateway
             `${client.user.id}:waiter`,
             `${client.business.id}:business`,
           );
-          if (client.wallet?.id)
-            rooms.push(`${client.wallet.id}:notifications`);
+          if (client.wallet?.id) rooms.push(`${client.wallet.id}:wallet`);
           break;
         case "kitchen":
           rooms = [];
@@ -94,8 +93,7 @@ export class WebsocketGateway
             `${client.user.id}:kitchen`,
             `${client.business.id}:business`,
           );
-          if (client.wallet?.id)
-            rooms.push(`${client.wallet.id}:notifications`);
+          if (client.wallet?.id) rooms.push(`${client.wallet.id}:wallet`);
           break;
         case "owner":
           rooms = [];
