@@ -6,10 +6,11 @@ import {
 } from "./dto/accept-notifications-dto";
 import { NotificationDto } from "./dto/push-notifications-dto";
 import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
-import { ApiBearerAuth, ApiBody, ApiHeader } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiBody, ApiHeader, ApiTags } from "@nestjs/swagger";
 
 @Controller("notifications")
 @UseGuards(HttpAuthGuard)
+@ApiTags("Notifications(Push)")
 @ApiBearerAuth()
 @ApiHeader({
   name: "access_token",

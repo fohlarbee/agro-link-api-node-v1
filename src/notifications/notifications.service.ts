@@ -59,7 +59,7 @@ export class NotificationsService {
     });
   }
 
-  async sendPush(userId: number, { body, title, metadata }: NotificationDto) {
+  async sendPush(userId: number, { title, body, metadata }: NotificationDto) {
     if (!userId || !body || !title || !metadata)
       throw new BadRequestException("Invalid request body");
     const data = JSON.stringify(metadata);

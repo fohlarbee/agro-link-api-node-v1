@@ -268,12 +268,14 @@ export class WalletsService {
         businessId: authorizeFromWallet.data.businessId ?? null,
         status: "success",
         type: "WALLET_DEBIT",
+        amount,
       };
       const creditPayload = {
         from:
           authorizeFromWallet.data.businessId ??
           authorizeFromWallet.data.userId,
         type: "WALLET_CREDIT",
+        amount,
       };
 
       const fromType = authorizeFromWallet.data.userId ? "user" : "business";
@@ -572,14 +574,26 @@ export class WalletsService {
           walletId: fromWallet.id,
           status: "success",
           type: "WALLET_DEBIT",
+          amount: payload.amount,
         };
         const creditPayload = {
           from: fromWallet.userId ? fromWallet.userId : fromWallet.businessId,
           walletId: toWallet.id,
           type: "WALLET_CREDIT",
+          amount: payload.amount,
         };
         this.event.notifyWallet(fromWallet.id, "walletDebit", debitPayload);
         this.event.notifyWallet(toWallet.id, "walletCredit", creditPayload);
+        this.notificationService.sendPush(toWallet.userId, {
+          title: "walletCredit",
+          body: `wallet credited:${payload.amount}`,
+          metadata: [creditPayload],
+        });
+        this.notificationService.sendPush(fromWallet.userId, {
+          title: "walletDebit",
+          body: `wallet debit:${payload.amount}`,
+          metadata: [debitPayload],
+        });
 
         break;
       case "RECEIVE":
@@ -605,6 +619,7 @@ export class WalletsService {
           walletId: senderWallet.id,
           status: "success",
           type: "WALLET_DEBIT",
+          amount: payload.amount,
         };
         const creditPayload2 = {
           from: senderWallet.userId
@@ -612,6 +627,7 @@ export class WalletsService {
             : senderWallet.businessId,
           walletId: receiverWallet.id,
           type: "WALLET_CREDIT",
+          amount: payload.amount,
         };
         this.event.notifyWallet(senderWallet.id, "walletDebit", debitPayload2);
         this.event.notifyWallet(

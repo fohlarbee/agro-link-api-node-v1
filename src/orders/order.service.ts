@@ -371,24 +371,17 @@ export class OrderService {
         status: OrderStatus.paid,
       },
     });
-    const payload = {
+    const metadata = {
+      // type: "order",
+      ids: orderIds,
+      amount: total,
+      paidAt: new Date(),
       businessId,
       customerId,
       type: "ORDER_PAYMENT",
-      total,
     };
-    this.event.notifyBusiness(businessId, "orderPayment", payload);
-    const metadata = {
-      title: "Order",
-      body: "Order payment successful",
-      metadata: {
-        type: "order",
-        ids: orderIds,
-        amount: total,
-        transactionTime: new Date(),
-      },
-    };
-    this.notificationService.sendPush(customerId, metadata);
+    this.event.notifyBusiness(businessId, "orderPayment", metadata);
+
     return {
       message: "Orders successfully paid",
       status: "success",
@@ -511,11 +504,16 @@ export class OrderService {
       businessId: order.businessId,
       orderId,
       status: OrderStatus.ready,
-      type: "ORDER_READY",
+      type: "order",
     };
-    this.event.notifyUser(order.customerId, "orderIsReady", payload);
     this.event.notifyWaiter(order.waiterId, "orderIsReady", payload);
-    this.event.notifyKitchen(kitchenStaffId, "orderIsReady", payload);
+    this.notificationService.sendPush(order.waiterId, {
+      title: "OrderIsReady",
+      body: `Order ${orderId} is ready`,
+      metadata: payload,
+    });
+    // this.event.notifyKitchen(kitchenStaffId, "orderIsReady", payload);
+    // this.event.notifyUser(order.customerId, "orderIsReady", payload);
 
     return {
       message: "Order is marked as ready",
@@ -548,6 +546,7 @@ export class OrderService {
       status: OrderStatus.delivered,
       type: "ORDER_DELIVERED",
       tip: getOrder.tip,
+      customerId: getOrder.customerId,
     };
 
     if (getOrder.tip && getOrder.tip > 0) {
@@ -583,14 +582,19 @@ export class OrderService {
       });
 
       this.event.notifyWaiter(getOrder.waiterId, "tips", payload);
+      this.notificationService.sendPush(getOrder.waiterId, {
+        title: "Tips",
+        body: `You've received a tip of ${getOrder.tip}`,
+        metadata: payload,
+      });
     }
     this.event.notifyUser(getOrder.customerId, "orderDelivered", payload);
+    this.notificationService.sendPush(getOrder.customerId, {
+      title: "Order delivered",
+      body: `Order ${getOrder.id} delivered}`,
+      metadata: payload,
+    });
     this.event.notifyWaiter(getOrder.waiterId, "orderDelivered", payload);
-    this.event.notifyKitchen(
-      getOrder.kitchenStaffId,
-      "orderDelivered",
-      payload,
-    );
 
     return {
       message: "Order is marked as delivered",
@@ -680,18 +684,32 @@ export class OrderService {
       where: { id: orderId, businessId },
       data: { status: completed ? OrderStatus.paid : OrderStatus.active },
     });
-    if (completed)
+    if (completed) {
       this.event.notifyBusiness(businessId, "orderPayment", {
         businessId,
         customerId: order.customerId,
         type: "ORDER_PAYMENT",
         amount: totalAmount,
       });
+      this.notificationService.sendPush(order.customerId, {
+        title: "OrderPayment",
+        body: `Payment for ${order.id} successful`,
+        metadata: {
+          amount: totalAmount,
+          orderId,
+          businessId,
+          type: "ORDER_PAYMENT",
+          status: OrderStatus.paid,
+          customerId: order.customerId,
+        },
+      });
+    }
     this.event.notifyUser(order.customerId, "orderPayment", {
       orderId,
       status: completed ? OrderStatus.paid : OrderStatus.active,
       type: "ORDER_PAYMENT",
       customerId: order.customerId,
+      amount: totalAmount,
     });
 
     return {
