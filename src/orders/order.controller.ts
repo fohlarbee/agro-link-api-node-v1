@@ -186,7 +186,7 @@ export class OrderController {
     required: true,
     description: "The business Id",
   })
-  @UseInterceptors(new ValidPathParamInterceptor())
+  @UseInterceptors(new ValidPathParamInterceptor('id'))
   async confirmPayment(
     @Param("id") orderId: number,
     @Req() request: any,
