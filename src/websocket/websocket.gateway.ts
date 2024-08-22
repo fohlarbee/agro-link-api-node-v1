@@ -75,7 +75,7 @@ export class WebsocketGateway
   }
   handleConnection(client: CustomSocket) {
     let rooms = [`${client.user.id}:notifications`];
-    if (client.wallet?.id) rooms.push(`${client.wallet.id}:notifications`);
+    if (client.wallet?.id) rooms.push(`${client.wallet.id}:wallet`);
     if (client.business) {
       // rooms = [`${client.business.id}:business`];
       switch (client.user.role) {
