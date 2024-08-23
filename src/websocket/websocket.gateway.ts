@@ -118,6 +118,11 @@ export class WebsocketGateway
       }
     }
     client.join(rooms);
+    client.on("ping", (callback) => {
+      callback();
+      client.emit("pong", callback());
+      console.log("Received ping from client");
+    });
     console.log(`${client.user.name} connected and joined rooms`, rooms);
   }
 
@@ -133,4 +138,9 @@ export class WebsocketGateway
   newMessage(client: CustomSocket, message: string) {
     console.log(message);
   }
+  // @SubscribeMessage("ping")
+  // pong(client: CustomSocket, callback: any) {
+  //   client.emit("pong");
+  //   client.emit(callback());
+  // }
 }
