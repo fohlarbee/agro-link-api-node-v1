@@ -144,10 +144,9 @@ export class StaffsService {
             periods: true,
             assignedTables: {
               select: { table: { select: { id: true, identifier: true } } },
-                 
-               },
+            },
           },
-          orderBy:{createdAt:"desc"}
+          orderBy: { createdAt: "desc" },
         },
         ordersAsWaiter: {
           select: {
@@ -157,8 +156,6 @@ export class StaffsService {
             tip: true,
             payment: { select: { amount: true } },
             createdAt: true,
-             
-          
           },
           orderBy: { createdAt: "desc" },
         },
@@ -170,11 +167,10 @@ export class StaffsService {
             // tip: true,
             payment: { select: { amount: true } },
             createdAt: true,
-          
           },
           orderBy: {
-            createdAt: 'desc',
-          },   
+            createdAt: "desc",
+          },
         },
         business: {
           select: {
