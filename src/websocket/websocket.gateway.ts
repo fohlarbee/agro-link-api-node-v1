@@ -121,7 +121,7 @@ export class WebsocketGateway
     client.on("ping", (callback) => {
       callback();
       client.emit("pong", callback());
-      console.log("Received ping from client");
+      // console.log("Received ping from client");
     });
     console.log(`${client.user.name} connected and joined rooms`, rooms);
   }
