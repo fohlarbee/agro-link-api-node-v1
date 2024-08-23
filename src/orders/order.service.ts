@@ -683,10 +683,9 @@ export class OrderService {
 
       include: {
         options: {
-          select: { quantity: true },
           include: {
             option: {
-x              select: { price: true },
+              select: { price: true },
             },
           },
         },
