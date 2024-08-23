@@ -46,27 +46,18 @@ export class WebsocketGateway
         const wallet = await this.prisma.wallet.findUnique({
           where: { userId: user.id },
         });
-        if (!wallet) next();
-        else {
-          socket.wallet = wallet;
-          next();
-        }
+        socket.wallet = wallet;
         const staff = await this.prisma.staff.findFirst({
           where: { userId: user.id },
           select: { business: true, role: true },
         });
         if (!staff) next();
-        else {
-          socket.business = staff.business;
-          // staff.business.
-          const businessWallet = await this.prisma.wallet.findFirst({
+        socket.business = staff.business;
+        if (["owner", "admin"].includes(staff.role.name))
+          socket.businessWallet = await this.prisma.wallet.findFirst({
             where: { businessId: staff.business.id },
           });
-          if ((businessWallet && staff.role.name === "owner") || "admin")
-            socket.businessWallet = businessWallet;
-
-          next();
-        }
+        next();
       } catch (error) {
         console.log(error);
         next(error);
