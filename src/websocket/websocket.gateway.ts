@@ -41,7 +41,7 @@ export class WebsocketGateway
         const user = await this.prisma.user.findUnique({
           where: { id: payload.sub },
         });
-        if (!user) next(new Error("Unauthorised"));
+        if (!user) return next(new Error("Unauthorised"));
         socket.user = user;
         const wallet = await this.prisma.wallet.findUnique({
           where: { userId: user.id },
@@ -51,7 +51,7 @@ export class WebsocketGateway
           where: { userId: user.id },
           select: { business: true, role: true },
         });
-        if (!staff) next();
+        if (!staff) return next();
         socket.business = staff.business;
         if (["owner", "admin"].includes(staff.role.name))
           socket.businessWallet = await this.prisma.wallet.findFirst({
