@@ -6,9 +6,7 @@ import { TransactionModule } from "src/transactions/transaction.module";
 import { PrismaModule } from "src/prisma/prisma.module";
 import { WalletsModule } from "src/wallets/wallets.module";
 import { WebsocketModule } from "src/websocket/websocket.module";
-import { WebsocketGateway } from "src/websocket/websocket.gateway";
 import { JwtModule } from "@nestjs/jwt";
-import { WebsocketService } from "src/websocket/websocket.service";
 import { NotificationsModule } from "src/notifications/notifications.module";
 
 @Module({
@@ -21,7 +19,7 @@ import { NotificationsModule } from "src/notifications/notifications.module";
     NotificationsModule,
   ],
   controllers: [OrderController, AdminOrderController],
-  providers: [OrderService, WebsocketGateway, WebsocketService],
+  providers: [OrderService],
   exports: [OrderService],
 })
 export class OrderModule {}
