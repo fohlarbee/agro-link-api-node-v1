@@ -487,7 +487,16 @@ export class OrderService {
       },
     });
     if (!staff) throw new UnauthorizedException("staff not found");
-    const order = await this.prisma.order.update({
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId, businessId, status: { equals: OrderStatus.paid } },
+      select: { customerId: true, waiterId: true, kitchenStaffId: true },
+    });
+    if (!order)
+      throw new BadRequestException("Order not found or not paid for");
+    if (order.kitchenStaffId !== kitchenStaffId)
+      throw new UnauthorizedException("Unauthorized to accept order");
+
+    await this.prisma.order.update({
       where: { id: orderId, businessId },
       data: {
         status: OrderStatus.preparing,
@@ -520,7 +529,12 @@ export class OrderService {
     businessId: number,
   ): Promise<any> {
     const order = await this.prisma.order.findUnique({
-      where: { id: orderId, kitchenStaffId, businessId },
+      where: {
+        id: orderId,
+        kitchenStaffId,
+        businessId,
+        status: OrderStatus.preparing,
+      },
       select: {
         businessId: true,
         kitchenStaffId: true,
@@ -529,12 +543,14 @@ export class OrderService {
         status: true,
       },
     });
-    if (!order) throw new BadRequestException(`Order ${orderId} not found`);
-    if (order.status === OrderStatus.ready)
-      throw new BadRequestException("Order has already been marked ready");
+    if (!order)
+      throw new BadRequestException("Order not found or has not been prepared");
 
     if (order.kitchenStaffId !== kitchenStaffId)
       throw new UnauthorizedException("Unauthorized to mark order as ready");
+
+    if (order.status === OrderStatus.ready)
+      throw new BadRequestException("Order has already been marked ready");
 
     await this.prisma.order.update({
       where: { id: orderId },
@@ -566,11 +582,11 @@ export class OrderService {
     businessId: number,
   ): Promise<any> {
     const getOrder = await this.prisma.order.findUnique({
-      where: { id: orderId, businessId },
+      where: { id: orderId, businessId, status: { equals: OrderStatus.ready } },
     });
-    if (getOrder.status === OrderStatus.delivered)
+    if (!getOrder)
       throw new BadRequestException(
-        `Order ${orderId} has already been delivered`,
+        `Order ${orderId} not found or has already been delivered`,
       );
     if (!getOrder || getOrder.waiterId !== waiterId)
       throw new UnauthorizedException(
@@ -647,9 +663,15 @@ export class OrderService {
     customerId: number,
   ): Promise<any> {
     const order = await this.prisma.order.findUnique({
-      where: { id: orderId, businessId, customerId },
+      where: {
+        id: orderId,
+        businessId,
+        customerId,
+        status: OrderStatus.delivered,
+      },
     });
-    if (!order) throw new BadRequestException("Order not found");
+    if (!order)
+      throw new BadRequestException("Order not found or not delivered");
 
     if (order.customerId !== customerId)
       throw new UnauthorizedException("Unauthorized to mark order as complete");
@@ -777,3 +799,15 @@ export class OrderService {
 
   // Helper functions
 }
+
+// Erlang
+// Clojure
+// Objective C
+// Elixir
+// Haskell
+// Marvellous Modupe
+// 18:31
+// Lisp
+// Marvellous Modupe
+// 18:35
+// FOUC;

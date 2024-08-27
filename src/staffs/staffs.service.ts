@@ -8,10 +8,16 @@ import * as bcrypt from "bcrypt";
 import { CreateStaffDto } from "./dto/create-staff.dto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { GuardRoles } from "@prisma/client";
+import { MailService } from "src/mail/mail.service";
+import { PasswordService } from "./utils/password.service";
 
 @Injectable()
 export class StaffsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailerService: MailService,
+    private passwordService: PasswordService,
+  ) {}
 
   async createStaff(businessId: number, { email, name, role }: CreateStaffDto) {
     const business = await this.prisma.business.findUnique({
@@ -92,10 +98,9 @@ export class StaffsService {
     roleId: number;
     role: GuardRoles;
   }) {
-    const hashedPassword = bcrypt.hashSync(
-      process.env.NEW_ADMIN_PASSWORD,
-      bcrypt.genSaltSync(),
-    );
+    const password = await this.passwordService.randomPass();
+
+    const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync());
     const user = await this.prisma.user.create({
       data: { email, name, password: hashedPassword, role },
     });
@@ -106,6 +111,8 @@ export class StaffsService {
         business: { connect: { id: businessId } },
       },
     });
+    await this.mailerService.sendInvitedUserEmail(name, email, password);
+
     return {
       message: "User invited successfully",
       status: "success",
@@ -196,7 +203,7 @@ export class StaffsService {
         ? staff.ordersAsWaiter
         : staff.ordersAsKitchenStaff
       ).map(async (order) => {
-        let { payment, ...details } = order;
+        const { payment, ...details } = order;
         if (payment) return order;
         const amount = (
           await this.prisma.orderOption.findMany({
