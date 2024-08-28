@@ -75,20 +75,31 @@
         color: #ffffff;
         text-decoration: none;
       }
+      .header{
+        color: #ffffff;
+      }
+      .email_password{
+        color: #000;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.5;
+        margin-top: 0;
+        margin-bottom: 15px;
+      }
     </style>
   </head>
   <body>
     <div class="email-wrapper">
       <div class="email-header">
-        <h1>Welcome to Quik-quik</h1>
+        <h1 class="header">Welcome to Quik-quik</h1>
       </div>
       <div class="email-body">
         <p>Hello {{name}},</p>
         <p>
           You have been registered for a Quik-quik account. Below are your login details:
         </p>
-        <h2>Email: {{email}}</h2>
-         <h2>Password: {{password}}</h2>
+        <h5>Email: <span>{{email}}</span></h5>
+         <h5>Password: <span>{{password}}</span></h5>
 
         <p>
           Kindly proceed to sign in at quik-quik.com.
