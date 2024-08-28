@@ -493,8 +493,6 @@ export class OrderService {
     });
     if (!order)
       throw new BadRequestException("Order not found or not paid for");
-    if (order.kitchenStaffId !== kitchenStaffId)
-      throw new UnauthorizedException("Unauthorized to accept order");
 
     await this.prisma.order.update({
       where: { id: orderId, businessId },
