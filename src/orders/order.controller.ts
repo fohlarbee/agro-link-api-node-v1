@@ -82,7 +82,7 @@ export class OrderController {
   }
 
   @Delete(":id/:optionId")
-  @UseGuards(RoleGuard([Role.admin, Role.manager]))
+  @UseGuards(RoleGuard([Role.admin]))
   @UseInterceptors(
     new ValidPathParamInterceptor(),
     new ValidPathParamInterceptor("optionId"),
@@ -114,7 +114,7 @@ export class OrderController {
     );
   }
   @Post(":id/accept")
-  @UseGuards(RoleGuard([Role.kitchen]))
+  @UseGuards(RoleGuard([Role.attendant]))
   @UseInterceptors(BusinessAccessInterceptor)
   @ApiAcceptedResponse({ type: BaseResponse })
   async acceptOrder(@Param("id") orderId: number, @Req() request: any) {
@@ -129,7 +129,7 @@ export class OrderController {
 
   @Post(":id/ready")
   @UseInterceptors(BusinessAccessInterceptor)
-  @UseGuards(RoleGuard([Role.kitchen]))
+  @UseGuards(RoleGuard([Role.attendant]))
   @ApiAcceptedResponse({ type: BaseResponse })
   async markOrderAsReady(@Param("id") orderId: number, @Req() request: any) {
     const { id: kitchenStaffId } = request.user;
@@ -143,7 +143,7 @@ export class OrderController {
 
   @Post(":id/delivered")
   @UseInterceptors(BusinessAccessInterceptor)
-  @UseGuards(RoleGuard([Role.waiter]))
+  @UseGuards(RoleGuard([Role.attendant]))
   @ApiAcceptedResponse({ type: BaseResponse })
   async markOrderAsDelivered(
     @Param("id") orderId: number,
@@ -160,7 +160,7 @@ export class OrderController {
   }
 
   @Post(":id/complete")
-  @UseGuards(RoleGuard([Role.admin, Role.kitchen, Role.waiter]))
+  @UseGuards(RoleGuard([Role.customer]))
   @ApiAcceptedResponse({ type: BaseResponse })
   @ApiHeader({
     name: "business_id",
@@ -179,7 +179,7 @@ export class OrderController {
   }
 
   @Post(":id/confirm")
-  @UseGuards(RoleGuard([Role.admin, Role.kitchen, Role.waiter]))
+  @UseGuards(RoleGuard([Role.admin, Role.attendant]))
   @ApiAcceptedResponse({ type: BaseResponse })
   @ApiHeader({
     name: "business_id",

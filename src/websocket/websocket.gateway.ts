@@ -53,7 +53,7 @@ export class WebsocketGateway
         });
         if (!staff) return next();
         socket.business = staff.business;
-        if (["owner", "admin"].includes(staff.role.name))
+        if (["admin"].includes(staff.role.name))
           socket.businessWallet = await this.prisma.wallet.findFirst({
             where: { businessId: staff.business.id },
           });
@@ -65,44 +65,27 @@ export class WebsocketGateway
     });
   }
   handleConnection(client: CustomSocket) {
-    let rooms = [`${client.user.id}:notifications`];
-    if (client.wallet?.id) rooms.push(`${client.wallet.id}:wallet`);
+    let rooms = [`user-${client.user.id}`];
+    if (client.wallet?.id) rooms.push(`wallet-${client.wallet.id}`);
     if (client.business) {
       // rooms = [`${client.business.id}:business`];
       switch (client.user.role) {
-        case "waiter":
+        case "attendant":
           rooms = [];
           rooms.push(
-            `${client.user.id}:waiter`,
-            `${client.business.id}:business`,
+            `attendant-${client.user.id}`,
+            `business-${client.business.id}`,
           );
-          if (client.wallet?.id) rooms.push(`${client.wallet.id}:wallet`);
-          break;
-        case "kitchen":
-          rooms = [];
-          rooms.push(
-            `${client.user.id}:kitchen`,
-            `${client.business.id}:business`,
-          );
-          if (client.wallet?.id) rooms.push(`${client.wallet.id}:wallet`);
-          break;
-        case "owner":
-          rooms = [];
-          rooms.push(
-            `${client.user.id}:owner`,
-            `${client.business.id}:business`,
-          );
-          if (client.businessWallet?.id)
-            rooms.push(`${client.businessWallet.id}:wallet`);
+          if (client.wallet?.id) rooms.push(`wallet-${client.wallet.id}`);
           break;
         case "admin":
           rooms = [];
           rooms.push(
-            `${client.user.id}:admin`,
-            `${client.business.id}:business`,
+            `admin-${client.user.id}`,
+            `business-${client.business.id}`,
           );
           if (client.businessWallet?.id)
-            rooms.push(`${client.businessWallet.id}:wallet`);
+            rooms.push(`wallet-${client.businessWallet.id}`);
           break;
         default:
           ``;
@@ -113,7 +96,6 @@ export class WebsocketGateway
     client.on("ping", (callback) => {
       callback();
       client.emit("pong", callback());
-      // console.log("Received ping from client");sammyola"1
     });
     console.log(`${client.user.name} connected and joined rooms`, rooms);
   }
@@ -126,13 +108,8 @@ export class WebsocketGateway
   sendEvent(rooms: string[], event: string, payload: any) {
     return this.server.to(rooms).emit(event, payload);
   }
-  @SubscribeMessage("mewMessage")
+  @SubscribeMessage("newMessage")
   newMessage(client: CustomSocket, message: string) {
     console.log(message);
   }
-  // @SubscribeMessage("ping")
-  // pong(client: CustomSocket, callback: any) {
-  //   client.emit("pong");
-  //   client.emit(callback());
-  // }
 }

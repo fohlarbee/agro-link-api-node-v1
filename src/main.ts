@@ -7,7 +7,7 @@ import { PrismaService } from "./prisma/prisma.service";
 
 declare global {
   interface BigInt {
-    toJSON(): Number;
+    toJSON(): number;
   }
 }
 
@@ -29,14 +29,14 @@ async function bootstrap() {
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
   const config = new DocumentBuilder()
-    .setTitle("Chopmoni")
-    .setDescription("Chopmoni api documentation")
+    .setTitle("AGRO -FAST")
+    .setDescription("Agro-fast api documentation")
     .setVersion("0.1")
     .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("bankfieh/api-docs", app, document, { explorer: true });
+  SwaggerModule.setup("agro-fast/api-docs", app, document, { explorer: true });
 
   await app.listen(4000);
 

@@ -206,7 +206,7 @@ export class TransactionService {
     this.event.notifyBusiness(businessId, "orderPayment", payload);
 
     orders.forEach((order) => {
-      this.event.notifyWaiter(order.waiterId, "orderPayment", payload);
+      // this.event.notifyWaiter(order.waiterId, "orderPayment", payload);
       this.notificationService.sendPush(order.waiterId, {
         title: "Order",
         body: "orderPayment",
@@ -219,7 +219,7 @@ export class TransactionService {
     if (!kitchenStaffs) throw new NotFoundException("No staffs found");
 
     kitchenStaffs.forEach((staff) => {
-      this.event.notifyKitchen(staff.userId, "orderPayment", payload);
+      // this.event.notifyKitchen(staff.userId, "orderPayment", payload);
       this.notificationService.sendPush(staff.userId, {
         title: "Order",
         body: "orderPayment",

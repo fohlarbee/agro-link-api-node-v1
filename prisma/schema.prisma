@@ -16,11 +16,7 @@ datasource db {
 enum GuardRoles {
   customer
   admin
-  waiter
-  manager
-  kitchen
-  owner
-  guest
+  attendant
 }
 
 enum PaymentType {
@@ -30,13 +26,6 @@ enum PaymentType {
   WALLET_TRANSFER
   TIP
   WALLET_CREDIT
-}
-
-enum OwnerType {
-  BUSINESS
-  CUSTOMER
-  WAITER
-  KITCHEN_STAFF
 }
 
 model User {
@@ -66,7 +55,7 @@ model Business {
   cacNumber   String       @db.VarChar(20)
   phoneNumber String
   email       String?
-  type        BusinessType @default(restaurant)
+  type        BusinessType @default(agroFarm)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -285,8 +274,7 @@ enum OrderStatus {
 }
 
 enum BusinessType {
-  restaurant
-  bar
+  agroFarm
 }
 
 model OrderOption {
@@ -388,9 +376,9 @@ enum DeviceState {
 }
 
 model UserDevice {
-  id          Int    @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   deviceType  String
-  deviceToken String @unique
+  deviceToken String      @unique
   status      DeviceState @default(ACTIVE)
 
   // Relationships
@@ -408,7 +396,6 @@ model Notifications {
   body      String?
   metadata  Json
   createdBy String
-
 
   //Relationships
   userDeviceId Int

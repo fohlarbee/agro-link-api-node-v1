@@ -11,7 +11,6 @@ import { AuthEntity } from "./entities/auth.entity";
 import * as bcrypt from "bcrypt";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { OtpService } from "src/otp/otp.service";
-import { v1 as uuidv1 } from "uuid";
 import { AuthDto, Role } from "./dto/auth.dto";
 
 @Injectable()
@@ -43,10 +42,7 @@ export class AuthService {
         data: { deviceUUID: bcrypt.hashSync(deviceUUID, bcrypt.genSaltSync()) },
       });
     }
-    if (
-      user.role !== Role.guest &&
-      !(await bcrypt.compare(deviceUUID, user.deviceUUID))
-    ) {
+    if (!(await bcrypt.compare(deviceUUID, user.deviceUUID))) {
       throw new NotAcceptableException(
         "Invalid device, Kindly, authorize with this device",
       );
@@ -56,7 +52,7 @@ export class AuthService {
       staff = await this.prisma.staff.findFirst({
         where: { userId: user.id },
       });
-    } else if (user.role != Role.customer && user.role != Role.guest) {
+    } else if (user.role != Role.customer) {
       staff = await this.prisma.staff.findFirst({
         where: {
           userId: user.id,
@@ -111,40 +107,6 @@ export class AuthService {
     };
   }
 
-  async createGuestUser(isGuest: boolean) {
-    if (!isGuest) throw new UnauthorizedException("Access denied");
-    const guestUser = `guest${uuidv1()}`;
-
-    const guestExists = await this.prisma.user.findFirst({
-      where: { name: guestUser },
-    });
-
-    if (guestExists) throw new ConflictException("Guest user already exists");
-
-    const hashedPassword = bcrypt.hashSync(
-      process.env.GUEST_USER_PASSWORD,
-      bcrypt.genSaltSync(),
-    );
-
-    const newGuestUser = await this.prisma.user.create({
-      data: {
-        email: `${guestUser}${process.env.AUTH_USER}`,
-        password: hashedPassword,
-        name: guestUser,
-        avatar: `https://ui-avatars.com/api/?name=${guestUser}`,
-        role: Role.guest,
-      },
-    });
-    const payload = { email: newGuestUser.email, sub: newGuestUser.id };
-
-    return {
-      message: "Login successful",
-      data: { accessToken: this.jwtService.sign(payload) },
-      avatar: newGuestUser.avatar,
-      role: Role.guest,
-    };
-  }
-
   async sendVerificationEmail(email: string) {
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
@@ -190,7 +152,7 @@ export class AuthService {
     });
     if (!existingUser)
       throw new UnauthorizedException("Email address not validd");
-
+    const name = existingUser.name;
     const otpExits = await this.prisma.otp.findFirst({ where: { email } });
     if (otpExits) {
       if (otpExits && Number(otpExits.expiresAt.getTime()) < Date.now()) {
@@ -202,7 +164,7 @@ export class AuthService {
 
     const generatedOTP = `${Math.floor(100000 + Math.random() * 900000)}`;
 
-    await this.otpService.sendResetPasswordEmail({ email, generatedOTP });
+    await this.otpService.sendResetPasswordEmail({ email, name, generatedOTP });
 
     const hashedOTP = await bcrypt.hashSync(generatedOTP, bcrypt.genSaltSync());
 
@@ -230,7 +192,9 @@ export class AuthService {
       where: { email, for: { equals: "resetPassword" } },
     });
     if (!otpRecord)
-      throw new UnauthorizedException("PLease verify Email to proceed");
+      throw new UnauthorizedException("Please verify Email to proceed");
+    if (!otpRecord.isVerified)
+      throw new UnauthorizedException("OTP has not been verified");
 
     const hashedPassword = bcrypt.hashSync(newPassword, bcrypt.genSaltSync());
     await this.prisma.user.update({

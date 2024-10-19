@@ -39,7 +39,7 @@ export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
   @Post()
-  @UseGuards(RoleGuard([Role.admin, Role.owner, Role.manager, Role.kitchen]))
+  @UseGuards(RoleGuard([Role.admin]))
   @ApiCreatedResponse()
   createMenu(@Body() { name, menuType }: CreateMenuDto, @Req() request) {
     const { business_id } = request.headers;
@@ -55,7 +55,7 @@ export class MenuController {
   }
 
   @Post(":id/options")
-  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
+  @UseGuards(RoleGuard([Role.admin]))
   @ApiOkResponse({ type: BaseResponse })
   async assignOptions(
     @Param("id") optionId: number,
@@ -67,7 +67,7 @@ export class MenuController {
   }
 
   @Delete(":id/options")
-  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
+  @UseGuards(RoleGuard([Role.admin]))
   @ApiOkResponse({ type: BaseResponse })
   async removeOptions(
     @Param("id") optionId: number,

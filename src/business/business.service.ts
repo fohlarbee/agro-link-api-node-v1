@@ -7,7 +7,6 @@ import {
 import { UpdateBusinessDto } from "./dto/updateBusinessDto";
 import { CreateBusinessDto } from "./dto/create-business.dto";
 import { PrismaService } from "src/prisma/prisma.service";
-import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class BusinessService {

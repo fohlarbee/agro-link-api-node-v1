@@ -53,10 +53,11 @@ export class FileUploadInterceptor implements NestInterceptor {
 }
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-const VALID_UPLOADS_MIME_TYPES = ["image/jpeg", "image/png"];
+const VALID_UPLOADS_MIME_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 const MIME_TYPE_TO_EXTENSION = {
   "image/jpeg": "jpeg",
   "image/png": "png",
+  "image/jpg": "jpg",
 };
 
 export const parseFileInterceptor = FileInterceptor("file", {

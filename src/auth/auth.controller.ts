@@ -1,10 +1,11 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   HttpCode,
   HttpStatus,
   Post,
-  UseGuards,
+  Req,
   UseInterceptors,
 } from "@nestjs/common";
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
@@ -15,7 +16,6 @@ import {
   LoginDto,
   ResetDeviceUUIDDto,
   ResetPasswordDto,
-  Role,
   SendRegistrationEmailDto,
   VerificationDto,
 } from "./dto/auth.dto";
@@ -23,7 +23,6 @@ import {
   parseFileInterceptor,
   FileUploadInterceptor,
 } from "src/utils/interceptors/file-upload.interceptor";
-import RoleGuard from "./role/role.guard";
 
 @Controller("auth")
 @ApiTags("Authentication")
@@ -40,8 +39,12 @@ export class AuthController {
   @Post("register")
   @UseInterceptors(parseFileInterceptor, FileUploadInterceptor)
   @ApiCreatedResponse()
-  register(@Body() body: AuthDto) {
-    return this.authService.register(body);
+  register(@Req() req, @Body() body: AuthDto) {
+    const { imageURL } = req.body;
+    if (!imageURL) {
+      return new BadRequestException("No file uploaded");
+    }
+    return this.authService.register({ imageURL, ...body });
   }
 
   @Post("otp/generate")
@@ -49,12 +52,8 @@ export class AuthController {
   sendVerificationEmail(@Body() { email }: SendRegistrationEmailDto) {
     return this.authService.sendVerificationEmail(email);
   }
-  @Post("/create/guestuser")
-  @ApiCreatedResponse()
-  createGuestUser(@Body() body: any) {
-    const { isGuest } = body;
-    return this.authService.createGuestUser(isGuest);
-  }
+  // @Post("/create/guestuser")
+  // @ApiCreatedResponse()
 
   @Post("otp/verify")
   @ApiCreatedResponse()

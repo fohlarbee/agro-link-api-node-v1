@@ -8,8 +8,7 @@ import {
 } from "class-validator";
 
 export enum BusinessType {
-  restaurant = "restaurant",
-  bar = "bar",
+  agroFarm = "agroFarm",
 }
 export class CreateBusinessDto {
   @IsString()

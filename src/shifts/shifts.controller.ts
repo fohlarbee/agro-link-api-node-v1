@@ -43,7 +43,7 @@ export class ShiftsController {
   constructor(private readonly shiftsService: ShiftsService) {}
 
   @Post()
-  @UseGuards(RoleGuard([Role.admin, Role.manager]))
+  @UseGuards(RoleGuard([Role.admin]))
   @ApiCreatedResponse({ type: ShiftCreationResponse })
   create(
     @Body() createShiftDto: CreateShiftDto,
@@ -54,8 +54,7 @@ export class ShiftsController {
   }
 
   @Get()
-  @UseGuards(RoleGuard([Role.admin, Role.manager]))
-  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.waiter, Role.kitchen]))
+  @UseGuards(RoleGuard([Role.admin, Role.attendant]))
   @ApiOkResponse({ type: ShiftListResponse })
   findAll(CreateShiftDto, @Req() request: Record<string, any>) {
     const { business_id } = request.headers;
@@ -63,7 +62,7 @@ export class ShiftsController {
   }
 
   @Post(":id/assign/tables")
-  @UseGuards(RoleGuard([Role.admin, Role.manager]))
+  @UseGuards(RoleGuard([Role.admin]))
   // @UseInterceptors(new ValidPathParamInterceptor())
   @ApiOkResponse({ type: BaseResponse })
   assignTables(
@@ -84,18 +83,4 @@ export class ShiftsController {
     const { period_id } = request.headers;
     return this.shiftsService.updatePeriod(+period_id, updateDto);
   }
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.shiftsService.findOne(+id);
-  // }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateShiftDto: UpdateShiftDto) {
-  //   return this.shiftsService.update(+id, updateShiftDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.shiftsService.remove(+id);
-  // }
 }

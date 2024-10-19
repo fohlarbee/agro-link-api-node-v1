@@ -25,16 +25,8 @@ export class AdminOrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get("paid")
-  @UseGuards(RoleGuard([Role.kitchen, Role.admin, Role.manager]))
+  @UseGuards(RoleGuard([Role.attendant, Role.admin]))
   async fetchPaidOrder(@Req() request) {
-    // const { id: ownerId } = request.user;
-    // const baseUrl = request.protocol + "://" + request.headers.host;
-    // const orders = (await this.orderService.fetchPaidOrders(ownerId, businessId)).map(order => {
-    //   order.options.map(orderOPtions => {
-    //     orderMeal.option.image = `${baseUrl}/v2/files/image/${orderMeal.option.image}`;
-    //   });
-    //   return order;
-    // });
     const { business_id: businessId } = request.headers;
     const orders = await this.orderService.fetchPaidOrders(+businessId);
     return {
@@ -45,16 +37,8 @@ export class AdminOrderController {
   }
 
   @Get("active")
-  @UseGuards(RoleGuard([Role.kitchen, Role.admin, Role.manager]))
+  @UseGuards(RoleGuard([Role.attendant, Role.admin]))
   async fetchActiveOrders(@Req() request) {
-    // const { id: ownerId } = request.user;
-    // const baseUrl = request.protocol + "://" + request.headers.host;
-    // const orders = (await this.orderService.fetchPaidOrders(ownerId, businessId)).map(order => {
-    //   order.options.map(orderOPtions => {
-    //     orderMeal.option.image = `${baseUrl}/v2/files/image/${orderMeal.option.image}`;
-    //   });
-    //   return order;
-    // });
     const { business_id: businessId } = request.headers;
     const { id: userId } = request.user;
     const orders = await this.orderService.findOpenBusinessOrder(

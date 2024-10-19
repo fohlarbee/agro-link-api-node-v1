@@ -40,7 +40,7 @@ export class OutletsController {
   constructor(private readonly outletsService: OutletsService) {}
 
   @Post()
-  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.owner]))
+  @UseGuards(RoleGuard([Role.admin]))
   @ApiCreatedResponse({ type: OutletCreationResponse })
   createOutlet(
     @Req() request: Record<string, any>,
@@ -58,7 +58,7 @@ export class OutletsController {
   }
 
   @Post(":outletId/tables")
-  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.owner]))
+  @UseGuards(RoleGuard([Role.admin]))
   @ApiCreatedResponse({ type: TableCreationResponse })
   createTable(
     @Req() request: Record<string, any>,
