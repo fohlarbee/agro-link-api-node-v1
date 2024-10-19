@@ -1,43 +1,123 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
-import { StaffsService } from './staffs.service';
-import { CreateStaffDto } from './dto/create-staff.dto';
-import { UpdateStaffDto } from './dto/update-staff.dto';
-import { ApiBearerAuth, ApiHeader, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
-import { StaffFetchResponse, StaffListResponse } from './entities/staff.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Req,
+  UseGuards,
+  UseInterceptors,
+  Query,
+} from "@nestjs/common";
+import { StaffsService } from "./staffs.service";
+import { CreateStaffDto } from "./dto/create-staff.dto";
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOkResponse,
+  ApiTags,
+} from "@nestjs/swagger";
+import { BaseResponse } from "src/app/entities/BaseResponse.entity";
+import { StaffFetchResponse, StaffListResponse } from "./entities/staff.entity";
+import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
+import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
+import RoleGuard from "src/auth/role/role.guard";
+import { Role } from "src/auth/dto/auth.dto";
 
-@Controller('admin/staffs')
+@Controller("admin/staffs")
 @ApiTags("Staffs")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@ApiHeader({ 
-  name: "business_id", 
-  required: true, 
-  description: "This is the restaurant's id", 
+@UseGuards(HttpAuthGuard)
+@ApiHeader({
+  name: "business_id",
+  required: true,
+  description: "This is the business's id",
 })
+@UseInterceptors(BusinessAccessInterceptor)
 export class StaffsController {
   constructor(private readonly staffsService: StaffsService) {}
 
   @Post()
+  @UseGuards(RoleGuard([Role.admin, Role.manager]))
   @ApiOkResponse({ type: BaseResponse })
-  create(@Body() createStaffDto: CreateStaffDto, @Req() request: Record<string, any>) {
+  create(
+    @Body() createStaffDto: CreateStaffDto,
+    @Req() request: Record<string, any>,
+  ) {
     const { business_id } = request.headers;
     return this.staffsService.createStaff(+business_id, createStaffDto);
   }
 
   @Get()
+  @UseGuards(
+    RoleGuard([
+      Role.admin,
+      Role.manager,
+      Role.waiter,
+      Role.kitchen,
+      Role.owner,
+    ]),
+  )
   @ApiOkResponse({ type: StaffListResponse })
   findAll(@Req() request: Record<string, any>) {
     const { business_id } = request.headers;
     return this.staffsService.findAllStaffs(+business_id);
   }
 
-  @Get(':id')
+  @Get(":id")
+  @UseGuards(
+    RoleGuard([
+      Role.admin,
+      Role.manager,
+      Role.waiter,
+      Role.kitchen,
+      Role.owner,
+    ]),
+  )
   @ApiOkResponse({ type: StaffFetchResponse })
-  findOne(@Param('id') id: string, @Req() request: Record<string, any>) {
+  findOne(@Param("id") id: string, @Req() request: Record<string, any>) {
     const { business_id } = request.headers;
     return this.staffsService.findStaff(+id, +business_id);
+  }
+
+  @Get("waiter/:id/analytics")
+  @UseGuards(
+    RoleGuard([
+      Role.admin,
+      Role.manager,
+      Role.waiter,
+      Role.kitchen,
+      Role.owner,
+      Role.customer,
+    ]),
+  )
+  getWaiterAnalytics(
+    @Param("id") id: string,
+    @Req() request: Record<string, any>,
+    @Query("sortBy") sortBy?: string,
+  ) {
+    const { business_id } = request.headers;
+    return this.staffsService.waiterAnalytics(+id, +business_id, sortBy);
+  }
+
+  @Get("kitchen/:id/analytics")
+  @UseGuards(
+    RoleGuard([
+      Role.admin,
+      Role.manager,
+      Role.waiter,
+      Role.kitchen,
+      Role.owner,
+      Role.customer,
+    ]),
+  )
+  getKitchenStaffAnalytics(
+    @Param("id") id: string,
+    @Req() request: Record<string, any>,
+    @Query("sortBy") sortBy?: string,
+  ) {
+    const { business_id } = request.headers;
+    return this.staffsService.kitchenStaffAnalytics(+id, +business_id, sortBy);
   }
 
   // @Patch(':id')
@@ -48,5 +128,14 @@ export class StaffsController {
   // @Delete(':id')
   // remove(@Param('id') id: string) {
   //   return this.staffsService.remove(+id);
+  // }
+
+  // @Get("")
+  // @UseGuards(RoleGuard([Role.admin, Role.waiter, Role.owner, Role.manager]))
+  // getStaffMetrics(@Req() request) {
+  //   const { business_id } = request.headers;
+  //   const { id: waiterId } = request.user;
+
+  //   return this.staffsService.getStaffMetrics(+waiterId, +business_id);
   // }
 }

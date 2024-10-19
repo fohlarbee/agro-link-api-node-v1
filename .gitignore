@@ -33,6 +33,7 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+.vscode/settings.json
 
 # environment variables.
 .env
@@ -45,3 +46,5 @@ dist
 
 # Dev files
 dev
+
+quik-quik-firebase-adminsdk-jxasy-478077a146.json

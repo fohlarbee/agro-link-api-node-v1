@@ -13,41 +13,75 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relationships
-  orders             Order[]
-  payments           Payment[]
-  restaurants        Staff[]
-  createdRestaurants Restaurant[]
-  shifts             Shift[]
+enum GuardRoles {
+  customer
+  admin
+  waiter
+  manager
+  kitchen
+  owner
+  guest
 }
 
-model Restaurant {
-  id          Int      @id @default(autoincrement())
+enum PaymentType {
+  DEPOSIT
+  ORDER_PAYMENT
+  REFUND
+  WALLET_TRANSFER
+  TIP
+  WALLET_CREDIT
+}
+
+enum OwnerType {
+  BUSINESS
+  CUSTOMER
+  WAITER
+  KITCHEN_STAFF
+}
+
+model User {
+  id         Int        @id @default(autoincrement())
+  email      String     @unique
+  password   String
+  name       String
+  avatar     String?
+  deviceUUID String?
+  role       GuardRoles @default(customer)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  // Relationships
+  orders            Order[]
+  payments          Payment[]
+  businesses        Staff[]
+  createdBusinesses Business[]
+  shifts            Shift[]
+  wallet            Wallet?
+  userDevices       UserDevice[]
+}
+
+model Business {
+  id          Int          @id @default(autoincrement())
   name        String
-  cacNumber   String   @db.VarChar(20)
+  cacNumber   String       @db.VarChar(20)
   phoneNumber String
   email       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  type        BusinessType @default(restaurant)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   // Relationships
   creatorId Int
-  creator   User     @relation(fields: [creatorId], references: [id])
+  creator   User      @relation(fields: [creatorId], references: [id])
   menus     Menu[]
-  meals     Meal[]
+  options   Option[]
   orders    Order[]
   roles     Role[]
   staffs    Staff[]
   outlets   Outlet[]
   shifts    Shift[]
+  wallet    Wallet?
+  payments  Payment[]
 }
 
 model Role {
@@ -57,12 +91,12 @@ model Role {
   updatedAt DateTime @updatedAt
 
   // Relationships
-  restaurantId Int
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-  staffs       Staff[]
-  shifts       Shift[]
+  businessId Int
+  business   Business @relation(fields: [businessId], references: [id])
+  staffs     Staff[]
+  shifts     Shift[]
 
-  @@unique([restaurantId, name])
+  @@unique([businessId, name])
 }
 
 model Staff {
@@ -70,28 +104,31 @@ model Staff {
   updatedAt DateTime @updatedAt
 
   // Relatioinships
-  userId       Int
-  user         User       @relation(fields: [userId], references: [id])
-  restaurantId Int
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-  roleId       Int
-  role         Role       @relation(fields: [roleId], references: [id])
-  shifts       Shift[]
-  orders       Order[]
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  businessId Int
+  business   Business @relation(fields: [businessId], references: [id])
+  roleId     Int
+  role       Role     @relation(fields: [roleId], references: [id])
+  shifts     Shift[]
+  // orders     Order[]
+
+  ordersAsWaiter       Order[] @relation("OrderWaiter")
+  ordersAsKitchenStaff Order[] @relation("OrderKitchenStaff")
 
   // Keys
-  @@id([userId, restaurantId])
-  @@unique([userId, restaurantId])
+  @@id([userId, businessId])
+  @@unique([userId, businessId])
 }
 
 model Outlet {
-  id           Int        @id @default(autoincrement())
-  address      String
+  id         Int      @id @default(autoincrement())
+  address    String
   // Relationships
-  restaurantId Int
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-  tables       Table[]
-  shifts       Shift[]
+  businessId Int
+  business   Business @relation(fields: [businessId], references: [id])
+  tables     Table[]
+  shifts     Shift[]
 }
 
 model Table {
@@ -107,25 +144,38 @@ model Table {
   orders         Order[]
 }
 
-model Shift {
+model Period {
   id        Int      @id @default(autoincrement())
-  startTime DateTime
-  endTime   DateTime
+  shiftId   Int
+  shift     Shift    @relation(fields: [shiftId], references: [id])
+  day       String
+  startTime String
+  endTime   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Shift {
+  id        Int       @id @default(autoincrement())
+  startTime DateTime?
+  endTime   DateTime?
+  active    Boolean?  @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   // Relationships
-  restaurantId   Int
-  restaurant     Restaurant    @relation(fields: [restaurantId], references: [id])
+  businessId     Int
+  business       Business      @relation(fields: [businessId], references: [id])
   outletId       Int
   outlet         Outlet        @relation(fields: [outletId], references: [id])
   userId         Int
   user           User          @relation(fields: [userId], references: [id])
   roleId         Int
   role           Role          @relation(fields: [roleId], references: [id])
-  staff          Staff         @relation(fields: [userId, restaurantId], references: [userId, restaurantId])
+  staff          Staff         @relation(fields: [userId, businessId], references: [userId, businessId])
   assignedTables ShiftTables[]
   orders         Order[]
+  periods        Period[]
 }
 
 model ShiftTables {
@@ -141,96 +191,230 @@ model ShiftTables {
 model Menu {
   id        Int      @id @default(autoincrement())
   name      String   @default("All")
+  type      MenuType @default(starters)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relationships
-  restaurantId Int
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
-  meals        MenuMeals[]
+  businessId Int
+  business   Business      @relation(fields: [businessId], references: [id])
+  options    MenuOptions[]
 }
 
-model MenuMeals {
-  menuId Int
-  menu   Menu @relation(fields: [menuId], references: [id])
-  mealId Int
-  meal   Meal @relation(fields: [mealId], references: [id])
+model MenuOptions {
+  menuId   Int
+  menu     Menu   @relation(fields: [menuId], references: [id])
+  optionId Int
+  option   Option @relation(fields: [optionId], references: [id])
 
   // Compound key
-  @@id([menuId, mealId])
+  @@id([menuId, optionId])
 }
 
-model Meal {
-  id        Int      @id @default(autoincrement())
+enum MenuType {
+  starters
+  breakfast
+  lunch
+  dinner
+  mains
+}
+
+model Option {
+  id        Int        @id @default(autoincrement())
   name      String
   price     Float
   image     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  type      optionType @default(meal)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   // Relationships
-  restaurantId Int
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
-  menu         MenuMeals[]
-  orders       OrderMeal[]
+  businessId Int
+  business   Business      @relation(fields: [businessId], references: [id])
+  menu       MenuOptions[]
+  orders     OrderOption[]
+}
+
+enum optionType {
+  meal
+  drink
 }
 
 model Order {
   id          Int         @id @default(autoincrement())
   status      OrderStatus @default(active)
   createdAt   DateTime    @default(now())
+  tip         Float?      @default(0)
   paidAt      DateTime?
   completedAt DateTime?
   cancelledAt DateTime?
 
+  cancelledBy Int?     @default(0)
   // Relationships
-  customerId   Int
-  customer     User        @relation(fields: [customerId], references: [id])
-  restaurantId Int
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
-  payment      Payment?
-  tableId      Int
-  table        Table       @relation(fields: [tableId], references: [id])
-  shiftId      Int
-  shift        Shift       @relation(fields: [shiftId], references: [id])
-  waiterId     Int
-  waiter       Staff       @relation(fields: [waiterId, restaurantId], references: [userId, restaurantId])
-  meals        OrderMeal[]
+  customerId  Int
+  customer    User     @relation(fields: [customerId], references: [id])
+  businessId  Int
+  business    Business @relation(fields: [businessId], references: [id])
+  paymentId   Int?
+  payment     Payment? @relation(fields: [paymentId], references: [id])
+  tableId     Int
+  table       Table    @relation(fields: [tableId], references: [id])
+  shiftId     Int
+  shift       Shift    @relation(fields: [shiftId], references: [id])
+  // waiterId   Int
+  // waiter     Staff         @relation(fields: [waiterId, businessId], references: [userId, businessId])
+
+  waiterId       Int
+  waiter         Staff         @relation("OrderWaiter", fields: [waiterId, businessId], references: [userId, businessId])
+  kitchenStaffId Int?
+  kitchenStaff   Staff?        @relation("OrderKitchenStaff", fields: [kitchenStaffId, businessId], references: [userId, businessId])
+  options        OrderOption[]
 }
 
 enum OrderStatus {
-  active
-  paid
-  queue
-  kitchen
-  completed
-  cancelled
+  active //The order has been placed by the customer but is yet to be processed by the business.
+  payment_pending //The order has been placed by the customer but is yet to be processed by the business.
+  paid //indicates successful payment
+  failed //means the payment was unsuccessful.
+  preparing //The business has accepted the order and is currently preparing the food.
+  rejected //The business has declined the order, possibly due to being too busy, out of stock items, or other reasons.
+  cancelled //The order has been canceled by either the customer or the business.
+  ready //The food is prepared and ready for pickup or delivery.
+  delivered //The order has been delivered to the customer or picked up by the customer.
+  completed //The order has been delivered to the customer or picked up by the customer.
 }
 
-model OrderMeal {
+enum BusinessType {
+  restaurant
+  bar
+}
+
+model OrderOption {
   quantity Int
 
   // relationships
-  orderId Int
-  order   Order @relation(fields: [orderId], references: [id])
-  mealId  Int
-  meal    Meal  @relation(fields: [mealId], references: [id])
+  orderId  Int
+  order    Order  @relation(fields: [orderId], references: [id])
+  optionId Int
+  option   Option @relation(fields: [optionId], references: [id])
 
   // Compound key
-  @@id([orderId, mealId])
+  @@id([orderId, optionId])
 }
 
 model Payment {
-  id        Int      @id @default(autoincrement())
-  amount    Float
-  reference String   @unique
-  paidAt    DateTime
+  id         Int             @id @default(autoincrement())
+  amount     Float
+  reference  String          @unique
+  type       PaymentType
+  paidAt     DateTime        @default(now())
+  provider   PaymentProvider @default(PAYSTACK)
+  providerId String          @unique
 
   // Relationships
-  orderId Int   @unique
-  order   Order @relation(fields: [orderId], references: [id])
-  userId  Int
-  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders     Order[]
+  userId     Int?
+  businessId Int?
+  business   Business? @relation(fields: [businessId], references: [id])
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletId   Int?
+  wallet     Wallet?   @relation(fields: [walletId], references: [id])
+}
+
+enum PaymentProvider {
+  PAYSTACK
+  FLUTTERWAVE
+  MONNIFY
+  MONO
+  MOMO_PSB
+  QQ_WALLET
+  CUSTOMER_TIP
+  CASH
+  POS
+}
+
+model Otp {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  otp        String
+  isVerified Boolean
+  for        String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Wallet {
+  id         Int      @id @default(autoincrement())
+  balance    Float
+  userId     Int?     @unique
+  businessId Int?     @unique
+  pin        String?  @unique
+  locked     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  //Relationships
+  user       User?      @relation(fields: [userId], references: [id])
+  business   Business?  @relation(fields: [businessId], references: [id])
+  authTokens AuthCode[]
+  payments   Payment[]
+
+  @@unique([userId, businessId])
+}
+
+enum TokenType {
+  SEND
+  RECEIVE
+  TRANSFER
+}
+
+model AuthCode {
+  type      TokenType
+  code      String    @unique
+  expired   Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  //Relationships
+  walletId Int
+  wallet   Wallet @relation(fields: [walletId], references: [id])
+}
+
+enum DeviceState {
+  ACTIVE
+  INACTIVE
+  DELETED
+}
+
+model UserDevice {
+  id          Int    @id @default(autoincrement())
+  deviceType  String
+  deviceToken String @unique
+  status      DeviceState @default(ACTIVE)
+
+  // Relationships
+  userId        Int
+  user          User            @relation(fields: [userId], references: [id])
+  notifications Notifications[]
+
+  // @@map("user_device")
+}
+
+model Notifications {
+  id        Int     @id @default(autoincrement())
+  read      Boolean @default(false)
+  title     String
+  body      String?
+  metadata  Json
+  createdBy String
+
+
+  //Relationships
+  userDeviceId Int
+  userDevice   UserDevice @relation(fields: [userDeviceId], references: [id])
+
+  // @@map("notifications")
 }
 
 

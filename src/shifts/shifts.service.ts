@@ -1,99 +1,143 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateShiftDto } from './dto/create-shift.dto';
-import { UpdateShiftDto } from './dto/update-shift.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { CreateShiftDto, UpdatePeriodDto } from "./dto/create-shift.dto";
+import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
 export class ShiftsService {
   constructor(private prisma: PrismaService) {}
 
-  async createShift(restaurantId: number, shiftData: CreateShiftDto) {
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id: restaurantId }
+  async createShift(businessId: number, shiftData: CreateShiftDto) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
     });
-    if (!restaurant) throw new NotFoundException("No such restaurant.");
+
+    if (!business) throw new NotFoundException("No such business.");
     const shiftRole = await this.prisma.role.findFirst({
-      where: { id: shiftData.roleId, restaurantId }
+      where: { id: shiftData.roleId, businessId },
     });
     const outlet = await this.prisma.outlet.findFirst({
-      where: { id: shiftData.outletId, restaurantId }
+      where: { id: shiftData.outletId, businessId },
     });
-    if (!outlet) throw new BadRequestException("No such outlet in restaurant");
+    if (!outlet) throw new BadRequestException("No such outlet in business");
     if (!shiftRole) throw new BadRequestException("Invalid role selected");
     const assignee = await this.prisma.staff.findFirst({
-      where: { userId: shiftData.userId, roleId: shiftRole.id, restaurantId }
+      where: { userId: shiftData.userId, roleId: shiftRole.id, businessId },
     });
-    if (!assignee) throw new BadRequestException(`No such staff for ${shiftRole.name} role`);
+    if (!assignee)
+      throw new BadRequestException(`No such staff for ${shiftRole.name} role`);
     const shift = await this.prisma.shift.create({
       data: {
-        role: { connect: { id: shiftRole.id }},
-        user: { connect: { id: assignee.userId }},
-        restaurant: { connect: { id: restaurant.id }},
-        outlet: { connect: { id: shiftData.outletId }},
-        staff: { connect: { userId_restaurantId: { 
-          userId: assignee.userId,
-          restaurantId
-        }}},
+        role: { connect: { id: shiftRole.id } },
+        user: { connect: { id: assignee.userId } },
+        business: { connect: { id: business.id } },
+        outlet: { connect: { id: shiftData.outletId } },
+        staff: {
+          connect: {
+            userId_businessId: {
+              userId: assignee.userId,
+              businessId,
+            },
+          },
+        },
         startTime: shiftData.startTime,
-        endTime: shiftData.endTime
-      }
+        endTime: shiftData.endTime,
+        // periods: { createMany: { data: shiftData.periods } },
+      },
     });
+
+    shiftData.periods.forEach(async (period) => {
+      await this.prisma.period.create({
+        data: {
+          day: period.day,
+          startTime: period.startTime,
+          endTime: period.endTime,
+          shiftId: shift.id,
+        },
+      });
+    });
+
     return {
       message: "Shift created successfully",
-      status: "success", data: { shift }
+      status: "success",
+      data: { shift },
     };
   }
 
-  async findAllShifts(restaurantId: number) {
+  async findAllShifts(businessId: number) {
     const shifts = await this.prisma.shift.findMany({
-      where: { restaurantId },
+      where: { businessId },
       include: {
         assignedTables: {
           include: {
-            table: true
-          }
+            table: true,
+          },
         },
         outlet: true,
         user: true,
-        role: true
-      }
-    })
+        role: true,
+      },
+    });
     return {
       message: "Shifts fetched successfully",
-      status: "success", data: shifts
+      status: "success",
+      data: shifts,
     };
   }
 
-  async assignShiftTables(restaurantId: number, shiftId: number, tableIds: number[]) {
+  async assignShiftTables(
+    businessId: number,
+    shiftId: number,
+    tableIds: number[],
+  ) {
     const shift = await this.prisma.shift.findFirst({
-      where: { id: shiftId, restaurantId }
+      where: { id: shiftId, businessId },
     });
-    const tables = await Promise.all(tableIds.map(async tableId => {
-      const table = await this.prisma.table.findFirst({
-        where: { id: tableId, outletId: shift.outletId }
-      });
-      return { tableId, table }
-    }));
-    const invalidTableIds = tables.filter(table => !table.table).map(table => table.tableId);
-    if (invalidTableIds.length > 0) throw new BadRequestException(`These tables do not exist in shift outlet ${invalidTableIds}`);
+    const tables = await Promise.all(
+      tableIds.map(async (tableId) => {
+        const table = await this.prisma.table.findFirst({
+          where: { id: tableId, outletId: shift.outletId },
+        });
+        return { tableId, table };
+      }),
+    );
+    const invalidTableIds = tables
+      .filter((table) => !table.table)
+      .map((table) => table.tableId);
+    if (invalidTableIds.length > 0)
+      throw new BadRequestException(
+        `These tables do not exist in shift outlet ${invalidTableIds}`,
+      );
     await this.prisma.shiftTables.createMany({
-      data: tableIds.map(tableId => ({ shiftId, tableId }))
+      data: tableIds.map((tableId) => ({ shiftId, tableId })),
     });
+
     return {
       message: "Tables assigned successfully",
-      status: "success"
+      status: "success",
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} shift`;
-  }
+  async updatePeriod(periodId: number, updateDto: UpdatePeriodDto) {
+    if (!periodId) throw new BadRequestException("Period ID is required");
 
-  update(id: number, updateShiftDto: UpdateShiftDto) {
-    return `This action updates a #${id} shift`;
-  }
+    const period = await this.prisma.period.findUnique({
+      where: { id: periodId },
+    });
 
-  remove(id: number) {
-    return `This action removes a #${id} shift`;
+    if (!period) throw new NotFoundException("No such period");
+
+    await this.prisma.period.update({
+      where: { id: periodId },
+      data: updateDto,
+    });
+
+    return {
+      message: "Period updated successfully",
+      status: "success",
+    };
   }
 }

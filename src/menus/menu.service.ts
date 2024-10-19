@@ -1,125 +1,184 @@
-import { BadRequestException, Injectable, NotFoundException, PreconditionFailedException } from '@nestjs/common';
-import { CreateMealDto } from '../meals/dto/create-meal.dto';
-import { UpdateMealDto } from '../meals/dto/update-meal.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import * as fs from 'fs';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "src/prisma/prisma.service";
 
+export enum MenuTypes {
+  starters = "starters",
+  breakfast = "breakfast",
+  lunch = "lunch",
+  dinner = "dinner",
+  mains = "mains",
+}
 @Injectable()
 export class MenuService {
   constructor(private prisma: PrismaService) {}
 
-  async createMenu({ name, restaurantId }: { name: string, restaurantId: number }) {
-    await this.isValidRestaurant(restaurantId);
-    const menu = await this.prisma
-      .menu
-      .create({ 
-        data: { restaurantId, name },
-        select: { id: true, name: true }
-      });
-    return { 
-      message: "Menu successfully created", 
-      status: "success", data: { menu }
+  async createMenu(name: string, businessId: number, menuType: any) {
+    await this.isValidBusiness(businessId);
+    const menu = await this.prisma.menu.create({
+      data: {
+        businessId,
+        name,
+        type: menuType,
+      },
+      select: { id: true, name: true },
+    });
+    return {
+      message: "Menu successfully created",
+      status: "success",
+      data: { menu },
     };
   }
 
-  private async isValidRestaurant(restaurantId: number) {
-    const restaurant = await this.prisma
-      .restaurant
-      .findUnique({
-        where: { id: restaurantId }
-      });
-    if (!restaurant) throw new NotFoundException(`No restaurant with id ${restaurantId}`)
+  private async isValidBusiness(businessId: number) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
+    });
+    if (!business)
+      throw new NotFoundException(`No business with id ${businessId}`);
   }
 
-  async findAllMenus(restaurantId: number) {
-    await this.isValidRestaurant(restaurantId);
+  async findAllMenus(businessId: number) {
+    await this.isValidBusiness(businessId);
     const menus = await this.prisma.menu.findMany({
-      where: { restaurantId },
-      select: { id: true, name: true }
+      where: { businessId },
+      select: {
+        id: true,
+        name: true,
+        business: {
+          select: {
+            id: true,
+            name: true,
+            outlets: true,
+          },
+        },
+      },
     });
 
     return {
       message: "Menus fetched successfully",
-      status: "success", data: menus
+      status: "success",
+      data: menus,
     };
   }
 
-  async findMenusWithMeals(restaurantId: number) {
-    await this.isValidRestaurant(restaurantId);
+  async findMenusWithOptions(businessId: number) {
+    await this.isValidBusiness(businessId);
     const menus = await this.prisma.menu.findMany({
-      where: { restaurantId },
-      select: { 
-        id: true, name: true, meals: {
-        select: { meal: { select: {
-          id: true, name: true, image: true, price: true, 
-        }}}
-      }}
+      where: { businessId },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        businessId: true,
+        options: {
+          select: {
+            option: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                price: true,
+              },
+            },
+          },
+        },
+        business: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
+      select: {
+        name: true,
+        id: true,
+      },
+    });
+
+    const menuData = menus.reduce(
+      (acc, menu) => {
+        const typeName = menu.type.toLowerCase();
+        acc.menu[typeName] = acc.menu[typeName] || [];
+        acc.menu[typeName].push(...menu.options.map((option) => option.option));
+        return acc;
+      },
+      { menu: {} },
+    );
+
+    return {
+      id: menus ? menus[0].id : null,
+      business_id: business.id,
+      business_name: business.name,
+      ...menuData,
+    };
+  }
+
+  async addMenuOptions(
+    businessId: number,
+    menuId: number,
+    optionIds: number[],
+  ) {
+    await this.isValidMenu(businessId, menuId);
+    const validIds = (
+      await Promise.all(
+        optionIds.map(async (optionId) => {
+          const option = await this.prisma.option.findFirst({
+            where: { id: optionId, businessId },
+          });
+          return option ? optionId : null;
+        }),
+      )
+    ).filter((optionId) => optionId);
+
+    await this.prisma.menuOptions.createMany({
+      data: validIds.map((optionId) => ({ optionId, menuId })),
+      skipDuplicates: true,
     });
 
     return {
-      message: "Menus fetched successfully",
-      status: "success", data: menus.map(menu => {
-        const { meals, ...menuInfo } =  menu;
-        return {
-          ...menuInfo,
-          meals: meals.map(meal => ({ ...meal.meal }))
-        }
-      })
+      message: "Options added to menu successfully",
+      status: "success",
     };
   }
 
-  async addMenuMeals(restaurantId: number, menuId: number, mealIds: number[]) {
-    await this.isValidMenu(restaurantId, menuId);
-    const validIds = (await Promise.all(mealIds.map(async mealId => {
-      const meal = await this.prisma
-        .meal
-        .findFirst({
-          where: { id: mealId, restaurantId }
-        });
-      return meal ? mealId : null;
-    }))).filter(mealId => mealId);
-
-    await this.prisma
-      .menuMeals
-      .createMany({
-        data: validIds.map(mealId => ({ mealId, menuId })),
-        skipDuplicates: true
-      });
-    
-    return {
-      message: "Meals added to menu successfully",
-      status: "success"
-    };
-  }
-
-  private async isValidMenu(restaurantId: number, menuId: number) {
-    await this.isValidRestaurant(restaurantId);
+  private async isValidMenu(businessId: number, menuId: number) {
+    await this.isValidBusiness(businessId);
     const menu = await this.prisma.menu.findFirst({
-      where: { id: menuId, restaurantId },
+      where: { id: menuId, businessId },
     });
     if (!menu) throw new NotFoundException(`Invalid menu`);
   }
 
-  async removeMenuMeals(restaurantId: number, menuId: number, mealIds: number[]) {
-    await this.isValidMenu(restaurantId, menuId);
-    const validIds = (await Promise.all(mealIds.map(async mealId => {
-      const meal = await this.prisma
-        .menuMeals
-        .findFirst({
-          where: { mealId, menuId }
-        });
-      return meal ? mealId : null;
-    }))).filter(mealId => mealId);
+  async removeMenuOptions(
+    businessId: number,
+    menuId: number,
+    optionIds: number[],
+  ) {
+    await this.isValidMenu(businessId, menuId);
+    const validIds = (
+      await Promise.all(
+        optionIds.map(async (optionId) => {
+          const option = await this.prisma.menuOptions.findFirst({
+            where: { optionId, menuId },
+          });
+          return option ? optionId : null;
+        }),
+      )
+    ).filter((optionId) => optionId);
 
-    await this.prisma
-      .menuMeals
-      .deleteMany({
-        where: { mealId: { in: validIds }, menuId },
-      });
-    
+    await this.prisma.menuOptions.deleteMany({
+      where: { optionId: { in: validIds }, menuId },
+    });
+
     return {
-      message: "Meals removed from menu successfully",
-      status: "success"
+      message: "Options removed from menu successfully",
+      status: "success",
     };
   }
 }

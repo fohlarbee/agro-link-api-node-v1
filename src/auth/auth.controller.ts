@@ -1,27 +1,87 @@
-import { BadRequestException, Body, Controller, Headers, HttpCode, HttpStatus, Post, Request, UnauthorizedException, UseInterceptors } from '@nestjs/common';
-import { ApiCreatedResponse, ApiHeaders, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
-import { AuthEntity } from './entity/auth.entity';
-import { AuthDto, LoginDto } from './dto/auth.dto';
-import { HeadersInterceptor } from './interceptors/headers.interceptor';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseGuards,
+  UseInterceptors,
+} from "@nestjs/common";
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { AuthService } from "./auth.service";
+import { AuthEntity } from "./entities/auth.entity";
+import {
+  AuthDto,
+  LoginDto,
+  ResetDeviceUUIDDto,
+  ResetPasswordDto,
+  Role,
+  SendRegistrationEmailDto,
+  VerificationDto,
+} from "./dto/auth.dto";
+import {
+  parseFileInterceptor,
+  FileUploadInterceptor,
+} from "src/utils/interceptors/file-upload.interceptor";
+import RoleGuard from "./role/role.guard";
 
-@Controller('auth')
-@ApiTags('Authentication')
-// @UseInterceptors(HeadersInterceptor)
-// @ApiHeaders([{ name: "cm-user-role", required: true, description: "This is role of the user to be signed"}])
+@Controller("auth")
+@ApiTags("Authentication")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('login')
+  @Post("login")
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: AuthEntity, status: HttpStatus.OK })
-  login(@Body() { email, password }: LoginDto) {
-    return this.authService.login(email, password);
+  login(@Body() { email, password, deviceUUID }: LoginDto) {
+    return this.authService.login(email, password, deviceUUID);
   }
 
-  @Post('register')
+  @Post("register")
+  @UseInterceptors(parseFileInterceptor, FileUploadInterceptor)
   @ApiCreatedResponse()
   register(@Body() body: AuthDto) {
     return this.authService.register(body);
+  }
+
+  @Post("otp/generate")
+  @ApiCreatedResponse()
+  sendVerificationEmail(@Body() { email }: SendRegistrationEmailDto) {
+    return this.authService.sendVerificationEmail(email);
+  }
+  @Post("/create/guestuser")
+  @ApiCreatedResponse()
+  createGuestUser(@Body() body: any) {
+    const { isGuest } = body;
+    return this.authService.createGuestUser(isGuest);
+  }
+
+  @Post("otp/verify")
+  @ApiCreatedResponse()
+  verifyOTP(@Body() { otp, email }: VerificationDto) {
+    return this.authService.verifyOTP(otp, email);
+  }
+  @Post("otp/reset")
+  @ApiCreatedResponse()
+  sendResetEmail(@Body() { email }: SendRegistrationEmailDto) {
+    return this.authService.sendresetEmail(email);
+  }
+
+  @Post("reset/password")
+  @ApiCreatedResponse()
+  resetPassword(@Body() { email, newPassword }: ResetPasswordDto) {
+    return this.authService.resetPassword(email, newPassword);
+  }
+
+  @Post("otp/verifydevice")
+  @ApiCreatedResponse()
+  sendVerifyDeviceUUIDEmail(@Body() { email }: SendRegistrationEmailDto) {
+    return this.authService.sendVerifyDeviceUUIDEmail(email);
+  }
+
+  @Post("reset/deviceUUID")
+  @ApiCreatedResponse()
+  resetDeviceUUID(@Body() { email, deviceUUID }: ResetDeviceUUIDDto) {
+    return this.authService.resetDeviceUUID(email, deviceUUID);
   }
 }

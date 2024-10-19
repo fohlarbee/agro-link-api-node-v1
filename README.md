@@ -2,6 +2,7 @@
 
 ## Description
 Agro-link is a full suite service platform that provide farmers-consumers with a holistic platform for farm-orders management, delivery and payment. Target businesses are currently farmers and customers.
+
 ## Dependencies Installation
 
 ```bash

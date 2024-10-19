@@ -1,7 +1,7 @@
-import { ArgumentsHost, Catch, HttpStatus } from '@nestjs/common';
-import { BaseExceptionFilter } from '@nestjs/core';
-import { Prisma  } from '@prisma/client';
-import { Response } from 'express';
+import { ArgumentsHost, Catch, HttpStatus } from "@nestjs/common";
+import { BaseExceptionFilter } from "@nestjs/core";
+import { Prisma } from "@prisma/client";
+import { Response } from "express";
 
 @Catch()
 export class PrismaClientExceptionFilter extends BaseExceptionFilter {
@@ -12,7 +12,7 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
     // const message = exception.message.replace(/\n/g, '');
 
     switch (exception.code) {
-      case 'P2002': {
+      case "P2002": {
         const status = HttpStatus.CONFLICT;
         response.status(status).json({
           statusCode: status,
@@ -20,7 +20,7 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
         });
         break;
       }
-      case 'P2025': {
+      case "P2025": {
         const status = HttpStatus.NOT_FOUND;
         response.status(status).json({
           statusCode: status,

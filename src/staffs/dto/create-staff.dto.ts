@@ -1,20 +1,46 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsAlpha, IsEmail, IsNotEmpty, IsNumber, IsPositive, IsString } from "class-validator";
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsPositive,
+  IsString,
+} from "class-validator";
+import { Role } from "src/auth/dto/auth.dto";
+
+export class _CreateStaffDto {
+  @IsEmail()
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ required: true })
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ required: true })
+  name: string;
+
+  @IsNumber()
+  @IsPositive()
+  @ApiProperty({ required: true })
+  roleId: number;
+}
 
 export class CreateStaffDto {
-    @IsEmail()
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty({ required: true })
-    email: string;
+  @IsEmail()
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ required: true })
+  email: string;
 
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty({ required: true })
-    name: string;
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ required: true })
+  name: string;
 
-    @IsNumber()
-    @IsPositive()
-    @ApiProperty({ required: true })
-    roleId: number;
+  @IsEnum(Role)
+  @IsString()
+  @ApiProperty({ required: true })
+  role: Role;
 }

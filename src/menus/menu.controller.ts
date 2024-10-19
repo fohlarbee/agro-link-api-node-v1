@@ -1,52 +1,84 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Put, BadRequestException } from '@nestjs/common';
-import { MenuService } from './menu.service';
-import { CreateMealDto } from '../meals/dto/create-meal.dto';
-import { UpdateMealDto } from '../meals/dto/update-meal.dto';
-import { Roles } from 'src/auth/roles/roles.decorator';
-import { ApiBearerAuth, ApiCreatedResponse, ApiHeader, ApiHeaders, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RoleGuard } from 'src/auth/role/role.guard';
-import { CreateMenuDto } from './dto/create-menu.dto';
-import { mealIdsDto } from './dto/meal-ids.dto';
-import { BaseResponse } from 'src/app/entities/BaseResponse.entity';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Req,
+  UseInterceptors,
+  UseGuards,
+  Param,
+  Delete,
+} from "@nestjs/common";
+import { MenuService } from "./menu.service";
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiHeader,
+  ApiOkResponse,
+  ApiTags,
+} from "@nestjs/swagger";
+import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
+import { CreateMenuDto } from "./dto/create-menu.dto";
+import { optionIdsDto } from "./dto/option-ids.dto";
+import { BaseResponse } from "src/app/entities/BaseResponse.entity";
+import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
+import RoleGuard from "src/auth/role/role.guard";
+import { Role } from "src/auth/dto/auth.dto";
 
-@Controller('admin/menus')
+@Controller("admin/menus")
 @ApiTags("Menus")
-@ApiHeader({ 
+@ApiHeader({
   name: "business_id",
   required: true,
   description: "This is the business id",
 })
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(HttpAuthGuard)
+@UseInterceptors(BusinessAccessInterceptor)
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
   @Post()
+  @UseGuards(RoleGuard([Role.admin, Role.owner, Role.manager, Role.kitchen]))
   @ApiCreatedResponse()
-  createMenu(@Body() { name }: CreateMenuDto, @Req() request) {
+  createMenu(@Body() { name, menuType }: CreateMenuDto, @Req() request) {
     const { business_id } = request.headers;
-    return this.menuService.createMenu({ name, restaurantId: +business_id });
+
+    return this.menuService.createMenu(name, +business_id, menuType);
   }
 
   @Get()
-  @ApiOkResponse({ })
+  @ApiOkResponse({})
   async findAll(@Req() request) {
     const { business_id } = request.headers;
     return this.menuService.findAllMenus(+business_id);
   }
 
-  @Post(':id/add-meals')
+  @Post(":id/options")
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
   @ApiOkResponse({ type: BaseResponse })
-  async assignMeals(@Param('id') mealId: number, @Body() { mealIds }: mealIdsDto, @Req() request) {
+  async assignOptions(
+    @Param("id") optionId: number,
+    @Body() { optionIds }: optionIdsDto,
+    @Req() request,
+  ) {
     const { business_id } = request.headers;
-    return this.menuService.addMenuMeals(+business_id, +mealId, mealIds);
+    return this.menuService.addMenuOptions(+business_id, +optionId, optionIds);
   }
 
-  @Post(':id/remove-meals')
+  @Delete(":id/options")
+  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
   @ApiOkResponse({ type: BaseResponse })
-  async removeMeals(@Param('id') mealId: number, @Body() { mealIds }: mealIdsDto, @Req() request) {
+  async removeOptions(
+    @Param("id") optionId: number,
+    @Body() { optionIds }: optionIdsDto,
+    @Req() request,
+  ) {
     const { business_id } = request.headers;
-    return this.menuService.removeMenuMeals(+business_id, +mealId, mealIds);
+    return this.menuService.removeMenuOptions(
+      +business_id,
+      +optionId,
+      optionIds,
+    );
   }
 }
