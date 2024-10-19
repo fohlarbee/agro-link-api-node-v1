@@ -1,7 +1,7 @@
-# Chopmoni NestJS API
+# Agro-link.ng NestJS API
 
 ## Description
-Agro-fast is a full suite service platform that provide vendors with a holistic platform for farm-orders management, delivery and payment. Target businesses are currently farmers and customers.
+Agro-link is a full suite service platform that provide vendors with a holistic platform for farm-orders management, delivery and payment. Target businesses are currently farmers and customers.
 
 ## Dependencies Installation
 
