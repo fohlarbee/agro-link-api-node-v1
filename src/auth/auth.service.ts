@@ -152,7 +152,7 @@ export class AuthService {
     });
     if (!existingUser)
       throw new UnauthorizedException("Email address not validd");
-    let name = existingUser.name;
+    const name = existingUser.name;
     const otpExits = await this.prisma.otp.findFirst({ where: { email } });
     if (otpExits) {
       if (otpExits && Number(otpExits.expiresAt.getTime()) < Date.now()) {
@@ -193,7 +193,8 @@ export class AuthService {
     });
     if (!otpRecord)
       throw new UnauthorizedException("Please verify Email to proceed");
-    if (!otpRecord.isVerified) throw new UnauthorizedException("OTP has not been verified");
+    if (!otpRecord.isVerified)
+      throw new UnauthorizedException("OTP has not been verified");
 
     const hashedPassword = bcrypt.hashSync(newPassword, bcrypt.genSaltSync());
     await this.prisma.user.update({
