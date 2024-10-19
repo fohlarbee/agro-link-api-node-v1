@@ -403,3 +403,15 @@ model Notifications {
 
   // @@map("notifications")
 }
+
+
+model BarItem{
+  id             Int       @id @default(autoincrement())
+  name           String
+  description    String
+  price          Int
+  image          String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt 
+
+}
