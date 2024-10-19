@@ -10,11 +10,7 @@ import {
 export enum Role {
   customer = "customer",
   admin = "admin",
-  waiter = "waiter",
-  manager = "manager",
-  kitchen = "kitchen",
-  owner = "owner",
-  guest = "guest",
+  attendant = "attendant",
 }
 export class LoginDto {
   @IsEmail()

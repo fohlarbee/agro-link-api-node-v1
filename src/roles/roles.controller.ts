@@ -34,7 +34,7 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
-  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.owner]))
+  @UseGuards(RoleGuard([Role.admin]))
   @ApiOkResponse({ type: RoleCreationResponse })
   create(
     @Body() createRoleDto: CreateRoleDto,
@@ -45,7 +45,7 @@ export class RolesController {
   }
 
   @Get()
-  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.owner]))
+  @UseGuards(RoleGuard([Role.admin]))
   @ApiOkResponse({ type: RoleListResponse })
   findAll(@Req() request: Record<string, any>) {
     const { business_id } = request.headers;

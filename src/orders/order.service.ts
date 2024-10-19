@@ -315,7 +315,7 @@ export class OrderService {
             }, 0) + order.tip,
         };
         this.event.notifyBusiness(businessId, "orderPayment", payload);
-        this.event.notifyWaiter(order.waiterId, "paymentPending", payload);
+        // this.event.notifyWaiter(order.waiterId, "paymentPending", payload);
         this.notificationService.sendPush(order.waiterId, {
           title: "Order",
           body: `Order payment for id ${order.id} is pending`,
@@ -394,7 +394,7 @@ export class OrderService {
     if (!kitchenStaffs) throw new NotFoundException("No staffs found");
 
     kitchenStaffs.forEach((staff) => {
-      this.event.notifyKitchen(staff.userId, "orderPayment", metadata);
+      this.event.notifyUser(staff.userId, "orderPayment", metadata);
       this.notificationService.sendPush(staff.userId, {
         title: "orderPayment",
         body: "OrderPayment successful",
@@ -414,7 +414,7 @@ export class OrderService {
 
     if (!orders.length) throw new NotFoundException("No orders found");
     orders.forEach((order) => {
-      this.event.notifyWaiter(order.waiterId, "orderPayment", metadata);
+      // this.event.notifyWaiter(order.waiterId, "orderPayment", metadata);
       this.notificationService.sendPush(order.waiterId, {
         title: "orderPayment",
         body: "OrderPayment successful",
@@ -512,9 +512,9 @@ export class OrderService {
       status: OrderStatus.preparing,
       type: "ORDER_ACCEPTED",
     };
-    this.event.notifyKitchen(kitchenStaffId, "acceptedOrder", payload);
+    // this.event.notifyKitchen(kitchenStaffId, "acceptedOrder", payload);
     this.event.notifyUser(order.customerId, "acceptedOrder", payload);
-    this.event.notifyWaiter(order.waiterId, "acceptedOrder", payload);
+    // this.event.notifyWaiter(order.waiterId, "acceptedOrder", payload);
     return {
       message: "Order is accepted",
       status: "success",
@@ -560,7 +560,7 @@ export class OrderService {
       status: OrderStatus.ready,
       type: "order",
     };
-    this.event.notifyWaiter(order.waiterId, "orderIsReady", payload);
+    // this.event.notifyWaiter(order.waiterId, "orderIsReady", payload);
     this.notificationService.sendPush(order.waiterId, {
       title: "OrderIsReady",
       body: `Order ${orderId} is ready`,
@@ -635,7 +635,7 @@ export class OrderService {
         },
       });
 
-      this.event.notifyWaiter(getOrder.waiterId, "tips", payload);
+      // this.event.notifyWaiter(getOrder.waiterId, "tips", payload);
       this.notificationService.sendPush(getOrder.waiterId, {
         title: "Tips",
         body: `You've received a tip of ${getOrder.tip}`,
@@ -648,7 +648,7 @@ export class OrderService {
       body: `Order ${getOrder.id} delivered}`,
       metadata: payload,
     });
-    this.event.notifyWaiter(getOrder.waiterId, "orderDelivered", payload);
+    // this.event.notifyWaiter(getOrder.waiterId, "orderDelivered", payload);
 
     return {
       message: "Order is marked as delivered",
@@ -687,8 +687,8 @@ export class OrderService {
       data: { status: OrderStatus.completed },
     });
     this.event.notifyUser(order.customerId, "orderCompleted", payload);
-    this.event.notifyWaiter(order.waiterId, "orderCompleted", payload);
-    this.event.notifyKitchen(order.kitchenStaffId, "orderCompleted", payload);
+    // this.event.notifyWaiter(order.waiterId, "orderCompleted", payload);
+    // this.event.notifyKitchen(order.kitchenStaffId, "orderCompleted", payload);
   }
 
   async confirmPayment(
@@ -770,9 +770,9 @@ export class OrderService {
       });
       if (!kitchenStaffs) throw new NotFoundException("No staffs found");
 
-      kitchenStaffs.forEach((staff) => {
-        this.event.notifyKitchen(staff.userId, "orderPayment", metadata);
-      });
+      // kitchenStaffs.forEach((staff) => {
+      // this.event.notifyKitchen(staff.userId, "orderPayment", metadata);
+      // });
       this.notificationService.sendPush(order.customerId, {
         title: "Order Payment",
         body: "Order Payment confirmed",

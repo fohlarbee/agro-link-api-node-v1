@@ -39,7 +39,8 @@ lerna-debug.log*
 .env
 
 # Build folder
-dist
+/dist
+/prisma/migrations/
 
 # Uploads folder
 /uploads
@@ -47,4 +48,4 @@ dist
 # Dev files
 dev
 
-quik-quik-firebase-adminsdk-jxasy-478077a146.json
+agro-link-ng-firebase-adminsdk-f38ia-6e61848e02.json

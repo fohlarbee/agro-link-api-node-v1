@@ -19,7 +19,6 @@ export class OtpService {
   }: CreateOTPDto): Promise<any> {
     subject = "Email Verification";
     purpose = "Enter the Code below to Proceed to Account creation";
-
     return await this.mailService.sendEmail(
       email,
       generatedOTP,
@@ -46,6 +45,7 @@ export class OtpService {
 
   async sendResetPasswordEmail({
     email,
+    name,
     generatedOTP,
     subject,
     purpose,
@@ -58,6 +58,10 @@ export class OtpService {
       generatedOTP,
       purpose,
       subject,
+      name,
+      undefined,
+      false,
+      true,
     );
   }
 

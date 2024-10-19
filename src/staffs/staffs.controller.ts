@@ -38,7 +38,7 @@ export class StaffsController {
   constructor(private readonly staffsService: StaffsService) {}
 
   @Post()
-  @UseGuards(RoleGuard([Role.admin, Role.manager]))
+  @UseGuards(RoleGuard([Role.admin]))
   @ApiOkResponse({ type: BaseResponse })
   create(
     @Body() createStaffDto: CreateStaffDto,
@@ -49,15 +49,7 @@ export class StaffsController {
   }
 
   @Get()
-  @UseGuards(
-    RoleGuard([
-      Role.admin,
-      Role.manager,
-      Role.waiter,
-      Role.kitchen,
-      Role.owner,
-    ]),
-  )
+  @UseGuards(RoleGuard([Role.admin, Role.attendant, Role.customer]))
   @ApiOkResponse({ type: StaffListResponse })
   findAll(@Req() request: Record<string, any>) {
     const { business_id } = request.headers;
@@ -65,15 +57,7 @@ export class StaffsController {
   }
 
   @Get(":id")
-  @UseGuards(
-    RoleGuard([
-      Role.admin,
-      Role.manager,
-      Role.waiter,
-      Role.kitchen,
-      Role.owner,
-    ]),
-  )
+  @UseGuards(RoleGuard([Role.admin, Role.attendant, Role.customer]))
   @ApiOkResponse({ type: StaffFetchResponse })
   findOne(@Param("id") id: string, @Req() request: Record<string, any>) {
     const { business_id } = request.headers;
@@ -81,16 +65,7 @@ export class StaffsController {
   }
 
   @Get("waiter/:id/analytics")
-  @UseGuards(
-    RoleGuard([
-      Role.admin,
-      Role.manager,
-      Role.waiter,
-      Role.kitchen,
-      Role.owner,
-      Role.customer,
-    ]),
-  )
+  @UseGuards(RoleGuard([Role.admin, Role.attendant]))
   getWaiterAnalytics(
     @Param("id") id: string,
     @Req() request: Record<string, any>,
@@ -101,16 +76,7 @@ export class StaffsController {
   }
 
   @Get("kitchen/:id/analytics")
-  @UseGuards(
-    RoleGuard([
-      Role.admin,
-      Role.manager,
-      Role.waiter,
-      Role.kitchen,
-      Role.owner,
-      Role.customer,
-    ]),
-  )
+  @UseGuards(RoleGuard([Role.admin, Role.attendant]))
   getKitchenStaffAnalytics(
     @Param("id") id: string,
     @Req() request: Record<string, any>,
@@ -119,23 +85,4 @@ export class StaffsController {
     const { business_id } = request.headers;
     return this.staffsService.kitchenStaffAnalytics(+id, +business_id, sortBy);
   }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateStaffDto: UpdateStaffDto) {
-  //   return this.staffsService.update(+id, updateStaffDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.staffsService.remove(+id);
-  // }
-
-  // @Get("")
-  // @UseGuards(RoleGuard([Role.admin, Role.waiter, Role.owner, Role.manager]))
-  // getStaffMetrics(@Req() request) {
-  //   const { business_id } = request.headers;
-  //   const { id: waiterId } = request.user;
-
-  //   return this.staffsService.getStaffMetrics(+waiterId, +business_id);
-  // }
 }

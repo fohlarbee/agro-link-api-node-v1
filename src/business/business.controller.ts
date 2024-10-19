@@ -87,7 +87,7 @@ export class AdminBusinessController {
   ) {}
 
   @Post()
-  @UseGuards(RoleGuard([Role.owner, Role.admin, Role.manager]))
+  @UseGuards(RoleGuard([Role.admin]))
   @ApiCreatedResponse({ type: BusinessCreationResponse })
   createBusiness(@Body() createBusinessDto: CreateBusinessDto, @Req() request) {
     const { id: creatorId } = request.user;
@@ -102,7 +102,7 @@ export class AdminBusinessController {
   }
 
   @Put(":id")
-  @UseGuards(RoleGuard([Role.admin, Role.owner, Role.manager]))
+  @UseGuards(RoleGuard([Role.admin]))
   @ApiOkResponse({ type: BusinessCreationResponse })
   updateBusiness(
     @Param("id") businessId: string,
@@ -126,7 +126,7 @@ export class AdminBusinessController {
   @ApiBearerAuth()
   @ApiQuery({})
   @Get(":id/analytics")
-  @UseGuards(RoleGuard([Role.admin, Role.owner, Role.manager]))
+  @UseGuards(RoleGuard([Role.admin]))
   async getBusinessAnalytic(
     @Param("id") businessId: string,
     @Query("page") page: any = 1,

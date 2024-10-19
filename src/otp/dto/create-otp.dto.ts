@@ -18,4 +18,7 @@ export class CreateOTPDto {
   @IsString()
   @IsNotEmpty()
   purpose?: string;
+
+  @IsString()
+  name?: string;
 }

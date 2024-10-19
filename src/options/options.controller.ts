@@ -58,7 +58,7 @@ export class AdminOptionsController {
   constructor(private readonly optionsService: OptionsService) {}
 
   @Post()
-  @UseGuards(RoleGuard([Role.admin, Role.manager]))
+  @UseGuards(RoleGuard([Role.admin]))
   @UseInterceptors(parseFileInterceptor, FileUploadInterceptor)
   @ApiCreatedResponse()
   async createOption(@Req() request, @Body() body: Record<string, any>) {
@@ -85,7 +85,7 @@ export class AdminOptionsController {
   }
 
   @Put("/:id")
-  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
+  @UseGuards(RoleGuard([Role.admin]))
   @UseInterceptors(new ValidPathParamInterceptor())
   update(
     @Param("id") id: string,
@@ -97,8 +97,7 @@ export class AdminOptionsController {
   }
 
   @Delete(":id")
-  @UseGuards(RoleGuard([Role.admin, Role.manager, Role.kitchen]))
-  @UseGuards(RoleGuard([Role.admin, Role.manager]))
+  @UseGuards(RoleGuard([Role.admin]))
   remove(@Param("id") id: string, @Req() request) {
     const { business_id } = request.headers;
     return this.optionsService.remove(+id, +business_id);
