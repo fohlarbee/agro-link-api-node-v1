@@ -12,6 +12,7 @@ import * as bcrypt from "bcrypt";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { OtpService } from "src/otp/otp.service";
 import { AuthDto, Role } from "./dto/auth.dto";
+import { BusinessRoles } from "@prisma/client";
 
 @Injectable()
 export class AuthService {
@@ -57,7 +58,7 @@ export class AuthService {
         where: {
           userId: user.id,
           role: {
-            name: user.role.toLowerCase(),
+            name: {equals:BusinessRoles.admin || BusinessRoles.attendant},
           },
         },
         select: { businessId: true, role: true },
@@ -104,6 +105,50 @@ export class AuthService {
       status: "success",
       message:
         "Registration successful! Please login with your email and password.",
+    };
+  }
+
+  async createGuestUser(isGuest: boolean) {
+    if (!isGuest) throw new UnauthorizedException("Access denied");
+
+    const lastGuest = await this.prisma.user.findFirst({
+      where: { role: Role.guest, name: { startsWith: "guest-" } },
+      orderBy: { id: "desc" },
+    });
+
+    let guestNumber = 1;
+
+    if (lastGuest) {
+      const lastGuestNumber = parseInt(lastGuest.name.split("-")[1]);
+      guestNumber = isNaN(lastGuestNumber) ? 1 : lastGuestNumber + 1;
+    }
+    const guestUser = `guest-${guestNumber}`;
+    const guestExists = await this.prisma.user.findFirst({
+      where: { name: guestUser },
+    });
+    if (guestExists) throw new ConflictException("Guest user already exists");
+
+    const hashedPassword = bcrypt.hashSync(
+      process.env.GUEST_USER_PASSWORD,
+      bcrypt.genSaltSync(),
+    );
+
+    const newGuestUser = await this.prisma.user.create({
+      data: {
+        email: `${guestUser}-${process.env.GUEST_USER_EMAIL}`,
+        password: hashedPassword,
+        name: guestUser,
+        avatar: `${process.env.GUEST_AVATAR}=${guestUser}`,
+        role: Role.guest,
+      },
+    });
+    const payload = { email: newGuestUser.email, sub: newGuestUser.id };
+
+    return {
+      message: "Login successful",
+      data: { accessToken: this.jwtService.sign(payload) },
+      avatar: newGuestUser.avatar,
+      role: Role.guest,
     };
   }
 

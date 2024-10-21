@@ -198,31 +198,31 @@ export class StaffsService {
       throw new NotFoundException(`User is not a staff 
         in the business of of id ${businessId}`);
 
-    const orders = await Promise.all(
-      (staff.role.name === "waiter"
-        ? staff.ordersAsWaiter
-        : staff.ordersAsKitchenStaff
-      ).map(async (order) => {
-        const { payment, ...details } = order;
-        if (payment) return order;
-        const amount = (
-          await this.prisma.orderOption.findMany({
-            where: { orderId: order.id },
-            select: {
-              quantity: true,
-              option: {
-                select: {
-                  price: true,
-                },
-              },
-            },
-          })
-        ).reduce((total, order) => {
-          return total + order.option.price * order.quantity;
-        }, 0);
-        return { ...details, payment: { amount } };
-      }),
-    );
+    // const orders = await Promise.all(
+    //   (staff.role.name === "waiter"
+    //     ? staff.ordersAsWaiter
+    //     : staff.ordersAsKitchenStaff
+    //   ).map(async (order) => {
+    //     const { payment, ...details } = order;
+    //     if (payment) return order;
+    //     const amount = (
+    //       await this.prisma.orderOption.findMany({
+    //         where: { orderId: order.id },
+    //         select: {
+    //           quantity: true,
+    //           option: {
+    //             select: {
+    //               price: true,
+    //             },
+    //           },
+    //         },
+    //       })
+    //     ).reduce((total, order) => {
+    //       return total + order.option.price * order.quantity;
+    //     }, 0);
+    //     return { ...details, payment: { amount } };
+    //   }),
+    // );
     return {
       message: "Staff fetched successfully",
       success: "true",
@@ -236,7 +236,7 @@ export class StaffsService {
           name: staff.business.name,
         },
         shifts: staff.shifts,
-        orders,
+        // orders,
       },
     };
   }
@@ -245,8 +245,8 @@ export class StaffsService {
     if (!sortBy) sortBy = "thisYear";
     const staff = await this.findStaff(userId, businessId);
 
-    if (staff.data.role != "waiter")
-      throw new BadRequestException("This staff is not a waiter");
+    // if (staff.data.role != "waiter")
+    //   throw new BadRequestException("This staff is not a waiter");
 
     let startDate: Date;
     let endDate: Date;
@@ -436,8 +436,8 @@ export class StaffsService {
     if (!sortBy) sortBy = "thisYear";
     const staff = await this.findStaff(userId, businessId);
 
-    if (staff.data.role != "kitchen")
-      throw new BadRequestException("This user is not a Kitchen stafff");
+    // if (staff.data.role != "kitchen")
+    //   throw new BadRequestException("This user is not a Kitchen stafff");
 
     let startDate: Date;
     let endDate: Date;

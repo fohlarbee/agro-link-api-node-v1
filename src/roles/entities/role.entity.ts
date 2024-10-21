@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { BusinessRoles, Role } from "@prisma/client";
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { Type } from "class-transformer";
@@ -9,7 +9,7 @@ export class RoleEntity implements Partial<Role> {
   id: number;
 
   @ApiProperty({ required: true })
-  name: string;
+  name: BusinessRoles;
 }
 
 export class RoleCreationResponse extends BaseResponse {

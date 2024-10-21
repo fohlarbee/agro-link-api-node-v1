@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { BusinessRoles } from "@prisma/client";
 import {
   IsEmail,
   IsEnum,
@@ -42,5 +43,5 @@ export class CreateStaffDto {
   @IsEnum(Role)
   @IsString()
   @ApiProperty({ required: true })
-  role: Role;
+  role: BusinessRoles;
 }

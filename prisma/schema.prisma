@@ -17,6 +17,12 @@ enum GuardRoles {
   customer
   admin
   attendant
+  guest
+}
+
+enum BusinessRoles {
+  attendant
+  admin
 }
 
 enum PaymentType {
@@ -75,7 +81,7 @@ model Business {
 
 model Role {
   id        Int      @id @default(autoincrement())
-  name      String
+  name      BusinessRoles   @default(attendant)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

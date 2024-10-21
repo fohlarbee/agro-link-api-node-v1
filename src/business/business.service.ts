@@ -7,6 +7,7 @@ import {
 import { UpdateBusinessDto } from "./dto/updateBusinessDto";
 import { CreateBusinessDto } from "./dto/create-business.dto";
 import { PrismaService } from "src/prisma/prisma.service";
+import { BusinessRoles } from "@prisma/client";
 
 @Injectable()
 export class BusinessService {
@@ -16,14 +17,17 @@ export class BusinessService {
   async findAllBusinesses() {
     const businesses = await this.prisma.business.findMany({
       select: {
-        name: true,
         id: true,
+        name: true,
         phoneNumber: true,
+        cacNumber: true,
+        email: true,
+        type: true,
       },
     });
 
     return {
-      message: "businesses fetched successfully",
+      message: "Businesses fetched successfully",
       status: "success",
       data: businesses,
     };
@@ -32,6 +36,14 @@ export class BusinessService {
   async findBusiness(id: number) {
     const business = await this.prisma.business.findUnique({
       where: { id },
+      select: {
+        id: true,
+        name: true,
+        phoneNumber: true,
+        cacNumber: true,
+        email: true,
+        type: true,
+      },
     });
 
     if (!business)
@@ -39,14 +51,10 @@ export class BusinessService {
         message: `No such business with id ${id}`,
         status: "error",
       });
-
-    const wallet = await this.prisma.wallet.findFirst({
-      where: { businessId: business.id },
-    });
     return {
       message: "Business fetch successful",
       status: "success",
-      data: { ...business, walletId: wallet.id },
+      data: { ...business },
     };
   }
 
@@ -59,7 +67,7 @@ export class BusinessService {
 
     if (staffExists)
       throw new BadRequestException(
-        "You cant create a business if staff already exist",
+        "You cant create a business if you are a staff already",
       );
 
     const business = await this.prisma.business.create({
@@ -72,7 +80,7 @@ export class BusinessService {
         user: { connect: { id: creatorId } },
         role: {
           create: {
-            name: "owner",
+            name: BusinessRoles.admin,
             businessId: business.id as unknown as number,
           },
         },
@@ -89,30 +97,30 @@ export class BusinessService {
     return {
       message: "Business && Wallet created successfully.",
       status: "success",
-      data: { ...business, walletId: wallet.id },
+      data: { walletId: wallet.id, ...business },
     };
   }
 
-  async findStaffBusiness(userId: number) {
-    const businesses = await this.prisma.staff.findMany({
-      where: { userId },
-      select: {
-        business: {
-          select: {
-            name: true,
-            id: true,
-          },
-        },
-        role: { select: { name: true } },
-      },
-    });
+  // async findStaffBusiness(userId: number) {
+  //   const businesses = await this.prisma.staff.findMany({
+  //     where: { userId },
+  //     select: {
+  //       business: {
+  //         select: {
+  //           name: true,
+  //           id: true,
+  //         },
+  //       },
+  //       role: { select: { name: true } },
+  //     },
+  //   });
 
-    return {
-      message: "Businesses fetched successfully",
-      status: "success",
-      data: businesses,
-    };
-  }
+  //   return {
+  //     message: "Businesses fetched successfully",
+  //     status: "success",
+  //     data: businesses,
+  //   };
+  // }
 
   async updateBusiness(
     id: number,
@@ -122,23 +130,39 @@ export class BusinessService {
     let business = await this.prisma.business.findUnique({
       where: {
         id,
-        staffs: { some: { userId, role: { name: "owner" } } },
+        creatorId: userId,
+      },
+      select: {
+        id: true,
+        name: true,
+        phoneNumber: true,
+        cacNumber: true,
+        email: true,
+        type: true,
       },
     });
     if (!business)
       throw new ForbiddenException({
-        message: `Unauthorised edit of business`,
+        message: `Unauthorised or invalid of business `,
         status: "error",
       });
     business = await this.prisma.business.update({
       where: { id },
       data: { ...updateData },
+      select: {
+        id: true,
+        name: true,
+        phoneNumber: true,
+        cacNumber: true,
+        email: true,
+        type: true,
+      },
     });
 
     return {
       message: "Business update successful",
       status: "success",
-      data: { business },
+      data: { ...business },
     };
   }
 
@@ -323,7 +347,6 @@ export class BusinessService {
           outlets: result.outlets,
         },
       },
-      // pagination,
     };
   }
 }

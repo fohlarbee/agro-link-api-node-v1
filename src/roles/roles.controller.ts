@@ -41,7 +41,8 @@ export class RolesController {
     @Req() request: Record<string, any>,
   ) {
     const { business_id } = request.headers;
-    return this.rolesService.createRole(+business_id, createRoleDto);
+    const { id: creatorId } = request.user;
+    return this.rolesService.createRole(+business_id, creatorId, createRoleDto);
   }
 
   @Get()
@@ -49,7 +50,8 @@ export class RolesController {
   @ApiOkResponse({ type: RoleListResponse })
   findAll(@Req() request: Record<string, any>) {
     const { business_id } = request.headers;
-    return this.rolesService.findAllRoles(+business_id);
+    const { id: creatorId } = request.user;
+    return this.rolesService.findAllRoles(+business_id, creatorId);
   }
 
   // @Get(':id')

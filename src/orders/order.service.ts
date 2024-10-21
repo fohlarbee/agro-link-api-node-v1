@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { OrderDto } from "./dto/order-option.dto";
 import { PrismaService } from "src/prisma/prisma.service";
-import { OrderStatus, PaymentProvider, PaymentType } from "@prisma/client";
+import { BusinessRoles, OrderStatus, PaymentProvider, PaymentType } from "@prisma/client";
 import { WalletsService } from "src/wallets/wallets.service";
 import { TransactionService } from "src/transactions/transaction.service";
 import { WebsocketService } from "src/websocket/websocket.service";
@@ -389,7 +389,7 @@ export class OrderService {
       type: "ORDER_PAYMENT",
     };
     const kitchenStaffs = await this.prisma.staff.findMany({
-      where: { businessId, role: { name: { equals: "kitchen" } } },
+      where: { businessId, role: { name: { equals: BusinessRoles.attendant } } },
     });
     if (!kitchenStaffs) throw new NotFoundException("No staffs found");
 
@@ -483,7 +483,7 @@ export class OrderService {
     const staff = await this.prisma.staff.findUnique({
       where: {
         userId_businessId: { businessId, userId: kitchenStaffId },
-        role: { name: { equals: "kitchen" } },
+        role: { name: { equals: BusinessRoles.attendant } },
       },
     });
     if (!staff) throw new UnauthorizedException("staff not found");
@@ -765,10 +765,10 @@ export class OrderService {
         body: `Payment for ${order.id} successful`,
         metadata,
       });
-      const kitchenStaffs = await this.prisma.staff.findMany({
-        where: { businessId, role: { name: { equals: "kitchen" } } },
-      });
-      if (!kitchenStaffs) throw new NotFoundException("No staffs found");
+      // const kitchenStaffs = await this.prisma.staff.findMany({
+      //   where: { businessId, role: { name: { equals: "kitchen" } } },
+      // });
+      // if (!kitchenStaffs) throw new NotFoundException("No staffs found");
 
       // kitchenStaffs.forEach((staff) => {
       // this.event.notifyKitchen(staff.userId, "orderPayment", metadata);
