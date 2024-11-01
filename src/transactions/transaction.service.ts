@@ -3,7 +3,6 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
-  NotFoundException,
   NotImplementedException,
 } from "@nestjs/common";
 import { OrderStatus, PaymentProvider, PaymentType } from "@prisma/client";
@@ -213,19 +212,19 @@ export class TransactionService {
         metadata: payload,
       });
     });
-    const kitchenStaffs = await this.prisma.staff.findMany({
-      where: { businessId, role: { name: { equals: "kitchen" } } },
-    });
-    if (!kitchenStaffs) throw new NotFoundException("No staffs found");
+    // const kitchenStaffs = await this.prisma.staff.findMany({
+    //   where: { businessId, role: { name: { equals: "kitchen" } } },
+    // });
+    // if (!kitchenStaffs) throw new NotFoundException("No staffs found");
 
-    kitchenStaffs.forEach((staff) => {
-      // this.event.notifyKitchen(staff.userId, "orderPayment", payload);
-      this.notificationService.sendPush(staff.userId, {
-        title: "Order",
-        body: "orderPayment",
-        metadata: payload,
-      });
-    });
+    // kitchenStaffs.forEach((staff) => {
+    //   // this.event.notifyKitchen(staff.userId, "orderPayment", payload);
+    //   this.notificationService.sendPush(staff.userId, {
+    //     title: "Order",
+    //     body: "orderPayment",
+    //     metadata: payload,
+    //   });
+    // });
 
     return { message: "Payment successful", status: "success" };
   }

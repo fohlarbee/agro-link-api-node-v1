@@ -8,7 +8,12 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { DepositInitiationResponse } from "./entities/wallets.entity";
-import { PaymentProvider, PaymentType, TokenType } from "@prisma/client";
+import {
+  GuardRoles,
+  PaymentProvider,
+  PaymentType,
+  TokenType,
+} from "@prisma/client";
 import { TransactionService } from "src/transactions/transaction.service";
 import { v4 as uuidv4 } from "uuid";
 import { WebsocketService } from "src/websocket/websocket.service";
@@ -107,7 +112,7 @@ export class WalletsService {
       where: { userId_businessId: { userId: id, businessId } },
       select: { role: true },
     });
-    if (staff.role.name !== "owner" && staff.role.name !== "admin")
+    if (staff.role.name !== GuardRoles.admin)
       throw new UnauthorizedException(
         "You are not authorized to view this transaction history",
       );

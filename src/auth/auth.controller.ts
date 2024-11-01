@@ -47,13 +47,18 @@ export class AuthController {
     return this.authService.register({ imageURL, ...body });
   }
 
+  @Post("guest")
+  @ApiCreatedResponse()
+  createGuestUser(@Body() body: any) {
+    const { isGuest } = body;
+    return this.authService.createGuestUser(isGuest);
+  }
+
   @Post("otp/generate")
   @ApiCreatedResponse()
   sendVerificationEmail(@Body() { email }: SendRegistrationEmailDto) {
     return this.authService.sendVerificationEmail(email);
   }
-  // @Post("/create/guestuser")
-  // @ApiCreatedResponse()
 
   @Post("otp/verify")
   @ApiCreatedResponse()

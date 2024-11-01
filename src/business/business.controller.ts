@@ -35,19 +35,26 @@ import { WalletsService } from "src/wallets/wallets.service";
 
 @Controller("business")
 @ApiTags("Business")
-export class ClientBusinessController {
+@ApiBearerAuth()
+@ApiHeader({ name: "access_token", required: true })
+@UseGuards(HttpAuthGuard)
+export class BusinessController {
   constructor(
     private readonly businessService: BusinessService,
     private readonly menuService: MenuService,
     private readonly orderService: OrderService,
+    private readonly walletService: WalletsService,
   ) {}
 
+  //Client methods
   @Get()
+  @UseGuards(RoleGuard([Role.customer, Role.admin, Role.attendant]))
   @ApiOkResponse({ type: BusinessListResponse })
   findAllBusinesses() {
     return this.businessService.findAllBusinesses();
   }
   @Get(":id")
+  @UseGuards(RoleGuard([Role.customer, Role.admin, Role.attendant]))
   findOne(@Param("id") id: string) {
     return this.businessService.findBusiness(+id);
   }
@@ -72,35 +79,24 @@ export class ClientBusinessController {
       +businessId,
     );
   }
-}
 
-@Controller("admin/businesses")
-@ApiTags("Business (Admin)")
-@ApiBearerAuth()
-@ApiHeader({ name: "access_token", required: true })
-@UseGuards(HttpAuthGuard)
-// @Roles(Role.admin)
-export class AdminBusinessController {
-  constructor(
-    private readonly businessService: BusinessService,
-    private readonly walletService: WalletsService,
-  ) {}
+  //Admin methods
 
   @Post()
   @UseGuards(RoleGuard([Role.admin]))
   @ApiCreatedResponse({ type: BusinessCreationResponse })
   createBusiness(@Body() createBusinessDto: CreateBusinessDto, @Req() request) {
     const { id: creatorId } = request.user;
+    console.log(creatorId);
     return this.businessService.createBusiness(createBusinessDto, +creatorId);
   }
 
-  @Get()
-  @UseGuards(RoleGuard([Role.admin]))
-  @ApiOkResponse({ type: BusinessListResponse })
-  findMemberBusinesses(@Req() { user: { id: userId } }: Record<string, any>) {
-    return this.businessService.findStaffBusiness(+userId);
-  }
-
+  // @Get()
+  // @UseGuards(RoleGuard([Role.admin]))
+  // @ApiOkResponse({ type: BusinessListResponse })
+  // findMemberBusinesses(@Req() { user: { id: userId } }: Record<string, any>) {
+  //   return this.businessService.findStaffBusiness(+userId);
+  // }
   @Put(":id")
   @UseGuards(RoleGuard([Role.admin]))
   @ApiOkResponse({ type: BusinessCreationResponse })

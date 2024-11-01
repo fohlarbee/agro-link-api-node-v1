@@ -11,6 +11,7 @@ export enum Role {
   customer = "customer",
   admin = "admin",
   attendant = "attendant",
+  guest = "guest",
 }
 export class LoginDto {
   @IsEmail()
