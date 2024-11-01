@@ -58,7 +58,7 @@ export class AuthService {
         where: {
           userId: user.id,
           role: {
-            name: {equals:BusinessRoles.admin || BusinessRoles.attendant},
+            name: { equals: BusinessRoles.admin || BusinessRoles.attendant },
           },
         },
         select: { businessId: true, role: true },

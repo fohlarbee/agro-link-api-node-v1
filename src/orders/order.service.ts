@@ -7,7 +7,12 @@ import {
 } from "@nestjs/common";
 import { OrderDto } from "./dto/order-option.dto";
 import { PrismaService } from "src/prisma/prisma.service";
-import { BusinessRoles, OrderStatus, PaymentProvider, PaymentType } from "@prisma/client";
+import {
+  BusinessRoles,
+  OrderStatus,
+  PaymentProvider,
+  PaymentType,
+} from "@prisma/client";
 import { WalletsService } from "src/wallets/wallets.service";
 import { TransactionService } from "src/transactions/transaction.service";
 import { WebsocketService } from "src/websocket/websocket.service";
@@ -389,7 +394,10 @@ export class OrderService {
       type: "ORDER_PAYMENT",
     };
     const kitchenStaffs = await this.prisma.staff.findMany({
-      where: { businessId, role: { name: { equals: BusinessRoles.attendant } } },
+      where: {
+        businessId,
+        role: { name: { equals: BusinessRoles.attendant } },
+      },
     });
     if (!kitchenStaffs) throw new NotFoundException("No staffs found");
 

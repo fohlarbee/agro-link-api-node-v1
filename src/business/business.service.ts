@@ -71,7 +71,7 @@ export class BusinessService {
       );
 
     const business = await this.prisma.business.create({
-      data: { ...createData, creatorId },
+      data: { creatorId, ...createData },
     });
 
     await this.prisma.staff.create({
