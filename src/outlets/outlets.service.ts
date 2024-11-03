@@ -17,7 +17,7 @@ export class OutletsService {
     });
     if (!business) throw new NotFoundException("Invalid business");
     const outlet = await this.prisma.outlet.create({
-      data: { businessId, address },
+      data: { businessId, address, type: "branch" },
     });
     return {
       message: "Outlet created successfully",

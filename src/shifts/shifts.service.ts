@@ -43,8 +43,8 @@ export class ShiftsService {
             },
           },
         },
-        startTime: shiftData.startTime,
-        endTime: shiftData.endTime,
+        startTime: await this.returnDateString(shiftData.periods[0].startTime),
+        endTime: await this.returnDateString(shiftData.periods[0].endTime),
         // periods: { createMany: { data: shiftData.periods } },
       },
     });
@@ -139,5 +139,28 @@ export class ShiftsService {
       message: "Period updated successfully",
       status: "success",
     };
+  }
+  async returnDateString(dateTime: string): Promise<any> {
+      const date = new Date();
+
+    const [hours, minutes] = dateTime.split(":").map(Number);
+
+    // Adjust hours for PM if needed
+    // if (modifier === "PM" && hours !== 12) {
+    //   hours += 12;
+    // } else if (modifier === "AM" && hours === 12) {
+    //   hours = 0;
+    // }
+
+    // Adjust for Nigeria's timezone offset (+1 hour)
+    const nigerianOffset = 1; // Nigeria is UTC+1
+    const utcDate = new Date(date.setHours(hours, minutes, 0, 0));
+    const localDate = new Date(
+      utcDate.getTime() + nigerianOffset * 60 * 60 * 1000,
+    );
+
+    // Get the date string in ISO format
+    const localDateString = localDate.toISOString();
+    return localDateString;
   }
 }

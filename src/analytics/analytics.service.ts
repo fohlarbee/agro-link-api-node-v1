@@ -247,7 +247,7 @@ export class AnalyticsService {
     const waiterOrdersQuery = `
       WITH processed_orders AS (
         SELECT u.id AS userId, s."roleId" as roleId, count(*) AS count FROM "Order" o
-          JOIN "User" u on (u.id = o."waiterId" OR u.id = o."kitchenStaffId")
+          JOIN "User" u on (u.id = o."attendantId" OR u.id = o."kitchenStaffId")
           JOIN "Staff" s ON s."userId" = u.id
           WHERE o."businessId" = 1
           AND o.status not in ('active', 'failed', 'cancelled')

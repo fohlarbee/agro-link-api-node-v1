@@ -25,4 +25,8 @@ export class CreateBusinessDto {
   @IsEmail()
   @ApiProperty({ required: false, nullable: false })
   email?: string;
+
+  @IsString()
+  @ApiProperty({ required: false, nullable: false })
+  address?: string; // This is a nullable field
 }

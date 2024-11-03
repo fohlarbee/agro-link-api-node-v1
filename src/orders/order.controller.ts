@@ -150,11 +150,11 @@ export class OrderController {
     @Req() request: any,
   ) {
     const { business_id: businessId } = request.headers;
-    const { id: waiterId } = request.user;
+    const { id: attendantId } = request.user;
 
     return await this.orderService.markOrderAsDelivered(
       +orderId,
-      +waiterId,
+      +attendantId,
       +businessId,
     );
   }
@@ -193,12 +193,12 @@ export class OrderController {
     @Body()
     { completed, channel }: ConfirmationDto,
   ) {
-    const { id: waiterId } = request.user;
+    const { id: attendantId } = request.user;
     const { business_id: businessId } = request.headers;
     return await this.orderService.confirmPayment(
       +orderId,
       +businessId,
-      +waiterId,
+      +attendantId,
       completed,
       channel,
     );

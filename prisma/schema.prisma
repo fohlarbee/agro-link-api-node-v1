@@ -80,10 +80,10 @@ model Business {
 }
 
 model Role {
-  id        Int      @id @default(autoincrement())
-  name      BusinessRoles   @default(attendant)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int           @id @default(autoincrement())
+  name      BusinessRoles @default(attendant)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   // Relationships
   businessId Int
@@ -108,17 +108,22 @@ model Staff {
   shifts     Shift[]
   // orders     Order[]
 
-  ordersAsWaiter       Order[] @relation("OrderWaiter")
-  ordersAsKitchenStaff Order[] @relation("OrderKitchenStaff")
+  ordersAsAttendant Order[] @relation("OrderAttendant")
+  // ordersAsKitchenStaff Order[] @relation("OrderKitchenStaff")
 
   // Keys
   @@id([userId, businessId])
   @@unique([userId, businessId])
 }
+enum OutletType {
+  main
+  branch
+}
 
 model Outlet {
   id         Int      @id @default(autoincrement())
   address    String
+  type       OutletType   @default(main) 
   // Relationships
   businessId Int
   business   Business @relation(fields: [businessId], references: [id])
@@ -199,7 +204,7 @@ model Menu {
 model MenuOptions {
   menuId   Int
   menu     Menu   @relation(fields: [menuId], references: [id])
-  optionId Int  
+  optionId Int
   option   Option @relation(fields: [optionId], references: [id])
 
   // Compound key
@@ -256,14 +261,14 @@ model Order {
   table       Table    @relation(fields: [tableId], references: [id])
   shiftId     Int
   shift       Shift    @relation(fields: [shiftId], references: [id])
-  // waiterId   Int
-  // waiter     Staff         @relation(fields: [waiterId, businessId], references: [userId, businessId])
+  // attendantId   Int
+  // waiter     Staff         @relation(fields: [attendantId, businessId], references: [userId, businessId])
 
-  waiterId       Int
-  waiter         Staff         @relation("OrderWaiter", fields: [waiterId, businessId], references: [userId, businessId])
-  kitchenStaffId Int?
-  kitchenStaff   Staff?        @relation("OrderKitchenStaff", fields: [kitchenStaffId, businessId], references: [userId, businessId])
-  options        OrderOption[]
+  attendantId Int
+  attendant   Staff         @relation("OrderAttendant", fields: [attendantId, businessId], references: [userId, businessId])
+  // kitchenStaffId Int?
+  // kitchenStaff   Staff?        @relation("OrderKitchenStaff", fields: [kitchenStaffId, businessId], references: [userId, businessId])
+  options     OrderOption[]
 }
 
 enum OrderStatus {

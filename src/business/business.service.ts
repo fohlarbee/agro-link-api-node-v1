@@ -7,7 +7,6 @@ import {
 import { UpdateBusinessDto } from "./dto/updateBusinessDto";
 import { CreateBusinessDto } from "./dto/create-business.dto";
 import { PrismaService } from "src/prisma/prisma.service";
-import { BusinessRoles } from "@prisma/client";
 
 @Injectable()
 export class BusinessService {
@@ -80,7 +79,7 @@ export class BusinessService {
         user: { connect: { id: creatorId } },
         role: {
           create: {
-            name: BusinessRoles.admin,
+            name: "admin",
             businessId: business.id as unknown as number,
           },
         },
@@ -91,6 +90,13 @@ export class BusinessService {
         businessId: business.id,
         userId: null,
         balance: 0.0,
+      },
+    });
+    await this.prisma.outlet.create({
+      data: {
+        businessId: business.id,
+        address: createData.address,
+        type: "main",
       },
     });
 
@@ -275,7 +281,7 @@ export class BusinessService {
         orders: {
           where: { createdAt: { gte: startDate, lt: endDate } },
           include: {
-            waiter: true,
+            attendant: true,
             payment: true,
             table: true,
           },
