@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
 import { CreateStaffDto } from "./dto/create-staff.dto";
@@ -19,12 +20,20 @@ export class StaffsService {
     private passwordService: PasswordService,
   ) {}
 
-  async createStaff(businessId: number, { email, name, role }: CreateStaffDto) {
+  async createStaff(
+    businessId: number,
+    id: number,
+    { email, name, role }: CreateStaffDto,
+  ) {
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
     });
 
     if (!business) throw new NotFoundException("Invalid business");
+    if (business.creatorId !== id)
+      throw new UnauthorizedException(
+        " You are not authorized to perform this action",
+      );
     let dbRole = await this.prisma.role.findFirst({
       where: { name: role, businessId },
     });
@@ -155,7 +164,7 @@ export class StaffsService {
           },
           orderBy: { createdAt: "desc" },
         },
-        ordersAsWaiter: {
+        ordersAsAttendant: {
           select: {
             id: true,
             tableId: true,
@@ -166,19 +175,19 @@ export class StaffsService {
           },
           orderBy: { createdAt: "desc" },
         },
-        ordersAsKitchenStaff: {
-          select: {
-            id: true,
-            tableId: true,
-            status: true,
-            // tip: true,
-            payment: { select: { amount: true } },
-            createdAt: true,
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
+        // ordersAsKitchenStaff: {
+        //   select: {
+        //     id: true,
+        //     tableId: true,
+        //     status: true,
+        //     // tip: true,
+        //     payment: { select: { amount: true } },
+        //     createdAt: true,
+        //   },
+        //   orderBy: {
+        //     createdAt: "desc",
+        //   },
+        // },
         business: {
           select: {
             id: true,
@@ -194,13 +203,13 @@ export class StaffsService {
       },
     });
 
-    if (!staff || !["waiter", "kitchen"].includes(staff.role.name))
+    if (!staff || !["attendant"].includes(staff.role.name))
       throw new NotFoundException(`User is not a staff 
         in the business of of id ${businessId}`);
 
     // const orders = await Promise.all(
     //   (staff.role.name === "waiter"
-    //     ? staff.ordersAsWaiter
+    //     ? staff.ordersAsAttendant
     //     : staff.ordersAsKitchenStaff
     //   ).map(async (order) => {
     //     const { payment, ...details } = order;
@@ -241,385 +250,385 @@ export class StaffsService {
     };
   }
 
-  async waiterAnalytics(userId: number, businessId: number, sortBy: string) {
-    if (!sortBy) sortBy = "thisYear";
-    const staff = await this.findStaff(userId, businessId);
+  // async waiterAnalytics(userId: number, businessId: number, sortBy: string) {
+  //   if (!sortBy) sortBy = "thisYear";
+  //   // const staff = await this.findStaff(userId, businessId);
 
-    // if (staff.data.role != "waiter")
-    //   throw new BadRequestException("This staff is not a waiter");
+  //   // if (staff.data.role != "waiter")
+  //   //   throw new BadRequestException("This staff is not a waiter");
 
-    let startDate: Date;
-    let endDate: Date;
+  //   let startDate: Date;
+  //   let endDate: Date;
 
-    const today = new Date();
-    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-    const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const thisYear = new Date(today.getFullYear(), 0, 1);
+  //   const today = new Date();
+  //   const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+  //   const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+  //   const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  //   const thisYear = new Date(today.getFullYear(), 0, 1);
 
-    switch (sortBy) {
-      case "today":
-        startDate = today;
-        startDate = new Date(startDate.setHours(0, 0, 0, 0));
-        endDate = today;
-        endDate = new Date(endDate.setHours(23, 59, 59, 999));
-        break;
+  //   switch (sortBy) {
+  //     case "today":
+  //       startDate = today;
+  //       startDate = new Date(startDate.setHours(0, 0, 0, 0));
+  //       endDate = today;
+  //       endDate = new Date(endDate.setHours(23, 59, 59, 999));
+  //       break;
 
-      case "yesterday":
-        startDate = yesterday;
-        startDate = new Date(startDate.setHours(0, 0, 0, 0));
-        endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-        endDate = new Date(endDate.setHours(23, 59, 59, 999));
-        break;
+  //     case "yesterday":
+  //       startDate = yesterday;
+  //       startDate = new Date(startDate.setHours(0, 0, 0, 0));
+  //       endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+  //       endDate = new Date(endDate.setHours(23, 59, 59, 999));
+  //       break;
 
-      case "thisWeek":
-        startDate = thisWeek;
-        startDate = new Date(startDate.setHours(0, 0, 0, 0));
-        endDate = today;
-        endDate.setHours(23, 59, 59, 999);
-        break;
+  //     case "thisWeek":
+  //       startDate = thisWeek;
+  //       startDate = new Date(startDate.setHours(0, 0, 0, 0));
+  //       endDate = today;
+  //       endDate.setHours(23, 59, 59, 999);
+  //       break;
 
-      case "thisMonth":
-        startDate = thisMonth;
-        startDate.setHours(0, 0, 0, 0);
-        endDate = today;
-        endDate.setHours(23, 59, 59, 999);
-        break;
+  //     case "thisMonth":
+  //       startDate = thisMonth;
+  //       startDate.setHours(0, 0, 0, 0);
+  //       endDate = today;
+  //       endDate.setHours(23, 59, 59, 999);
+  //       break;
 
-      case "thisYear":
-        startDate = thisYear;
-        startDate.setHours(0, 0, 0, 0);
+  //     case "thisYear":
+  //       startDate = thisYear;
+  //       startDate.setHours(0, 0, 0, 0);
 
-        endDate = today;
-        endDate.setHours(23, 59, 59, 999);
-        break;
+  //       endDate = today;
+  //       endDate.setHours(23, 59, 59, 999);
+  //       break;
 
-      default:
-        startDate = new Date(0); // All time
-        startDate.setHours(0, 0, 0, 0);
-        endDate = today;
-        endDate.setHours(23, 59, 59, 999);
+  //     default:
+  //       startDate = new Date(0); // All time
+  //       startDate.setHours(0, 0, 0, 0);
+  //       endDate = today;
+  //       endDate.setHours(23, 59, 59, 999);
 
-        break;
-    }
-    // Retrieve the orders data for the specified date range and for the specified waiter
-    const orders = await this.prisma.order.findMany({
-      where: {
-        waiterId: userId,
-        businessId,
-        createdAt: { gte: startDate, lt: endDate },
-      },
-      select: {
-        id: true,
-        tip: true,
-        table: true,
-        status: true,
-        // paidAt: true,
-        cancelledAt: true,
-        completedAt: true,
-        payment: true,
-        options: true,
-        _count: true,
-        shift: true,
-        waiter: true,
-        cancelledBy: true,
-        customer: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-        createdAt: true,
-      },
-    });
+  //       break;
+  //   }
+  //   // Retrieve the orders data for the specified date range and for the specified waiter
+  //   const orders = await this.prisma.order.findMany({
+  //     where: {
+  //       attendantId: userId,
+  //       businessId,
+  //       createdAt: { gte: startDate, lt: endDate },
+  //     },
+  //     select: {
+  //       id: true,
+  //       tip: true,
+  //       table: true,
+  //       status: true,
+  //       // paidAt: true,
+  //       cancelledAt: true,
+  //       completedAt: true,
+  //       payment: true,
+  //       options: true,
+  //       _count: true,
+  //       shift: true,
+  //       waiter: true,
+  //       cancelledBy: true,
+  //       customer: {
+  //         select: {
+  //           id: true,
+  //           email: true,
+  //           name: true,
+  //         },
+  //       },
+  //       createdAt: true,
+  //     },
+  //   });
 
-    const waiterId = userId;
+  //   const attendantId = userId;
 
-    const ordersTaken = orders.length;
+  //   const ordersTaken = orders.length;
 
-    const relevantOrders = orders.filter(
-      (order) =>
-        order.waiter.userId === waiterId &&
-        order.payment !== null &&
-        order.payment.amount > 0,
-    );
-    const totalPaymentAmount = relevantOrders.reduce(
-      (acc, order) => acc + order.payment.amount,
-      0,
-    );
-    const averageOrderValue = totalPaymentAmount / relevantOrders.length;
+  //   const relevantOrders = orders.filter(
+  //     (order) =>
+  //       order.waiter.userId === attendantId &&
+  //       order.payment !== null &&
+  //       order.payment.amount > 0,
+  //   );
+  //   const totalPaymentAmount = relevantOrders.reduce(
+  //     (acc, order) => acc + order.payment.amount,
+  //     0,
+  //   );
+  //   const averageOrderValue = totalPaymentAmount / relevantOrders.length;
 
-    const tipsReceived = orders
-      .filter((order) => order.waiter.userId === waiterId)
-      .reduce((acc, order) => acc + (order.tip || 0), 0);
+  //   const tipsReceived = orders
+  //     .filter((order) => order.waiter.userId === attendantId)
+  //     .reduce((acc, order) => acc + (order.tip || 0), 0);
 
-    const uniqueTables = new Set(
-      orders
-        .filter((order) => order.waiter.userId === waiterId)
-        .map((order) => order.table.identifier),
-    );
-    const numTables = uniqueTables.size;
+  //   const uniqueTables = new Set(
+  //     orders
+  //       .filter((order) => order.waiter.userId === attendantId)
+  //       .map((order) => order.table.identifier),
+  //   );
+  //   const numTables = uniqueTables.size;
 
-    const totalRevenue = orders
-      .filter(
-        (order) => order.waiter.userId === waiterId && order.payment !== null,
-      )
-      .reduce((acc, order) => acc + order.payment.amount, 0);
+  //   const totalRevenue = orders
+  //     .filter(
+  //       (order) => order.waiter.userId === attendantId && order.payment !== null,
+  //     )
+  //     .reduce((acc, order) => acc + order.payment.amount, 0);
 
-    const paidOrders = orders.filter(
-      (order) =>
-        order.waiter.userId === waiterId && order.payment.paidAt !== null,
-    ).length;
-    const completedOrders = orders.filter(
-      (order) => order.waiter.userId === waiterId && order.completedAt !== null,
-    ).length;
-    const cancelledOrders = orders.filter(
-      (order) =>
-        order.waiter.userId === waiterId &&
-        order.cancelledAt !== null &&
-        order.cancelledBy === waiterId,
-    ).length;
-    const totalSales = orders
-      .filter(
-        (order) => order.waiter.userId === waiterId && order.payment !== null,
-      )
-      .reduce((acc, order) => acc + order.payment.amount, 0);
+  //   const paidOrders = orders.filter(
+  //     (order) =>
+  //       order.waiter.userId === attendantId && order.payment.paidAt !== null,
+  //   ).length;
+  //   const completedOrders = orders.filter(
+  //     (order) => order.waiter.userId === attendantId && order.completedAt !== null,
+  //   ).length;
+  //   const cancelledOrders = orders.filter(
+  //     (order) =>
+  //       order.waiter.userId === attendantId &&
+  //       order.cancelledAt !== null &&
+  //       order.cancelledBy === attendantId,
+  //   ).length;
+  //   const totalSales = orders
+  //     .filter(
+  //       (order) => order.waiter.userId === attendantId && order.payment !== null,
+  //     )
+  //     .reduce((acc, order) => acc + order.payment.amount, 0);
 
-    const previousPeriodSales = orders
-      .filter(
-        (order) =>
-          order.waiter.userId === waiterId &&
-          order.createdAt < endDate &&
-          order.payment !== null,
-      )
-      .reduce((acc, order) => acc + order.payment.amount, 0);
+  //   const previousPeriodSales = orders
+  //     .filter(
+  //       (order) =>
+  //         order.waiter.userId === attendantId &&
+  //         order.createdAt < endDate &&
+  //         order.payment !== null,
+  //     )
+  //     .reduce((acc, order) => acc + order.payment.amount, 0);
 
-    const salesGrowthRate =
-      ((totalSales - previousPeriodSales) / previousPeriodSales) * 100;
-    return {
-      // orders,
-      timeFrame: sortBy,
-      date: endDate.toISOString(),
-      businessId: businessId,
-      currency: "NGN",
-      waiter_performance: {
-        waiterId: userId,
-        orders_taken: ordersTaken,
-        total_payment_amount: totalPaymentAmount,
-        average_order_value: averageOrderValue,
-        tips_received: tipsReceived,
-        tables_served: numTables,
-      },
-      waiter_sales_performance: {
-        total_sales: totalSales,
-        sales_growth_rate: salesGrowthRate,
-      },
-      orders: {
-        count: ordersTaken,
-        total_revenue: totalRevenue,
-        average_order_value: averageOrderValue,
-        by_status: {
-          paidAt: paidOrders,
-          completed: completedOrders,
-          cancelled: cancelledOrders,
-        },
-      },
-    };
-  }
+  //   const salesGrowthRate =
+  //     ((totalSales - previousPeriodSales) / previousPeriodSales) * 100;
+  //   return {
+  //     // orders,
+  //     timeFrame: sortBy,
+  //     date: endDate.toISOString(),
+  //     businessId: businessId,
+  //     currency: "NGN",
+  //     waiter_performance: {
+  //       attendantId: userId,
+  //       orders_taken: ordersTaken,
+  //       total_payment_amount: totalPaymentAmount,
+  //       average_order_value: averageOrderValue,
+  //       tips_received: tipsReceived,
+  //       tables_served: numTables,
+  //     },
+  //     waiter_sales_performance: {
+  //       total_sales: totalSales,
+  //       sales_growth_rate: salesGrowthRate,
+  //     },
+  //     orders: {
+  //       count: ordersTaken,
+  //       total_revenue: totalRevenue,
+  //       average_order_value: averageOrderValue,
+  //       by_status: {
+  //         paidAt: paidOrders,
+  //         completed: completedOrders,
+  //         cancelled: cancelledOrders,
+  //       },
+  //     },
+  //   };
+  // }
 
-  async kitchenStaffAnalytics(
-    userId: number,
-    businessId: number,
-    sortBy: string,
-  ) {
-    if (!sortBy) sortBy = "thisYear";
-    const staff = await this.findStaff(userId, businessId);
+  // async kitchenStaffAnalytics(
+  //   userId: number,
+  //   businessId: number,
+  //   sortBy: string,
+  // ) {
+  //   if (!sortBy) sortBy = "thisYear";
+  //   // const staff = await this.findStaff(userId, businessId);
 
-    // if (staff.data.role != "kitchen")
-    //   throw new BadRequestException("This user is not a Kitchen stafff");
+  //   // if (staff.data.role != "kitchen")
+  //   //   throw new BadRequestException("This user is not a Kitchen stafff");
 
-    let startDate: Date;
-    let endDate: Date;
+  //   let startDate: Date;
+  //   let endDate: Date;
 
-    const today = new Date();
-    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-    const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const thisYear = new Date(today.getFullYear(), 0, 1);
+  //   const today = new Date();
+  //   const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+  //   const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+  //   const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  //   const thisYear = new Date(today.getFullYear(), 0, 1);
 
-    switch (sortBy) {
-      case "today":
-        startDate = today;
-        startDate = new Date(startDate.setHours(0, 0, 0, 0));
-        endDate = today;
-        endDate = new Date(endDate.setHours(23, 59, 59, 999));
-        break;
+  //   switch (sortBy) {
+  //     case "today":
+  //       startDate = today;
+  //       startDate = new Date(startDate.setHours(0, 0, 0, 0));
+  //       endDate = today;
+  //       endDate = new Date(endDate.setHours(23, 59, 59, 999));
+  //       break;
 
-      case "yesterday":
-        startDate = yesterday;
-        startDate = new Date(startDate.setHours(0, 0, 0, 0));
-        endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-        endDate = new Date(endDate.setHours(23, 59, 59, 999));
-        break;
+  //     case "yesterday":
+  //       startDate = yesterday;
+  //       startDate = new Date(startDate.setHours(0, 0, 0, 0));
+  //       endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+  //       endDate = new Date(endDate.setHours(23, 59, 59, 999));
+  //       break;
 
-      case "thisWeek":
-        startDate = thisWeek;
-        startDate = new Date(startDate.setHours(0, 0, 0, 0));
-        endDate = today;
-        endDate.setHours(23, 59, 59, 999);
-        break;
+  //     case "thisWeek":
+  //       startDate = thisWeek;
+  //       startDate = new Date(startDate.setHours(0, 0, 0, 0));
+  //       endDate = today;
+  //       endDate.setHours(23, 59, 59, 999);
+  //       break;
 
-      case "thisMonth":
-        startDate = thisMonth;
-        startDate.setHours(0, 0, 0, 0);
-        endDate = today;
-        endDate.setHours(23, 59, 59, 999);
-        break;
+  //     case "thisMonth":
+  //       startDate = thisMonth;
+  //       startDate.setHours(0, 0, 0, 0);
+  //       endDate = today;
+  //       endDate.setHours(23, 59, 59, 999);
+  //       break;
 
-      case "thisYear":
-        startDate = thisYear;
-        startDate.setHours(0, 0, 0, 0);
+  //     case "thisYear":
+  //       startDate = thisYear;
+  //       startDate.setHours(0, 0, 0, 0);
 
-        endDate = today;
-        endDate.setHours(23, 59, 59, 999);
-        break;
+  //       endDate = today;
+  //       endDate.setHours(23, 59, 59, 999);
+  //       break;
 
-      default:
-        startDate = new Date(0); // All time
-        startDate.setHours(0, 0, 0, 0);
-        endDate = today;
-        endDate.setHours(23, 59, 59, 999);
+  //     default:
+  //       startDate = new Date(0); // All time
+  //       startDate.setHours(0, 0, 0, 0);
+  //       endDate = today;
+  //       endDate.setHours(23, 59, 59, 999);
 
-        break;
-    }
-    const orders = await this.prisma.order.findMany({
-      where: {
-        kitchenStaffId: userId,
-        businessId,
-        createdAt: { gte: startDate, lt: endDate },
-      },
-      select: {
-        id: true,
-        tip: true,
-        table: true,
-        status: true,
-        cancelledAt: true,
-        completedAt: true,
-        payment: true,
-        options: true,
-        _count: true,
-        shift: true,
-        waiter: true,
-        kitchenStaff: true,
-        cancelledBy: true,
-        customer: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-        createdAt: true,
-      },
-    });
+  //       break;
+  //   }
+  //   const orders = await this.prisma.order.findMany({
+  //     where: {
+  //       kitchenStaffId: userId,
+  //       businessId,
+  //       createdAt: { gte: startDate, lt: endDate },
+  //     },
+  //     select: {
+  //       id: true,
+  //       tip: true,
+  //       table: true,
+  //       status: true,
+  //       cancelledAt: true,
+  //       completedAt: true,
+  //       payment: true,
+  //       options: true,
+  //       _count: true,
+  //       shift: true,
+  //       waiter: true,
+  //       kitchenStaff: true,
+  //       cancelledBy: true,
+  //       customer: {
+  //         select: {
+  //           id: true,
+  //           email: true,
+  //           name: true,
+  //         },
+  //       },
+  //       createdAt: true,
+  //     },
+  //   });
 
-    const kitchenStaffId = userId;
+  //   const kitchenStaffId = userId;
 
-    const ordersTaken = orders.length;
+  //   const ordersTaken = orders.length;
 
-    const relevantOrders = orders.filter(
-      (order) =>
-        order.kitchenStaff.userId === kitchenStaffId &&
-        order.payment !== null &&
-        order.payment.amount > 0,
-    );
-    const totalPaymentAmount = relevantOrders.reduce(
-      (acc, order) => acc + order.payment.amount,
-      0,
-    );
-    const averageOrderValue = totalPaymentAmount / relevantOrders.length;
+  //   const relevantOrders = orders.filter(
+  //     (order) =>
+  //       order.kitchenStaff.userId === kitchenStaffId &&
+  //       order.payment !== null &&
+  //       order.payment.amount > 0,
+  //   );
+  //   const totalPaymentAmount = relevantOrders.reduce(
+  //     (acc, order) => acc + order.payment.amount,
+  //     0,
+  //   );
+  //   const averageOrderValue = totalPaymentAmount / relevantOrders.length;
 
-    const uniqueTables = new Set(
-      orders
-        .filter((order) => order.kitchenStaff.userId === kitchenStaffId)
-        .map((order) => order.table.identifier),
-    );
-    const numTables = uniqueTables.size;
+  //   const uniqueTables = new Set(
+  //     orders
+  //       .filter((order) => order.kitchenStaff.userId === kitchenStaffId)
+  //       .map((order) => order.table.identifier),
+  //   );
+  //   const numTables = uniqueTables.size;
 
-    const totalRevenue = orders
-      .filter(
-        (order) =>
-          order.kitchenStaff.userId === kitchenStaffId &&
-          order.payment !== null,
-      )
-      .reduce((acc, order) => acc + order.payment.amount, 0);
+  //   const totalRevenue = orders
+  //     .filter(
+  //       (order) =>
+  //         order.kitchenStaff.userId === kitchenStaffId &&
+  //         order.payment !== null,
+  //     )
+  //     .reduce((acc, order) => acc + order.payment.amount, 0);
 
-    const paidOrders = orders.filter(
-      (order) =>
-        order.kitchenStaff.userId === kitchenStaffId &&
-        order.payment.paidAt !== null,
-    ).length;
-    const completedOrders = orders.filter(
-      (order) =>
-        order.kitchenStaff.userId === kitchenStaffId &&
-        order.completedAt !== null,
-    ).length;
-    const cancelledOrders = orders.filter(
-      (order) =>
-        order.kitchenStaff.userId === kitchenStaffId &&
-        order.cancelledAt !== null &&
-        order.cancelledBy === kitchenStaffId,
-    ).length;
-    const totalSales = orders
-      .filter(
-        (order) =>
-          order.kitchenStaff.userId === kitchenStaffId &&
-          order.payment !== null,
-      )
-      .reduce((acc, order) => acc + order.payment.amount, 0);
+  //   const paidOrders = orders.filter(
+  //     (order) =>
+  //       order.kitchenStaff.userId === kitchenStaffId &&
+  //       order.payment.paidAt !== null,
+  //   ).length;
+  //   const completedOrders = orders.filter(
+  //     (order) =>
+  //       order.kitchenStaff.userId === kitchenStaffId &&
+  //       order.completedAt !== null,
+  //   ).length;
+  //   const cancelledOrders = orders.filter(
+  //     (order) =>
+  //       order.kitchenStaff.userId === kitchenStaffId &&
+  //       order.cancelledAt !== null &&
+  //       order.cancelledBy === kitchenStaffId,
+  //   ).length;
+  //   const totalSales = orders
+  //     .filter(
+  //       (order) =>
+  //         order.kitchenStaff.userId === kitchenStaffId &&
+  //         order.payment !== null,
+  //     )
+  //     .reduce((acc, order) => acc + order.payment.amount, 0);
 
-    const previousPeriodSales = orders
-      .filter(
-        (order) =>
-          order.kitchenStaff.userId === kitchenStaffId &&
-          order.createdAt < endDate &&
-          order.payment !== null,
-      )
-      .reduce((acc, order) => acc + order.payment.amount, 0);
+  //   const previousPeriodSales = orders
+  //     .filter(
+  //       (order) =>
+  //         order.kitchenStaff.userId === kitchenStaffId &&
+  //         order.createdAt < endDate &&
+  //         order.payment !== null,
+  //     )
+  //     .reduce((acc, order) => acc + order.payment.amount, 0);
 
-    const salesGrowthRate =
-      ((totalSales - previousPeriodSales) / previousPeriodSales) * 100;
+  //   const salesGrowthRate =
+  //     ((totalSales - previousPeriodSales) / previousPeriodSales) * 100;
 
-    return {
-      // orders,
-      timeFrame: sortBy,
-      date: endDate.toISOString(),
-      businessId: businessId,
-      currency: "NGN",
-      kitchenStaff_performance: {
-        kitchenStaffId,
-        orders_taken: ordersTaken,
-        total_payment_amount: totalPaymentAmount,
-        average_order_value: averageOrderValue,
-        tables_served: numTables,
-      },
-      kichenStaff_sales_performance: {
-        total_sales: totalSales,
-        sales_growth_rate: salesGrowthRate,
-      },
-      orders: {
-        count: ordersTaken,
-        total_revenue: totalRevenue,
-        average_order_value: averageOrderValue,
-        by_status: {
-          paidAt: paidOrders,
-          completed: completedOrders,
-          cancelled: cancelledOrders,
-        },
-      },
-    };
-  }
+  //   return {
+  //     // orders,
+  //     timeFrame: sortBy,
+  //     date: endDate.toISOString(),
+  //     businessId: businessId,
+  //     currency: "NGN",
+  //     kitchenStaff_performance: {
+  //       kitchenStaffId,
+  //       orders_taken: ordersTaken,
+  //       total_payment_amount: totalPaymentAmount,
+  //       average_order_value: averageOrderValue,
+  //       tables_served: numTables,
+  //     },
+  //     kichenStaff_sales_performance: {
+  //       total_sales: totalSales,
+  //       sales_growth_rate: salesGrowthRate,
+  //     },
+  //     orders: {
+  //       count: ordersTaken,
+  //       total_revenue: totalRevenue,
+  //       average_order_value: averageOrderValue,
+  //       by_status: {
+  //         paidAt: paidOrders,
+  //         completed: completedOrders,
+  //         cancelled: cancelledOrders,
+  //       },
+  //     },
+  //   };
+  // }
 
   async getWaiter(userId: number, businessId: number): Promise<any> {
     const waiterAsUser = await this.prisma.staff.findUnique({
@@ -636,7 +645,7 @@ export class StaffsService {
             },
           },
         },
-        ordersAsWaiter: {
+        ordersAsAttendant: {
           select: {
             id: true,
             tableId: true,
@@ -673,7 +682,7 @@ export class StaffsService {
           name: waiterAsUser.business.name,
         },
         shifts: waiterAsUser.shifts,
-        orders: waiterAsUser.ordersAsWaiter,
+        orders: waiterAsUser.ordersAsAttendant,
       },
     };
   }

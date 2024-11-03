@@ -7,7 +7,6 @@ import {
   Req,
   UseGuards,
   UseInterceptors,
-  Query,
 } from "@nestjs/common";
 import { StaffsService } from "./staffs.service";
 import { CreateStaffDto } from "./dto/create-staff.dto";
@@ -45,7 +44,8 @@ export class StaffsController {
     @Req() request: Record<string, any>,
   ) {
     const { business_id } = request.headers;
-    return this.staffsService.createStaff(+business_id, createStaffDto);
+    const { id } = request.user;
+    return this.staffsService.createStaff(+business_id, id, createStaffDto);
   }
 
   @Get()
@@ -64,25 +64,25 @@ export class StaffsController {
     return this.staffsService.findStaff(+id, +business_id);
   }
 
-  @Get("waiter/:id/analytics")
-  @UseGuards(RoleGuard([Role.admin, Role.attendant]))
-  getWaiterAnalytics(
-    @Param("id") id: string,
-    @Req() request: Record<string, any>,
-    @Query("sortBy") sortBy?: string,
-  ) {
-    const { business_id } = request.headers;
-    return this.staffsService.waiterAnalytics(+id, +business_id, sortBy);
-  }
+  // @Get("waiter/:id/analytics")
+  // @UseGuards(RoleGuard([Role.admin, Role.attendant]))
+  // getWaiterAnalytics(
+  //   @Param("id") id: string,
+  //   @Req() request: Record<string, any>,
+  //   @Query("sortBy") sortBy?: string,
+  // ) {
+  //   const { business_id } = request.headers;
+  //   return this.staffsService.waiterAnalytics(+id, +business_id, sortBy);
+  // }
 
-  @Get("kitchen/:id/analytics")
-  @UseGuards(RoleGuard([Role.admin, Role.attendant]))
-  getKitchenStaffAnalytics(
-    @Param("id") id: string,
-    @Req() request: Record<string, any>,
-    @Query("sortBy") sortBy?: string,
-  ) {
-    const { business_id } = request.headers;
-    return this.staffsService.kitchenStaffAnalytics(+id, +business_id, sortBy);
-  }
+  // @Get("kitchen/:id/analytics")
+  // @UseGuards(RoleGuard([Role.admin, Role.attendant]))
+  // getKitchenStaffAnalytics(
+  //   @Param("id") id: string,
+  //   @Req() request: Record<string, any>,
+  //   @Query("sortBy") sortBy?: string,
+  // ) {
+  //   const { business_id } = request.headers;
+  //   return this.staffsService.kitchenStaffAnalytics(+id, +business_id, sortBy);
+  // }
 }

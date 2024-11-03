@@ -12,7 +12,6 @@ import * as bcrypt from "bcrypt";
 import { BaseResponse } from "src/app/entities/BaseResponse.entity";
 import { OtpService } from "src/otp/otp.service";
 import { AuthDto, Role } from "./dto/auth.dto";
-import { BusinessRoles } from "@prisma/client";
 
 @Injectable()
 export class AuthService {
@@ -53,17 +52,18 @@ export class AuthService {
       staff = await this.prisma.staff.findFirst({
         where: { userId: user.id },
       });
-    } else if (user.role != Role.customer) {
-      staff = await this.prisma.staff.findFirst({
-        where: {
-          userId: user.id,
-          role: {
-            name: { equals: BusinessRoles.admin || BusinessRoles.attendant },
-          },
-        },
-        select: { businessId: true, role: true },
-      });
     }
+    // else if (user.role !== Role.customer && user.role !== Role.guest) {
+    //   staff = await this.prisma.staff.findFirst({
+    //     where: {
+    //       userId: user.id,
+    //       role: {
+    //         name: { equals: BusinessRoles.admin || BusinessRoles.attendant },
+    //       },
+    //     },
+    //     select: { businessId: true, role: true },
+    //   });
+    // }
 
     const payload = { email: user.email, sub: user.id };
     return {

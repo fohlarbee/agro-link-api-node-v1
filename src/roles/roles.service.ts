@@ -22,7 +22,6 @@ export class RolesService {
     const existingRole = await this.prisma.role.findFirst({
       where: { businessId, name },
     });
-
     if (existingRole)
       throw new ConflictException("Role with name already exists");
     const role = await this.prisma.role.create({

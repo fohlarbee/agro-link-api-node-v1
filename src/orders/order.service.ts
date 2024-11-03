@@ -160,7 +160,7 @@ export class OrderService {
         table: { connect: { id: table.id } },
         shift: { connect: { id: shiftId } },
         tip,
-        waiter: {
+        attendant: {
           connect: {
             userId_businessId: { userId: staffId, businessId },
           },
@@ -177,8 +177,8 @@ export class OrderService {
       select: {
         id: true,
         table: { select: { identifier: true } },
-        waiter: { select: { user: { select: { name: true } } } },
-        kitchenStaff: { select: { user: { select: { name: true } } } },
+        // attendant: { select: { user: { select: { name: true } } } },
+        attendant: { select: { user: { select: { name: true } } } },
         options: {
           select: {
             option: {
@@ -284,7 +284,7 @@ export class OrderService {
       select: {
         id: true,
         tip: true,
-        waiterId: true,
+        attendantId: true,
         options: {
           select: {
             quantity: true,
@@ -320,8 +320,8 @@ export class OrderService {
             }, 0) + order.tip,
         };
         this.event.notifyBusiness(businessId, "orderPayment", payload);
-        // this.event.notifyWaiter(order.waiterId, "paymentPending", payload);
-        this.notificationService.sendPush(order.waiterId, {
+        // this.event.notifyWaiter(order.attendantId, "paymentPending", payload);
+        this.notificationService.sendPush(order.attendantId, {
           title: "Order",
           body: `Order payment for id ${order.id} is pending`,
           metadata: payload,
@@ -415,15 +415,15 @@ export class OrderService {
       orderIds.map(async (orderId) => {
         return await this.prisma.order.findUnique({
           where: { id: orderId },
-          select: { waiterId: true },
+          select: { attendantId: true },
         });
       }),
     );
 
     if (!orders.length) throw new NotFoundException("No orders found");
     orders.forEach((order) => {
-      // this.event.notifyWaiter(order.waiterId, "orderPayment", metadata);
-      this.notificationService.sendPush(order.waiterId, {
+      // this.event.notifyWaiter(order.attendantId, "orderPayment", metadata);
+      this.notificationService.sendPush(order.attendantId, {
         title: "orderPayment",
         body: "OrderPayment successful",
         metadata,
@@ -470,7 +470,7 @@ export class OrderService {
       select: {
         id: true,
         status: true,
-        waiter: true,
+        attendant: true,
         options: {
           select: {
             option: { select: { image: true, price: true, id: true } },
@@ -485,19 +485,19 @@ export class OrderService {
   }
   async acceptOrder(
     orderId: number,
-    kitchenStaffId: number,
+    attendantId: number,
     businessId: number,
   ): Promise<any> {
     const staff = await this.prisma.staff.findUnique({
       where: {
-        userId_businessId: { businessId, userId: kitchenStaffId },
+        userId_businessId: { businessId, userId: attendantId },
         role: { name: { equals: BusinessRoles.attendant } },
       },
     });
     if (!staff) throw new UnauthorizedException("staff not found");
     const order = await this.prisma.order.findUnique({
       where: { id: orderId, businessId, status: { equals: OrderStatus.paid } },
-      select: { customerId: true, waiterId: true, kitchenStaffId: true },
+      select: { customerId: true, attendantId: true },
     });
     if (!order)
       throw new BadRequestException("Order not found or not paid for");
@@ -506,13 +506,13 @@ export class OrderService {
       where: { id: orderId, businessId },
       data: {
         status: OrderStatus.preparing,
-        kitchenStaff: {
+        attendant: {
           connect: {
-            userId_businessId: { userId: kitchenStaffId, businessId },
+            userId_businessId: { userId: attendantId, businessId },
           },
         },
       },
-      select: { customerId: true, waiterId: true },
+      select: { customerId: true, attendantId: true },
     });
     const payload = {
       businessId,
@@ -522,7 +522,7 @@ export class OrderService {
     };
     // this.event.notifyKitchen(kitchenStaffId, "acceptedOrder", payload);
     this.event.notifyUser(order.customerId, "acceptedOrder", payload);
-    // this.event.notifyWaiter(order.waiterId, "acceptedOrder", payload);
+    // this.event.notifyWaiter(order.attendantId, "acceptedOrder", payload);
     return {
       message: "Order is accepted",
       status: "success",
@@ -531,28 +531,27 @@ export class OrderService {
 
   async markOrderAsReady(
     orderId: number,
-    kitchenStaffId: number,
+    attendantId: number,
     businessId: number,
   ): Promise<any> {
     const order = await this.prisma.order.findUnique({
       where: {
         id: orderId,
-        kitchenStaffId,
+        attendantId,
         businessId,
         status: OrderStatus.preparing,
       },
       select: {
         businessId: true,
-        kitchenStaffId: true,
+        attendantId: true,
         customerId: true,
-        waiterId: true,
         status: true,
       },
     });
     if (!order)
       throw new BadRequestException("Order not found or has not been prepared");
 
-    if (order.kitchenStaffId !== kitchenStaffId)
+    if (order.attendantId !== attendantId)
       throw new UnauthorizedException("Unauthorized to mark order as ready");
 
     if (order.status === OrderStatus.ready)
@@ -568,8 +567,8 @@ export class OrderService {
       status: OrderStatus.ready,
       type: "order",
     };
-    // this.event.notifyWaiter(order.waiterId, "orderIsReady", payload);
-    this.notificationService.sendPush(order.waiterId, {
+    // this.event.notifyWaiter(order.attendantId, "orderIsReady", payload);
+    this.notificationService.sendPush(order.attendantId, {
       title: "OrderIsReady",
       body: `Order ${orderId} is ready`,
       metadata: payload,
@@ -584,7 +583,7 @@ export class OrderService {
   }
   async markOrderAsDelivered(
     orderId: number,
-    waiterId: number,
+    attendantId: number,
     businessId: number,
   ): Promise<any> {
     const getOrder = await this.prisma.order.findUnique({
@@ -594,7 +593,7 @@ export class OrderService {
       throw new BadRequestException(
         `Order ${orderId} not found or has already been delivered`,
       );
-    if (!getOrder || getOrder.waiterId !== waiterId)
+    if (!getOrder || getOrder.attendantId !== attendantId)
       throw new UnauthorizedException(
         "Unauthorized to mark order as delivered",
       );
@@ -613,12 +612,12 @@ export class OrderService {
 
     if (getOrder.tip && getOrder.tip > 0) {
       const waiterWallet = await this.prisma.wallet.findFirst({
-        where: { AND: [{ userId: waiterId }, { businessId: null }] },
+        where: { AND: [{ userId: attendantId }, { businessId: null }] },
       });
       if (!waiterWallet)
         await this.prisma.wallet.create({
           data: {
-            userId: waiterId,
+            userId: attendantId,
             balance: getOrder.tip,
             businessId: null,
           },
@@ -632,7 +631,7 @@ export class OrderService {
       await this.prisma.payment.create({
         data: {
           reference: `TP_CUS${getOrder.customerId}${Date.now()}`,
-          userId: waiterId,
+          userId: attendantId,
           businessId: businessId,
           type: PaymentType.TIP,
           amount: getOrder.tip,
@@ -643,8 +642,8 @@ export class OrderService {
         },
       });
 
-      // this.event.notifyWaiter(getOrder.waiterId, "tips", payload);
-      this.notificationService.sendPush(getOrder.waiterId, {
+      // this.event.notifyWaiter(getOrder.attendantId, "tips", payload);
+      this.notificationService.sendPush(getOrder.attendantId, {
         title: "Tips",
         body: `You've received a tip of ${getOrder.tip}`,
         metadata: payload,
@@ -656,7 +655,7 @@ export class OrderService {
       body: `Order ${getOrder.id} delivered}`,
       metadata: payload,
     });
-    // this.event.notifyWaiter(getOrder.waiterId, "orderDelivered", payload);
+    // this.event.notifyWaiter(getOrder.attendantId, "orderDelivered", payload);
 
     return {
       message: "Order is marked as delivered",
@@ -695,14 +694,14 @@ export class OrderService {
       data: { status: OrderStatus.completed },
     });
     this.event.notifyUser(order.customerId, "orderCompleted", payload);
-    // this.event.notifyWaiter(order.waiterId, "orderCompleted", payload);
+    // this.event.notifyWaiter(order.attendantId, "orderCompleted", payload);
     // this.event.notifyKitchen(order.kitchenStaffId, "orderCompleted", payload);
   }
 
   async confirmPayment(
     orderId: number,
     businessId: number,
-    waiterId: number,
+    attendantId: number,
     completed: boolean,
     provider: "CASH" | "POS",
   ): Promise<any> {
@@ -723,7 +722,7 @@ export class OrderService {
       throw new BadRequestException(
         `Order ${orderId} is not in payment pending state`,
       );
-    if (!order || order.waiterId !== waiterId)
+    if (!order || order.attendantId !== attendantId)
       throw new UnauthorizedException("Unauthorized to confirm payment");
     if (!["CASH", "POS"].includes((provider as string).toUpperCase()))
       throw new BadRequestException({

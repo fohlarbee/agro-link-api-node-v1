@@ -132,7 +132,7 @@ export class TransactionService {
       select: {
         id: true,
         businessId: true,
-        waiterId: true,
+        attendantId: true,
         tip: true,
         options: {
           select: {
@@ -205,8 +205,8 @@ export class TransactionService {
     this.event.notifyBusiness(businessId, "orderPayment", payload);
 
     orders.forEach((order) => {
-      // this.event.notifyWaiter(order.waiterId, "orderPayment", payload);
-      this.notificationService.sendPush(order.waiterId, {
+      // this.event.notifyWaiter(order.attendantId, "orderPayment", payload);
+      this.notificationService.sendPush(order.attendantId, {
         title: "Order",
         body: "orderPayment",
         metadata: payload,
