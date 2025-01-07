@@ -21,7 +21,7 @@ async function bootstrap() {
     cors: true,
   });
 
-  app.setGlobalPrefix("v2");
+  app.setGlobalPrefix("v1");
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
@@ -29,14 +29,14 @@ async function bootstrap() {
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
   const config = new DocumentBuilder()
-    .setTitle("AGRO -FAST")
-    .setDescription("Agro-fast api documentation")
+    .setTitle("AGRO-LINK")
+    .setDescription("Agro-link api documentation")
     .setVersion("0.1")
     .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("agro-fast/api-docs", app, document, { explorer: true });
+  SwaggerModule.setup("agro-link/api-docs", app, document, { explorer: true });
 
   await app.listen(4000);
 

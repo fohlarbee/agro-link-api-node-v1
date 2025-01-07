@@ -23,7 +23,7 @@ import { BusinessAccessInterceptor } from "src/utils/interceptors/business-acces
 import RoleGuard from "src/auth/role/role.guard";
 import { Role } from "src/auth/dto/auth.dto";
 
-@Controller("admin/staffs")
+@Controller("staffs")
 @ApiTags("Staffs")
 @ApiBearerAuth()
 @UseGuards(HttpAuthGuard)

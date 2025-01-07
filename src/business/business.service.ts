@@ -283,7 +283,6 @@ export class BusinessService {
           include: {
             attendant: true,
             payment: true,
-            table: true,
           },
           orderBy: { createdAt: "desc" },
           skip,
@@ -297,9 +296,6 @@ export class BusinessService {
           take: perPage,
         },
         outlets: {
-          include: {
-            tables: { select: { id: true, identifier: true } },
-          },
           skip,
           take: perPage,
         },

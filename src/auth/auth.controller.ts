@@ -31,7 +31,7 @@ export class AuthController {
 
   @Post("login")
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: AuthEntity, status: HttpStatus.OK })
+  @ApiOkResponse({ type: AuthEntity })
   login(@Body() { email, password, deviceUUID }: LoginDto) {
     return this.authService.login(email, password, deviceUUID);
   }
