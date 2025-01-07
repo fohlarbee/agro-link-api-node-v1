@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -34,48 +33,6 @@ export class OutletsService {
       message: "Outlet fetched successfully",
       status: "success",
       data: outlets,
-    };
-  }
-
-  async createTable(
-    businessId: number,
-    outletId: number,
-    { identifier }: CreateTableDto,
-  ) {
-    const outlet = await this.prisma.outlet.findFirst({
-      where: { id: outletId, businessId },
-    });
-
-    if (!outlet) throw new BadRequestException("No such outlet in business");
-    const table = await this.prisma.table.create({
-      data: { identifier, outletId },
-    });
-    return {
-      message: "Table created successfully",
-      status: "success",
-      data: { table },
-    };
-  }
-
-  async GetOutletTables({
-    outletId,
-    businessId,
-  }: {
-    businessId: number;
-    outletId: number;
-  }) {
-    const outlet = await this.prisma.outlet.findFirst({
-      where: { id: outletId, businessId },
-    });
-
-    if (!outlet) throw new BadRequestException("No such outlet in business");
-    const tables = await this.prisma.table.findMany({
-      where: { outletId },
-    });
-    return {
-      message: "Tables fetched successfully",
-      status: "success",
-      data: tables,
     };
   }
 }

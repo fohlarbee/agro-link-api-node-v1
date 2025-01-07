@@ -61,22 +61,22 @@ export class ShiftsController {
     return this.shiftsService.findAllShifts(+business_id);
   }
 
-  @Post(":id/assign/tables")
-  @UseGuards(RoleGuard([Role.admin]))
-  // @UseInterceptors(new ValidPathParamInterceptor())
-  @ApiOkResponse({ type: BaseResponse })
-  assignTables(
-    @Param("id") shiftId: string,
-    @Body() { tableIds }: AssignShiftTablesDto,
-    @Req() request: Record<string, any>,
-  ) {
-    const { business_id } = request.headers;
-    return this.shiftsService.assignShiftTables(
-      +business_id,
-      +shiftId,
-      tableIds,
-    );
-  }
+  // @Post(":id/assign/tables")
+  // @UseGuards(RoleGuard([Role.admin]))
+  // // @UseInterceptors(new ValidPathParamInterceptor())
+  // @ApiOkResponse({ type: BaseResponse })
+  // assignTables(
+  //   @Param("id") shiftId: string,
+  //   @Body() { tableIds }: AssignShiftTablesDto,
+  //   @Req() request: Record<string, any>,
+  // ) {
+  //   const { business_id } = request.headers;
+  //   return this.shiftsService.assignShiftTables(
+  //     +business_id,
+  //     +shiftId,
+  //     tableIds,
+  //   );
+  // }
 
   @Put(":id/period")
   async updatePeriod(@Req() request, @Body() updateDto: UpdatePeriodDto) {

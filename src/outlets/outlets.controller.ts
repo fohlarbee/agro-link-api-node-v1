@@ -21,7 +21,6 @@ import {
   OutletListResponse,
 } from "./entities/outlet.entity";
 import { CreateTableDto } from "./dto/create-table.dto";
-import { TableCreationResponse } from "./entities/table.entity";
 import { HttpAuthGuard } from "src/auth/guards/http-auth.guard";
 import { BusinessAccessInterceptor } from "src/utils/interceptors/business-access-interceptor";
 import RoleGuard from "src/auth/role/role.guard";
@@ -55,28 +54,5 @@ export class OutletsController {
   findOutlets(@Req() request: Record<string, any>) {
     const { business_id: businessId } = request.headers;
     return this.outletsService.findOutlets(+businessId);
-  }
-
-  @Post(":outletId/tables")
-  @UseGuards(RoleGuard([Role.admin]))
-  @ApiCreatedResponse({ type: TableCreationResponse })
-  createTable(
-    @Req() request: Record<string, any>,
-    @Body() tableData: CreateTableDto,
-  ) {
-    const { business_id: businessId } = request.headers;
-    const { outletId } = request.params;
-    return this.outletsService.createTable(+businessId, +outletId, tableData);
-  }
-
-  @Get(":outletId/tables")
-  @ApiOkResponse({ type: OutletListResponse })
-  findOutletTables(@Req() request: Record<string, any>) {
-    const { business_id: businessId } = request.headers;
-    const { outletId } = request.params;
-    return this.outletsService.GetOutletTables({
-      businessId: +businessId,
-      outletId: +outletId,
-    });
   }
 }

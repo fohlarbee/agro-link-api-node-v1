@@ -29,15 +29,7 @@ export class OrderService {
   ) {}
 
   async getDayOfWeek(date: Date) {
-    const days = [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ];
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     return days[date.getDay()];
   }
 
@@ -96,7 +88,6 @@ export class OrderService {
   private async createNewOrder({
     customerId,
     businessId,
-    tableIdentifier,
     tip,
   }: {
     customerId: number;
@@ -104,60 +95,76 @@ export class OrderService {
     tableIdentifier: string;
     tip: number;
   }) {
-    const table = await this.prisma.table.findFirst({
+    const shifts = await this.prisma.shift.findFirst({
       where: {
-        identifier: tableIdentifier,
         outlet: { businessId: businessId },
+        periods: {
+          some: {
+            AND: [
+              {
+                day: {
+                  equals: new Date()
+                    .toLocaleString("en-UK", { weekday: "short" })
+                    .toString(),
+                },
+              },
+
+              {
+                startTime: {
+                  lte: new Date().toTimeString().split(" ")[0].toString(),
+                }, //09:00:00
+              },
+              {
+                endTime: {
+                  gte: new Date().toTimeString().split(" ")[0].toString(),
+                },
+              },
+            ],
+          },
+        },
       },
       select: {
         id: true,
-        assignedShifts: {
+        startTime: true,
+        endTime: true,
+        userId: true,
+        periods: {
           where: {
-            shift: {
-              // startTime: { lte: new Date() },
-              // endTime: { gt: new Date() },
-              periods: {
-                some: {
-                  AND: [
-                    {
-                      day: {
-                        equals: new Date()
-                          .toLocaleString("en-UK", { weekday: "short" })
-                          .toString(),
-                      },
-                    },
-
-                    {
-                      startTime: {
-                        lte: new Date().toTimeString().split(" ")[0].toString(),
-                      }, //09:00:00
-                    },
-                    {
-                      endTime: {
-                        gte: new Date().toTimeString().split(" ")[0].toString(),
-                      },
-                    },
-                  ],
+            AND: [
+              {
+                day: {
+                  equals: new Date()
+                    .toLocaleString("en-UK", { weekday: "short" })
+                    .toString(),
                 },
               },
-            },
+
+              {
+                startTime: {
+                  lte: new Date().toTimeString().split(" ")[0].toString(),
+                }, //09:00:00
+              },
+              {
+                endTime: {
+                  gte: new Date().toTimeString().split(" ")[0].toString(),
+                },
+              },
+            ],
           },
-          select: { shift: true },
         },
       },
     });
-    console.log(table);
-    if (!table) throw new BadRequestException("Invalid table selected");
-    if (table.assignedShifts.length < 1)
+
+    if (!shifts) throw new BadRequestException("Invalid shift selected");
+    if (shifts.periods.length < 1)
       throw new UnprocessableEntityException(
-        "No waiter to take your order at this moment",
+        "No attendant to take your order at this moment",
       );
-    const { id: shiftId, userId: staffId } = table.assignedShifts[0].shift;
+    const { id: shiftId, userId: staffId } = shifts;
     return this.prisma.order.create({
       data: {
         customer: { connect: { id: customerId } },
         business: { connect: { id: businessId } },
-        table: { connect: { id: table.id } },
         shift: { connect: { id: shiftId } },
         tip,
         attendant: {
@@ -176,8 +183,6 @@ export class OrderService {
       where: { customerId, status: OrderStatus.active },
       select: {
         id: true,
-        table: { select: { identifier: true } },
-        // attendant: { select: { user: { select: { name: true } } } },
         attendant: { select: { user: { select: { name: true } } } },
         options: {
           select: {
@@ -801,6 +806,7 @@ export class OrderService {
       status: "success",
     };
   }
+
 
   // Helper functions
 }

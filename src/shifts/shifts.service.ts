@@ -71,11 +71,6 @@ export class ShiftsService {
     const shifts = await this.prisma.shift.findMany({
       where: { businessId },
       include: {
-        assignedTables: {
-          include: {
-            table: true,
-          },
-        },
         outlet: true,
         user: true,
         role: true,
@@ -88,38 +83,38 @@ export class ShiftsService {
     };
   }
 
-  async assignShiftTables(
-    businessId: number,
-    shiftId: number,
-    tableIds: number[],
-  ) {
-    const shift = await this.prisma.shift.findFirst({
-      where: { id: shiftId, businessId },
-    });
-    const tables = await Promise.all(
-      tableIds.map(async (tableId) => {
-        const table = await this.prisma.table.findFirst({
-          where: { id: tableId, outletId: shift.outletId },
-        });
-        return { tableId, table };
-      }),
-    );
-    const invalidTableIds = tables
-      .filter((table) => !table.table)
-      .map((table) => table.tableId);
-    if (invalidTableIds.length > 0)
-      throw new BadRequestException(
-        `These tables do not exist in shift outlet ${invalidTableIds}`,
-      );
-    await this.prisma.shiftTables.createMany({
-      data: tableIds.map((tableId) => ({ shiftId, tableId })),
-    });
+  // async assignShiftTables(
+  //   businessId: number,
+  //   shiftId: number,
+  //   tableIds: number[],
+  // ) {
+  //   const shift = await this.prisma.shift.findFirst({
+  //     where: { id: shiftId, businessId },
+  //   });
+  //   const tables = await Promise.all(
+  //     tableIds.map(async (tableId) => {
+  //       const table = await this.prisma.table.findFirst({
+  //         where: { id: tableId, outletId: shift.outletId },
+  //       });
+  //       return { tableId, table };
+  //     }),
+  //   );
+  //   const invalidTableIds = tables
+  //     .filter((table) => !table.table)
+  //     .map((table) => table.tableId);
+  //   if (invalidTableIds.length > 0)
+  //     throw new BadRequestException(
+  //       `These tables do not exist in shift outlet ${invalidTableIds}`,
+  //     );
+  //   await this.prisma.shiftTables.createMany({
+  //     data: tableIds.map((tableId) => ({ shiftId, tableId })),
+  //   });
 
-    return {
-      message: "Tables assigned successfully",
-      status: "success",
-    };
-  }
+  //   return {
+  //     message: "Tables assigned successfully",
+  //     status: "success",
+  //   };
+  // }
 
   async updatePeriod(periodId: number, updateDto: UpdatePeriodDto) {
     if (!periodId) throw new BadRequestException("Period ID is required");
@@ -141,7 +136,7 @@ export class ShiftsService {
     };
   }
   async returnDateString(dateTime: string): Promise<any> {
-      const date = new Date();
+    const date = new Date();
 
     const [hours, minutes] = dateTime.split(":").map(Number);
 

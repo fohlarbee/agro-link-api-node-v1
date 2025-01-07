@@ -106,10 +106,8 @@ model Staff {
   roleId     Int
   role       Role     @relation(fields: [roleId], references: [id])
   shifts     Shift[]
-  // orders     Order[]
 
   ordersAsAttendant Order[] @relation("OrderAttendant")
-  // ordersAsKitchenStaff Order[] @relation("OrderKitchenStaff")
 
   // Keys
   @@id([userId, businessId])
@@ -127,22 +125,22 @@ model Outlet {
   // Relationships
   businessId Int
   business   Business @relation(fields: [businessId], references: [id])
-  tables     Table[]
+  // tables     Table[]
   shifts     Shift[]
 }
 
-model Table {
-  id         Int      @id @default(autoincrement())
-  identifier String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+// model Table {
+//   id         Int      @id @default(autoincrement())
+//   identifier String
+//   createdAt  DateTime @default(now())
+//   updatedAt  DateTime @updatedAt
 
-  // Relationships
-  outletId       Int
-  outlet         Outlet        @relation(fields: [outletId], references: [id])
-  assignedShifts ShiftTables[]
-  orders         Order[]
-}
+//   // Relationships
+//   outletId       Int
+//   // outlet         Outlet        @relation(fields: [outletId], references: [id])
+//   assignedShifts ShiftTables[]
+//   orders         Order[]
+// }
 
 model Period {
   id        Int      @id @default(autoincrement())
@@ -173,20 +171,20 @@ model Shift {
   roleId         Int
   role           Role          @relation(fields: [roleId], references: [id])
   staff          Staff         @relation(fields: [userId, businessId], references: [userId, businessId])
-  assignedTables ShiftTables[]
+  // assignedTables ShiftTables[]
   orders         Order[]
   periods        Period[]
 }
 
-model ShiftTables {
-  shiftId Int
-  shift   Shift @relation(fields: [shiftId], references: [id])
-  tableId Int
-  table   Table @relation(fields: [tableId], references: [id])
+// model ShiftTables {
+//   shiftId Int
+//   shift   Shift @relation(fields: [shiftId], references: [id])
+//   // tableId Int
+//   // table   Table @relation(fields: [tableId], references: [id])
 
-  // Compound key
-  @@id([shiftId, tableId])
-}
+//   // Compound key
+//   @@id([shiftId])
+// }
 
 model Menu {
   id        Int      @id @default(autoincrement())
@@ -257,8 +255,8 @@ model Order {
   business    Business @relation(fields: [businessId], references: [id])
   paymentId   Int?
   payment     Payment? @relation(fields: [paymentId], references: [id])
-  tableId     Int
-  table       Table    @relation(fields: [tableId], references: [id])
+  // tableId     Int
+  // table       Table    @relation(fields: [tableId], references: [id])
   shiftId     Int
   shift       Shift    @relation(fields: [shiftId], references: [id])
   // attendantId   Int
